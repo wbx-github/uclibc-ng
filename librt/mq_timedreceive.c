@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <cancel.h>
 
+#if defined(__NR_mq_timedreceive_time64) || defined(__NR_mq_timedreceive)
+
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_mq_timedreceive_time64)
 #include "internal/time64_helpers.h"
 
@@ -24,3 +26,5 @@ CANCELLABLE_SYSCALL(ssize_t, mq_timedreceive, (mqd_t mqdes, char *__restrict msg
 		    (mqdes, msg_ptr, msq_len, msq_prio, abs_timeout))
 
 lt_libc_hidden(mq_timedreceive)
+
+#endif /* defined(__NR_mq_timedreceive_time64) || defined(__NR_mq_timedreceive) */

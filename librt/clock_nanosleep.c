@@ -25,6 +25,8 @@
 #include "internal/time64_helpers.h"
 #endif
 
+#if defined(__NR_clock_nanosleep) || defined(__NR_clock_nanosleep_time64)
+
 /* We can simply use the syscall.  The CPU clocks are not supported
    with this function.  */
 int
@@ -73,3 +75,5 @@ clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
   return (INTERNAL_SYSCALL_ERROR_P (r, err)
 	  ? INTERNAL_SYSCALL_ERRNO (r, err) : 0);
 }
+
+#endif /* __NR_clock_nanosleep || __NR_clock_nanosleep_time64 */
