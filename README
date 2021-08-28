@@ -13,7 +13,7 @@ recompiling the source code.  uClibc-ng even supports shared libraries and
 threading. It currently runs on standard Linux and MMU-less (also known as
 µClinux) systems with support for Alpha, ARC, ARM, Blackfin, CRIS, FR-V, HPPA,
 IA64, KVX, LM32, M68K/Coldfire, Metag, Microblaze, MIPS, MIPS64, NDS32, NIOS2,
-OpenRisc, PowerPC, SuperH, Sparc, Tile, x86, x86_64 and Xtensa processors.
+OpenRisc, PowerPC, SuperH, Sparc, Tile, V850, x86, x86_64 and Xtensa processors.
 
 If you are building an embedded Linux system and you find that glibc is eating
 up too much space, you should consider using uClibc-ng.  If you are building a
