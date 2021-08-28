@@ -45,6 +45,7 @@ choice
 	default TARGET_sparc if DESIRED_TARGET_ARCH = "sparc"
 	default TARGET_sparc64 if DESIRED_TARGET_ARCH = "sparc64"
 	default TARGET_tile if DESIRED_TARGET_ARCH = "tile"
+	default TARGET_v850 if DESIRED_TARGET_ARCH = "v850"
 	default TARGET_x86_64 if DESIRED_TARGET_ARCH = "x86_64"
 	default TARGET_xtensa if DESIRED_TARGET_ARCH = "xtensa"
 	help
@@ -144,6 +145,9 @@ config TARGET_sparc64
 
 config TARGET_tile
 	bool "tile"
+
+config TARGET_v850
+	bool "v850"
 
 config TARGET_x86_64
 	bool "x86_64"
@@ -292,6 +296,10 @@ endif
 
 if TARGET_tile
 source "extra/Configs/Config.tile"
+endif
+
+if TARGET_v850
+source "extra/Configs/Config.v850"
 endif
 
 if TARGET_x86_64

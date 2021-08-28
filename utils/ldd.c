@@ -142,6 +142,11 @@
 #define ELFCLASSM	ELFCLASS32
 #endif
 
+#if defined(__v850e__)
+#define MATCH_MACHINE(x) ((x) == EM_V850 || (x) == EM_CYGNUS_V850)
+#define ELFCLASSM	ELFCLASS32
+#endif
+
 #if defined(__sparc__)
 #define MATCH_MACHINE(x) ((x) == EM_SPARC || (x) == EM_SPARC32PLUS)
 #define ELFCLASSM    ELFCLASS32

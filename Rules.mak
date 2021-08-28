@@ -521,6 +521,10 @@ ifeq ($(strip $(TARGET_ARCH)),avr32)
        CPU_LDFLAGS-$(CONFIG_LINKRELAX) += --relax
 endif
 
+ifeq ($(TARGET_ARCH),v850)
+      SYMBOL_PREFIX=_
+endif
+
 ifeq ($(TARGET_ARCH),c6x)
 	PIEFLAG:=
 	CPU_CFLAGS-$(CONFIG_TMS320C64X) += -march=c64x
