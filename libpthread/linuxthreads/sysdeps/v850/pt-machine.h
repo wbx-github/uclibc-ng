@@ -26,6 +26,7 @@
 register char *__stack_pointer __asm__ ("sp");
 
 #define HAS_COMPARE_AND_SWAP
+#define IMPLEMENT_TAS_WITH_CAS
 
 /* Atomically:  If *PTR == OLD, set *PTR to NEW and return true,
    otherwise do nothing and return false.  */
@@ -37,7 +38,7 @@ __compare_and_swap (long *ptr, long old, long new)
   /* disable interrupts  */
   __asm__ __volatile__ ("stsr psw, %0; di" : "=&r" (psw));
 
-  if (likely (*ptr == old))
+  if (__builtin_expect (*ptr == old, 1))
     {
       *ptr = new;
       __asm__ __volatile__ ("ldsr %0, psw" :: "r" (psw)); /* re-enable */

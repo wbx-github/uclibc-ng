@@ -12,7 +12,8 @@
  */
 
 #include <sys/syscall.h>
-#include <clinkage.h>
+#undef C_SYMBOL_NAME
+#include "clinkage.h"
 
 /* Clone the calling process, but without copying the whole address space.
    The calling process is suspended until the new process exits or is

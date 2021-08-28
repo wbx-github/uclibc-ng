@@ -1,6 +1,6 @@
 	.file	"initfini.c"
 #APP
-	
+
 	.section .init
 #NO_APP
 	.align 1
@@ -9,7 +9,7 @@
 #NO_APP
 	jr __return_r31
 #APP
-	
+
 	.section .fini
 #NO_APP
 	.align 1
@@ -18,5 +18,7 @@
 #NO_APP
 	jr __return_r31
 #APP
-	
+
 	.ident	"GCC: (GNU) 3.3.2"
+
+.section .note.GNU-stack,"",%progbits

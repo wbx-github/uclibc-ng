@@ -34,6 +34,13 @@
 # define POLLWRBAND	0x100		/* Priority data may be written.  */
 #endif
 
+#ifdef __USE_GNU
+/* These are extensions for Linux.  */
+# define POLLMSG	0x0400
+# define POLLREMOVE	0x1000
+# define POLLRDHUP	0x2000
+#endif
+
 /* Event types always implicitly polled for.  These bits need not be set in
    `events', but they will appear in `revents' to indicate the status of
    the file descriptor.  */

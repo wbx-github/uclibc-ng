@@ -15,7 +15,7 @@
 #include <sys/syscall.h>
 
 int
-clone (int (*fn)(void *arg), void *child_stack, int flags, void *arg)
+clone (int (*fn)(void *arg), void *child_stack, int flags, void *arg, ...)
 {
   register unsigned long rval __asm__ (SYSCALL_RET) = -EINVAL;
 

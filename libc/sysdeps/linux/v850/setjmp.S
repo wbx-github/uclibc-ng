@@ -7,11 +7,12 @@
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License.  See the file COPYING.LIB in the main
  * directory of this archive for more details.
- * 
+ *
  * Written by Miles Bader <miles@gnu.org>
  */
 
-#include <clinkage.h>
+#undef C_SYMBOL_NAME
+#include "clinkage.h"
 
 	.text
 C_ENTRY(setjmp):
@@ -42,3 +43,5 @@ C_SYMBOL_NAME(__sigsetjmp):
 	/* Make a tail call to __sigjmp_save; it takes the same args.  */
 	jr	C_SYMBOL_NAME(__sigjmp_save)
 C_END(setjmp)
+
+.section .note.GNU-stack,"",%progbits

@@ -11,7 +11,8 @@
  * Written by Miles Bader <miles@gnu.org>
  */
 
-#include <clinkage.h>
+#undef C_SYMBOL_NAME
+#include "clinkage.h"
 
 	.text
 C_ENTRY(__longjmp):
@@ -34,3 +35,5 @@ C_ENTRY(__longjmp):
 	jmp	[lp]
 C_END(__longjmp)
 libc_hidden_def(__longjmp)
+
+.section .note.GNU-stack,"",%progbits
