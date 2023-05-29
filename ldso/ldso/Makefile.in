@@ -63,14 +63,15 @@ ldso_FULL_NAME := $(UCLIBC_LDSO_NAME)-$(VERSION).so
 $(UCLIBC_LDSO_NAME)_DIR := $(top_srcdir)ldso/ldso
 $(UCLIBC_LDSO_NAME)_OUT := $(top_builddir)ldso/ldso
 
-$(UCLIBC_LDSO_NAME)_CSRC := $($(UCLIBC_LDSO_NAME)_DIR)/ldso.c
+$(UCLIBC_LDSO_NAME)_CSRC := $($(UCLIBC_LDSO_NAME)_DIR)/ldso.c $($(UCLIBC_LDSO_NAME)_DIR)/dl-vdso.c
 # prerequesites
 $($(UCLIBC_LDSO_NAME)_OUT)/ldso.o $($(UCLIBC_LDSO_NAME)_OUT)/ldso.oS: \
 	$($(UCLIBC_LDSO_NAME)_DIR)/dl-debug.c \
 	$($(UCLIBC_LDSO_NAME)_DIR)/dl-startup.c \
 	$($(UCLIBC_LDSO_NAME)_DIR)/dl-array.c \
 	$($(UCLIBC_LDSO_NAME)_DIR)/dl-hash.c \
-	$($(UCLIBC_LDSO_NAME)_DIR)/dl-elf.c
+	$($(UCLIBC_LDSO_NAME)_DIR)/dl-elf.c \
+	$($(UCLIBC_LDSO_NAME)_DIR)/dl-vdso.c
 $(UCLIBC_LDSO_NAME)_COBJ := $(patsubst $($(UCLIBC_LDSO_NAME)_DIR)/%.c,$($(UCLIBC_LDSO_NAME)_OUT)/%.o,$($(UCLIBC_LDSO_NAME)_CSRC))
 
 $(UCLIBC_LDSO_NAME)_SSRC := $(wildcard $($(UCLIBC_LDSO_NAME)_DIR)/$(TARGET_ARCH)/*.S)

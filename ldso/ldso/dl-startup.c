@@ -367,6 +367,9 @@ DL_START(unsigned long args)
 			_dl_get_ready_to_run(tpnt, load_addr, envp, argv
 					     DL_GET_READY_TO_RUN_EXTRA_ARGS);
 
+
+	load_vdso(_dl_auxvt[AT_SYSINFO_EHDR].a_un.a_val, envp);
+
 	/* Transfer control to the application.  */
 	SEND_STDERR_DEBUG("transfering control to application @ ");
 	SEND_ADDRESS_STDERR_DEBUG(_dl_elf_main, 1);

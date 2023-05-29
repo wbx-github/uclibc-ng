@@ -109,6 +109,7 @@ extern char *_dl_debug_reloc;
 extern char *_dl_debug_detail;
 extern char *_dl_debug_nofixups;
 extern char *_dl_debug_bindings;
+extern char *_dl_debug_vdso;
 extern int   _dl_debug_file;
 # define __dl_debug_dprint(fmt, args...) \
 	_dl_dprintf(_dl_debug_file, "%s:%i: " fmt, __func__, __LINE__, ## args);
@@ -192,5 +193,11 @@ extern void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE loa
 
 #define AUX_MAX_AT_ID 40
 extern ElfW(auxv_t) _dl_auxvt[AUX_MAX_AT_ID];
+
+void load_vdso( uint32_t sys_info_ehdr, char **envp );
+
+#ifdef __VDSO_SUPPORT__
+extern void* _dl__vdso_gettimeofday;
+#endif
 
 #endif /* _LDSO_H */

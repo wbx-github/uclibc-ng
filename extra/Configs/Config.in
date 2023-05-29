@@ -455,6 +455,22 @@ config LDSO_PRELINK_SUPPORT
 	  time. It also is able to load and handle prelinked libraries and
 	  binaries at runtime.
 
+config ARCH_VDSO_SUPPORT
+	bool
+	
+config VDSO_SUPPORT
+	bool "Dynamic linker vDSO support"
+	depends on ARCH_VDSO_SUPPORT
+	help
+	  Enable this option to support vDSO loading
+
+	  vDSO provides access to some kernel function without a systemcall
+	  if provided by the kernel
+
+	  most archs support gettimeofday() and clock_gettime()
+
+	  vDSO loading can be disabled via VDSO_DISABLE environment variable
+
 config UCLIBC_STATIC_LDCONFIG
 	bool "Link ldconfig statically"
 	depends on HAVE_SHARED
@@ -2321,6 +2337,7 @@ config SUPPORT_LD_DEBUG
 	    nofixups      never fixes up jump relocations
 	    bindings      displays the resolve processing (function calls);
 	                  detail shows the relocation patch
+	    vdso          display vdso symbol table processing
 	    all           Enable everything!
 
 	  The additional environment variable:

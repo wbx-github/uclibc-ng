@@ -73,6 +73,7 @@ char *_dl_debug_reloc     = NULL;
 char *_dl_debug_detail    = NULL;
 char *_dl_debug_nofixups  = NULL;
 char *_dl_debug_bindings  = NULL;
+char *_dl_debug_vdso      = NULL;
 int   _dl_debug_file      = 2;
 #endif
 
@@ -791,7 +792,7 @@ of this helper program; chances are you did not intend to run this program.\n\
 	if (_dl_debug) {
 		if (_dl_strstr(_dl_debug, "all")) {
 			_dl_debug_detail = _dl_debug_move = _dl_debug_symbols
-				= _dl_debug_reloc = _dl_debug_bindings = _dl_debug_nofixups = (void*)1;
+				= _dl_debug_reloc = _dl_debug_bindings = _dl_debug_nofixups = _dl_debug_vdso = (void*)1;
 		} else {
 			_dl_debug_detail   = _dl_strstr(_dl_debug, "detail");
 			_dl_debug_move     = _dl_strstr(_dl_debug, "move");
@@ -799,6 +800,7 @@ of this helper program; chances are you did not intend to run this program.\n\
 			_dl_debug_reloc    = _dl_strstr(_dl_debug, "reloc");
 			_dl_debug_nofixups = _dl_strstr(_dl_debug, "nofix");
 			_dl_debug_bindings = _dl_strstr(_dl_debug, "bind");
+			_dl_debug_vdso     = _dl_strstr(_dl_debug, "vdso");
 		}
 	}
 
