@@ -22,13 +22,18 @@
 #include "sys/auxv.h"
 
 
-unsigned long int getauxval (unsigned long int __type)
+/*
+ *
+ * aarch64 gcc 11 uses __getauxval() in init_have_lse_atomics()
+ *
+ */
+unsigned long int __getauxval (unsigned long int __type)
 {
 	if ( __type >= AUX_MAX_AT_ID ){
 		__set_errno (ENOENT);
 		return 0;
 	}
-	
+
 	if ( _dl_auxvt[__type].a_type == __type){
 		return _dl_auxvt[__type].a_un.a_val;
 	}
@@ -37,4 +42,7 @@ unsigned long int getauxval (unsigned long int __type)
 	return 0;
 }
 
+unsigned long int getauxval (unsigned long int __type){
+	return __getauxval( __type );
+}
 
