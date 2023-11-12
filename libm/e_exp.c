@@ -143,7 +143,7 @@ double __ieee754_exp(double x)	/* default IEEE double exp */
 	c  = x - t*(P1+t*(P2+t*(P3+t*(P4+t*P5))));
 	if(k==0) 	return one-((x*c)/(c-2.0)-x);
 	else 		y = one-((lo-(x*c)/(2.0-c))-hi);
-	if(k >= -1021) {
+	if(k >= 0) {
 	    u_int32_t hy;
 	    GET_HIGH_WORD(hy,y);
 	    SET_HIGH_WORD(y,hy+(k<<20));	/* add k to y's exponent */
