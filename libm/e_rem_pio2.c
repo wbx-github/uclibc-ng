@@ -146,7 +146,7 @@ int32_t __ieee754_rem_pio2(double x, double *y)
     /* set z = scalbn(|x|,ilogb(x)-23) */
 	GET_LOW_WORD(low,x);
 	SET_LOW_WORD(z,low);
-	e0 	= (ix>>20)-1046;	/* e0 = ilogb(z)-23; */
+	e0 	= (ix>>20)-1043;	/* e0 = ilogb(z)-23; */
 	SET_HIGH_WORD(z, ix - ((int32_t)(e0<<20)));
 	for(i=0;i<2;i++) {
 		tx[i] = (double)((int32_t)(z));
