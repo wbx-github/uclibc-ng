@@ -7,44 +7,20 @@ size_t escape(char* in, char* out, size_t outsize) {
 	while(*in && l + 3 < outsize) {
 		switch(*in) {
 			case '\n':
-				*out++ = '\\';
-				l++;
-				*out = 'n';
-				break;
 			case '\r':
-				*out++ = '\\';
-				l++;
-				*out = 'r';
-				break;
 			case '\t':
-				*out++ = '\\';
-				l++;
-				*out = 't';
-				break;
-			case '\\':
-				*out++ = '\\';
-				l++;
-				*out = '\\';
-				break;
-			case '"':
-				*out++ = '\\';
-				l++;
-				*out = '"';
-				break;
 			case '\v':
-				*out++ = '\\';
-				l++;
-				*out = '\v';
-				break;
 			case '\?':
-				*out++ = '\\';
-				l++;
-				*out = '\?';
-				break;
 			case '\f':
 				*out++ = '\\';
 				l++;
-				*out = '\f';
+				*out = in[1];
+				break;
+			case '\\':
+			case '"':
+				*out++ = '\\';
+				l++;
+				*out = in[0];
 				break;
 			default:
 				*out = *in;
@@ -75,12 +51,6 @@ size_t unescape(char* in, char *out, size_t outsize) {
 					case 't':
 						*out='\t';
 						break;
-					case '\\':
-						*out='\\';
-						break;
-					case '"':
-						*out='"';
-						break;
 					case 'v':
 						*out='\v';
 						break;
@@ -90,11 +60,13 @@ size_t unescape(char* in, char *out, size_t outsize) {
 					case 'f':
 						*out = '\f';
 						break;
-					case '\'':
-						*out = '\'';
-						break;
 					case 'b':
 						*out = '\b';
+						break;
+					case '\\':
+					case '"':
+					case '\'':
+						*out=*in;
 						break;
 					// FIXME add handling of hex and octal
 					default:
