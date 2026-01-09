@@ -1259,6 +1259,10 @@ extern int getentropy(void *__buf, size_t __len) __nonnull ((1)) __wur;
 # endif
 #endif
 
+#if (defined _GNU_SOURCE && defined __UCLIBC_HAS_THREADS_NATIVE__)
+pid_t gettid(void);
+#endif
+
 __END_DECLS
 
 

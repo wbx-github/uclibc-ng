@@ -68,7 +68,7 @@ libpthread_linux_CSRC += pthread_attr_getaffinity.c pthread_attr_setaffinity.c \
 libpthread_linux_SSRC := #ptw-close.S ptw-open.S ptw-waitid.S ptw-waidpid.S ptw-write.S
 
 libc_linux_CSRC += libc_pthread_init.c libc_multiple_threads.c		\
-	register-atfork.c unregister-atfork.c getpid.c		\
+	register-atfork.c unregister-atfork.c getpid.c gettid.c		\
 	raise.c jmp-unwind.c
 
 librt_linux_CSRC += mq_notify.c timer_create.c timer_delete.c		\
