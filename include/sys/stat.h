@@ -390,9 +390,7 @@ extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
 /* on uClibc we have unversioned struct stat and mknod.
  * bits/stat.h is filled with wrong info, so we undo it here.  */
 #undef _STAT_VER
-#define _STAT_VER 0
 #undef _MKNOD_VER
-#define _MKNOD_VER 0
 
 #ifdef __UCLIBC_HAVE_STATX__
 #ifdef __USE_GNU
