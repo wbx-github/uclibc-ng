@@ -33,6 +33,39 @@ struct ntptimeval
 
 struct timex
 {
+#ifdef __UCLIBC_USE_TIME64__
+  unsigned int modes;	/* mode selector */
+  int :32;
+  long long offset;	/* time offset (usec) */
+  long long freq;	/* frequency offset (scaled ppm) */
+  long long maxerror;	/* maximum error (usec) */
+  long long esterror;	/* estimated error (usec) */
+  int status;		/* clock command/status */
+  int :32;
+  long long constant;	/* pll time constant */
+  long long precision;	/* clock precision (usec) (read only) */
+  long long tolerance;	/* clock frequency tolerance (ppm) (read only) */
+  struct timeval time;	/* (read only) */
+  long long tick;	/* (modified) usecs between clock ticks */
+  long long ppsfreq;	/* pps frequency (scaled ppm) (ro) */
+  long long jitter;	/* pps jitter (us) (ro) */
+  int shift;		/* interval duration (s) (shift) (ro) */
+  int :32;
+  long long stabil;	/* pps stability (scaled ppm) (ro) */
+  long long jitcnt;	/* jitter limit exceeded (ro) */
+  long long calcnt;	/* calibration intervals (ro) */
+  long long errcnt;	/* calibration errors (ro) */
+  long long stbcnt;	/* stability limit exceeded (ro) */
+
+  int tai;		/* TAI offset (ro) */
+
+  /* ??? */
+  int  :32; int  :32; int  :32; int  :32;
+  int  :32; int  :32; int  :32; int  :32;
+  int  :32; int  :32; int  :32;
+
+#else
+
   unsigned int modes;	/* mode selector */
   long int offset;	/* time offset (usec) */
   long int freq;	/* frequency offset (scaled ppm) */
@@ -59,6 +92,7 @@ struct timex
   int  :32; int  :32; int  :32; int  :32;
   int  :32; int  :32; int  :32; int  :32;
   int  :32; int  :32; int  :32; int  :32;
+#endif
 };
 
 /* Mode codes (timex.mode) */
