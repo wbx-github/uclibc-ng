@@ -392,12 +392,9 @@ extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
 #undef _STAT_VER
 #undef _MKNOD_VER
 
-#ifdef __UCLIBC_HAVE_STATX__
 #ifdef __USE_GNU
 # include <bits/statx.h>
 #endif
-#endif
-
 
 __END_DECLS
 
