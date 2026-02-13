@@ -383,6 +383,7 @@ endif
 ifeq ($(TARGET_ARCH),sparc)
 	CPU_CFLAGS-$(CONFIG_SPARC_V7)+=-mcpu=v7
 	CPU_CFLAGS-$(CONFIG_SPARC_V8)+=-mcpu=v8
+	CPU_CFLAGS-$(CONFIG_SPARC_LEON3)+=-mcpu=leon3
 	CPU_CFLAGS-$(CONFIG_SPARC_V9)+=-mcpu=v9
 	CPU_CFLAGS-$(CONFIG_SPARC_V9B)+=$(call check_gcc,-mcpu=v9b,-mcpu=ultrasparc)
 endif

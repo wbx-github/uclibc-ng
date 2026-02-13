@@ -27,4 +27,7 @@ config CONFIG_SPARC_V7
 config CONFIG_SPARC_V8
 	bool "SPARC v8"
 
+config CONFIG_SPARC_LEON3
+	bool "SPARC LEON3"
+
 endchoice
