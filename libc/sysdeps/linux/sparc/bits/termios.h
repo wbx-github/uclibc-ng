@@ -23,7 +23,7 @@
 
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
-typedef unsigned int tcflag_t;
+typedef unsigned long tcflag_t;
 
 #define NCCS 17
 struct termios
