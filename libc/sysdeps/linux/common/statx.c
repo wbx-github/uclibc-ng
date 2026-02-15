@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <sysdep.h>
 
+#if defined(__NR_statx)
 int
 statx (int fd, const char *path, int flags,
        unsigned int mask, struct statx *buf)
@@ -26,3 +27,4 @@ statx (int fd, const char *path, int flags,
   int ret = INLINE_SYSCALL (statx, 5, fd, path, flags, mask, buf);
   return ret;
 }
+#endif
