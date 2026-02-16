@@ -55,7 +55,7 @@ int __NC(select)(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	return INLINE_SYSCALL(pselect6, 6, n, readfds, writefds, exceptfds, ts, 0);
 #endif
 #elif defined(__NR_select)
-	return INLINE_SYSCALL(select, 5, n, readfds, writefds, exceptfds, ts);
+	return INLINE_SYSCALL(select, 5, n, readfds, writefds, exceptfds, timeout);
 #endif
 }
 /* we should guard it, but we need it in other files, so let it fail
