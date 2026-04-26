@@ -176,6 +176,8 @@ struct termios
 # define CRTSCTS  020000000000		/* flow control */
 #endif
 
+#define IBSHIFT         16              /* Shift from CBAUD to CIBAUD */
+
 /* c_lflag bits */
 #define ISIG	0000001
 #define ICANON	0000002
