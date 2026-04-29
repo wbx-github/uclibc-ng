@@ -18,7 +18,9 @@
 #ifndef	_SYS_FANOTIFY_H
 #define	_SYS_FANOTIFY_H	1
 
+#include <linux/types.h>
 #include <stdint.h>
+#include <sys/statfs.h>
 
 struct fanotify_event_metadata {
 	unsigned event_len;
@@ -32,6 +34,18 @@ struct fanotify_event_metadata {
 	;
 	int fd;
 	int pid;
+};
+
+struct fanotify_event_info_header {
+	unsigned char info_type;
+	unsigned char pad;
+	unsigned short len;
+};
+
+struct fanotify_event_info_fid {
+	struct fanotify_event_info_header hdr;
+	__fsid_t fsid;
+	unsigned char handle[];
 };
 
 struct fanotify_response {
@@ -58,6 +72,12 @@ struct fanotify_response {
 #define FAN_ALL_CLASS_BITS (FAN_CLASS_NOTIF | FAN_CLASS_CONTENT | FAN_CLASS_PRE_CONTENT)
 #define FAN_UNLIMITED_QUEUE 0x10
 #define FAN_UNLIMITED_MARKS 0x20
+#define FAN_ENABLE_AUDIT 0x40
+#define FAN_REPORT_TID 0x100
+#define FAN_REPORT_FID 0x200
+#define FAN_REPORT_DIR_FID 0x00000400
+#define FAN_REPORT_NAME 0x00000800
+#define FAN_REPORT_DFID_NAME (FAN_REPORT_DIR_FID | FAN_REPORT_NAME)
 #define FAN_ALL_INIT_FLAGS (FAN_CLOEXEC | FAN_NONBLOCK | FAN_ALL_CLASS_BITS | FAN_UNLIMITED_QUEUE | FAN_UNLIMITED_MARKS)
 #define FAN_MARK_ADD 0x01
 #define FAN_MARK_REMOVE 0x02
@@ -67,13 +87,21 @@ struct fanotify_response {
 #define FAN_MARK_IGNORED_MASK 0x20
 #define FAN_MARK_IGNORED_SURV_MODIFY 0x40
 #define FAN_MARK_FLUSH 0x80
+#define FAN_MARK_INODE 0x00
+#define FAN_MARK_MOUNT 0x10
+#define FAN_MARK_FILESYSTEM 0x100
+#define FAN_MARK_TYPE_MASK (FAN_MARK_INODE | FAN_MARK_MOUNT | FAN_MARK_FILESYSTEM)
 #define FAN_ALL_MARK_FLAGS (FAN_MARK_ADD | FAN_MARK_REMOVE | FAN_MARK_DONT_FOLLOW | FAN_MARK_ONLYDIR | FAN_MARK_MOUNT | FAN_MARK_IGNORED_MASK | FAN_MARK_IGNORED_SURV_MODIFY | FAN_MARK_FLUSH)
 #define FAN_ALL_EVENTS (FAN_ACCESS | FAN_MODIFY | FAN_CLOSE | FAN_OPEN)
 #define FAN_ALL_PERM_EVENTS (FAN_OPEN_PERM | FAN_ACCESS_PERM)
 #define FAN_ALL_OUTGOING_EVENTS (FAN_ALL_EVENTS | FAN_ALL_PERM_EVENTS | FAN_Q_OVERFLOW)
 #define FANOTIFY_METADATA_VERSION 3
+#define FAN_EVENT_INFO_TYPE_FID 1
+#define FAN_EVENT_INFO_TYPE_DFID_NAME 2
+#define FAN_EVENT_INFO_TYPE_DFID 3
 #define FAN_ALLOW 0x01
 #define FAN_DENY 0x02
+#define FAN_AUDIT 0x10
 #define FAN_NOFD -1
 #define FAN_EVENT_METADATA_LEN (sizeof(struct fanotify_event_metadata))
 #define FAN_EVENT_NEXT(meta, len) ((len) -= (meta)->event_len, (struct fanotify_event_metadata*)(((char *)(meta)) + (meta)->event_len))
