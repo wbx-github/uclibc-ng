@@ -40,7 +40,6 @@ void internal_function _dl_aux_init (ElfW(auxv_t) *av)
 {
    _dl_auxv_start = av;
 
-   memset(_dl_auxvt, 0x00, sizeof(_dl_auxvt));
    for (; av->a_type != AT_NULL; av++)
      {
        if (av->a_type < AUX_MAX_AT_ID)
