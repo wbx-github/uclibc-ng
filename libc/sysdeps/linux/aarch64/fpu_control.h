@@ -18,6 +18,7 @@
 #define _AARCH64_FPU_CONTROL_H
 
 #include <features.h>
+#include <stdint.h>
 
 /* Macros for accessing the FPCR and FPSR.  */
 
@@ -29,27 +30,27 @@
 #else
 # define _FPU_GETCW(fpcr)					\
   ({ 								\
-   __uint64_t __fpcr;						\
+   uint64_t __fpcr;						\
    __asm__ __volatile__ ("mrs	%0, fpcr" : "=r" (__fpcr));	\
    fpcr = __fpcr;						\
   })
 
 # define _FPU_SETCW(fpcr)					\
   ({								\
-   __uint64_t __fpcr = fpcr;					\
+   uint64_t __fpcr = fpcr;					\
    __asm__ __volatile__ ("msr	fpcr, %0" : : "r" (__fpcr));    \
   })
 
 # define _FPU_GETFPSR(fpsr)					\
   ({								\
-   __uint64_t __fpsr;						\
+   uint64_t __fpsr;						\
    __asm__ __volatile__ ("mrs	%0, fpsr" : "=r" (__fpsr));	\
    fpsr = __fpsr;						\
   })
 
 # define _FPU_SETFPSR(fpsr)					\
   ({								\
-   __uint64_t __fpsr = fpsr;					\
+   uint64_t __fpsr = fpsr;					\
    __asm__ __volatile__ ("msr	fpsr, %0" : : "r" (__fpsr));    \
   })
 #endif
