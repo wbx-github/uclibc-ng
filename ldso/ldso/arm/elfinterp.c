@@ -213,7 +213,7 @@ fix_bad_pc24 (unsigned long *const reloc_addr, unsigned long value)
   unsigned int *fix_address;
   if (! fix_page)
     {
-      fix_page = _dl_mmap (NULL,  PAGE_SIZE   , PROT_READ | PROT_WRITE | PROT_EXEC,
+      fix_page = _dl_mmap (NULL,  _dl_pagesize   , PROT_READ | PROT_WRITE | PROT_EXEC,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
       fix_offset = 0;
     }
@@ -223,7 +223,7 @@ fix_bad_pc24 (unsigned long *const reloc_addr, unsigned long value)
   fix_address[1] = value;
 
   fix_offset += 8;
-  if (fix_offset >= PAGE_SIZE)
+  if (fix_offset >= _dl_pagesize)
     fix_page = NULL;
 
   return (unsigned long)fix_address;

@@ -17,12 +17,14 @@
 
 #include <unistd.h>
 
+extern size_t _dl_pagesize;
+
 /* Return the system page size.  */
 /* couldn't make __getpagesize hidden, because shm.h uses it in a macro */
 extern __typeof(getpagesize) __getpagesize;
 int __getpagesize(void)
 {
-    return __pagesize;
+    return (int)_dl_pagesize;
 }
 strong_alias(__getpagesize,getpagesize)
 libc_hidden_def(getpagesize)

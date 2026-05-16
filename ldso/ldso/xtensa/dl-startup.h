@@ -7,6 +7,8 @@
  * Parts taken from glibc/sysdeps/xtensa/dl-machine.h.
  */
 
+#include <bits/uClibc_page.h>
+
 #if defined(__FDPIC__)
 __asm__ (
     "	.text\n"
@@ -166,9 +168,10 @@ do { \
 \
 	for (x = 0; x < tpnt->dynamic_info[DT_XTENSA (GOT_LOC_SZ)]; x++) { \
 		Elf32_Addr got_start, got_end; \
-		got_start = got_loc[x].offset & ~(PAGE_SIZE - 1); \
-		got_end = ((got_loc[x].offset + got_loc[x].length + PAGE_SIZE - 1) \
-				   & ~(PAGE_SIZE - 1)); \
+		got_start = got_loc[x].offset & ~((1UL << PAGE_SHIFT) - 1); \
+		got_end = ((got_loc[x].offset + got_loc[x].length \
+			    + (1UL << PAGE_SHIFT) - 1) \
+			   & ~((1UL << PAGE_SHIFT) - 1)); \
 		if (got_end >= prev_got_start && got_start <= prev_got_end) { \
 			if (got_end > prev_got_end) \
 				prev_got_end = got_end; \

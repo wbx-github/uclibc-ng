@@ -212,8 +212,6 @@ weak_alias (__progname_full, program_invocation_name)
 char **__environ = 0;
 weak_alias(__environ, environ)
 
-size_t __pagesize = 0;
-
 #ifndef O_NOFOLLOW
 # define O_NOFOLLOW	0
 #endif
@@ -272,12 +270,10 @@ extern void __uClibc_init(void) attribute_hidden;
 void __uClibc_init(void)
 {
     /* Don't recurse */
-    if (__pagesize)
+    static int __uClibc_initialized;
+    if (__uClibc_initialized)
 	return;
-
-    /* Setup an initial value.  This may not be perfect, but is
-     * better than  malloc using __pagesize=0 for atexit, ctors, etc.  */
-    __pagesize = PAGE_SIZE;
+    __uClibc_initialized = 1;
 
 #ifdef __UCLIBC_HAS_THREADS__
 
@@ -416,9 +412,6 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
     __uClibc_init();
 
 #ifndef __ARCH_HAS_NO_LDSO__
-    /* Make certain getpagesize() gives the correct answer.
-     * _dl_pagesize is defined into ld.so if SHARED or into libc.a otherwise. */
-    __pagesize = _dl_pagesize;
 
 #ifndef SHARED
     /* Prevent starting SUID binaries where the stdin. stdout, and

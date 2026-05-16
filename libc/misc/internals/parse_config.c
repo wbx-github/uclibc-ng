@@ -45,6 +45,7 @@ int parse_main(int argc UNUSED_PARAM, char **argv)
 # include <malloc.h>
 # include <bits/uClibc_page.h>
 # include "internal/parse_config.h"
+extern size_t _dl_pagesize;
 # ifndef FAST_FUNC
 #  define FAST_FUNC
 # endif
@@ -74,7 +75,7 @@ static off_t bb_get_chunk_with_continuation(parser_t* parsr)
 			else
 				break;
 		} else if (parsr->allocated) {
-			parsr->line_len += PAGE_SIZE;
+			parsr->line_len += _dl_pagesize;
 			parsr->data = realloc(parsr->data,
 								   parsr->data_len + parsr->line_len);
 			parsr->line = parsr->data + parsr->data_len;

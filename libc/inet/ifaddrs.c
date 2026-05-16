@@ -35,6 +35,7 @@
 
 #include "netlinkaccess.h"
 
+extern size_t _dl_pagesize;
 
 #ifndef __libc_use_alloca
 # define __libc_use_alloca(x) (x < __MAX_ALLOCA_CUTOFF)
@@ -129,13 +130,8 @@ __netlink_request (struct netlink_handle *h, int type)
 
   if (buf_size)
 	  this_buf_size = buf_size;
-  else {
-#ifdef PAGE_SIZE
-	  this_buf_size = PAGE_SIZE;
-#else
-	  this_buf_size = __pagesize;
-#endif
-  }
+  else
+	  this_buf_size = _dl_pagesize;
   if (__libc_use_alloca (this_buf_size))
     buf = alloca (this_buf_size);
   else

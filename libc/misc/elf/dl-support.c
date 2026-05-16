@@ -53,7 +53,7 @@ void internal_function _dl_aux_init (ElfW(auxv_t) *av)
    _dl_phnum = (size_t) _dl_auxvt[AT_PHNUM].a_un.a_val;
 
    /* Get the pagesize from the aux vect */
-   _dl_pagesize = (_dl_auxvt[AT_PAGESZ].a_un.a_val) ? (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val : PAGE_SIZE;
+   _dl_pagesize = (_dl_auxvt[AT_PAGESZ].a_un.a_val) ? (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val : 0;
 }
 
 #if defined(USE_TLS) && USE_TLS
