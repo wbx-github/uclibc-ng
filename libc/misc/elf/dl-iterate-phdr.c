@@ -31,6 +31,15 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 		info.dlpi_name = l->libname;
 		info.dlpi_phdr = l->ppnt;
 		info.dlpi_phnum = l->n_phent;
+		info.dlpi_adds = 0;
+		info.dlpi_subs = 0;
+#if defined(USE_TLS) && USE_TLS
+		info.dlpi_tls_modid = l->l_tls_modid;
+#else
+		info.dlpi_tls_modid = 0;
+#endif
+		/* libsanitizer falls back to __tls_get_addr() on non-glibc.  */
+		info.dlpi_tls_data = NULL;
 		ret = callback (&info, sizeof (struct dl_phdr_info), data);
 		if (ret)
 			break;
@@ -69,6 +78,13 @@ dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
       info.dlpi_name = "";
       info.dlpi_phdr = _dl_phdr;
       info.dlpi_phnum = _dl_phnum;
+      info.dlpi_adds = 0;
+      info.dlpi_subs = 0;
+      /* No easy access to TLS info on the static fallback path; report
+         0 / NULL.  libsanitizer will skip TLS tracking for this entry,
+         which is acceptable for a single statically linked program.  */
+      info.dlpi_tls_modid = 0;
+      info.dlpi_tls_data = NULL;
       ret = (*callback) (&info, sizeof (struct dl_phdr_info), data);
       if (ret)
         return ret;

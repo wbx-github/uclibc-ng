@@ -197,11 +197,9 @@ struct dl_phdr_info
     const ElfW(Phdr) *dlpi_phdr;
     ElfW(Half) dlpi_phnum;
 
-#if 0
-    /* Note: Following members were introduced after the first
-       version of this structure was available.  Check the SIZE
-       argument passed to the dl_iterate_phdr callback to determine
-       whether or not each later member is available.  */
+    /* The members below were originally guarded by #if 0 because
+       uClibc-ng's dl_iterate_phdr did not populate them.  They are
+       now wired up to enable libsanitizer / TLS tracking.  */
 
     /* Incremented when a new object may have been added.  */
     unsigned long long int dlpi_adds;
@@ -216,7 +214,6 @@ struct dl_phdr_info
        PT_TLS segment, if it has one and it has been allocated
        in the calling thread, otherwise a null pointer.  */
     void *dlpi_tls_data;
-#endif
   };
 
 __BEGIN_DECLS
