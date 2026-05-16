@@ -73,6 +73,24 @@ enum
 #define R15	R15
 };
 
+/* glibc-style REG_R<n> aliases for libsanitizer compatibility.  */
+#define REG_R0	R0
+#define REG_R1	R1
+#define REG_R2	R2
+#define REG_R3	R3
+#define REG_R4	R4
+#define REG_R5	R5
+#define REG_R6	R6
+#define REG_R7	R7
+#define REG_R8	R8
+#define REG_R9	R9
+#define REG_R10	R10
+#define REG_R11	R11
+#define REG_R12	R12
+#define REG_R13	R13
+#define REG_R14	R14
+#define REG_R15	R15
+
 /* Structure to describe FPU registers.  */
 typedef elf_fpregset_t	fpregset_t;
 
