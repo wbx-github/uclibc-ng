@@ -19,3 +19,11 @@
 
 struct elf_resolve *_dl_loaded_modules = NULL;
 
+/* Monotonic counters of load/unload events.  Incremented by the
+   dynamic loader whenever an object is added to or removed from
+   _dl_loaded_modules.  Exposed via dl_phdr_info::dlpi_adds /
+   dlpi_subs to let dl_iterate_phdr callers cache results across
+   invocations -- matches the glibc contract.  */
+unsigned long long _dl_load_adds = 0;
+unsigned long long _dl_load_subs = 0;
+

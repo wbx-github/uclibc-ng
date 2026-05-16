@@ -1000,6 +1000,7 @@ static int do_dlclose(void *vhandle, int need_fini)
 					}
 				}
 			}
+			++_dl_load_subs;
 
 			/* Next, remove tpnt from the global symbol table list */
 			if (_dl_symbol_tables) {

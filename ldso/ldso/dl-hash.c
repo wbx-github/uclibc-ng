@@ -156,6 +156,7 @@ struct elf_resolve *_dl_add_elf_hash_table(const char *libname,
 	tpnt->loadaddr = loadaddr;
 	for (i = 0; i < DYNAMIC_SIZE; i++)
 		tpnt->dynamic_info[i] = dynamic_info[i];
+	++_dl_load_adds;
 	return tpnt;
 }
 

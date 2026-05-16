@@ -31,8 +31,8 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 		info.dlpi_name = l->libname;
 		info.dlpi_phdr = l->ppnt;
 		info.dlpi_phnum = l->n_phent;
-		info.dlpi_adds = 0;
-		info.dlpi_subs = 0;
+		info.dlpi_adds = _dl_load_adds;
+		info.dlpi_subs = _dl_load_subs;
 #if defined(USE_TLS) && USE_TLS
 		info.dlpi_tls_modid = l->l_tls_modid;
 #else
