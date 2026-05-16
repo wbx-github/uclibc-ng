@@ -886,6 +886,31 @@ __tls_get_addr (GET_ADDR_ARGS)
   return (char *) p + GET_ADDR_OFFSET;
 }
 
+/* Like __tls_get_addr but never allocates and returns NULL when the
+   calling thread has not yet touched MAP's TLS block.  Mirrors glibc's
+   dl_tls_get_addr_soft and feeds dl_phdr_info::dlpi_tls_data without
+   side effects, so callers (libsanitizer, valgrind, profilers) can
+   observe per-thread TLS state without forcing lazy allocation.  */
+void *
+_dl_tls_get_addr_soft (struct link_map *map)
+{
+  dtv_t *dtv;
+  void *p;
+
+  if (map->l_tls_modid == 0)
+    return NULL;
+
+  dtv = THREAD_DTV ();
+  if (map->l_tls_modid > (size_t) dtv[-1].counter)
+    return NULL;
+
+  p = dtv[map->l_tls_modid].pointer.val;
+  if (p == TLS_DTV_UNALLOCATED)
+    return NULL;
+
+  return p;
+}
+
 void
 _dl_add_to_slotinfo (struct link_map  *l)
 {

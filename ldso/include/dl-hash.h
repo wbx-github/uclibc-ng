@@ -160,6 +160,8 @@ extern struct elf_resolve * _dl_loaded_modules;
 extern struct dyn_elf     * _dl_handles;
 extern unsigned long long   _dl_load_adds;
 extern unsigned long long   _dl_load_subs;
+struct link_map;
+extern void               * _dl_tls_get_addr_soft(struct link_map *map);
 
 extern struct elf_resolve * _dl_add_elf_hash_table(const char * libname,
 	DL_LOADADDR_TYPE loadaddr, unsigned long * dynamic_info,

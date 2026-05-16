@@ -35,11 +35,16 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 		info.dlpi_subs = _dl_load_subs;
 #if defined(USE_TLS) && USE_TLS
 		info.dlpi_tls_modid = l->l_tls_modid;
+# ifdef SHARED
+		/* Resolves into ld.so at runtime; static libc has no DTV.  */
+		info.dlpi_tls_data = _dl_tls_get_addr_soft((struct link_map *) l);
+# else
+		info.dlpi_tls_data = NULL;
+# endif
 #else
 		info.dlpi_tls_modid = 0;
-#endif
-		/* libsanitizer falls back to __tls_get_addr() on non-glibc.  */
 		info.dlpi_tls_data = NULL;
+#endif
 		ret = callback (&info, sizeof (struct dl_phdr_info), data);
 		if (ret)
 			break;
