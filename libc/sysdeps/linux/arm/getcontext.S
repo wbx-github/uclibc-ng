@@ -47,6 +47,11 @@ ENTRY(__getcontext)
 	add     r2, r4, #UCONTEXT_SIGMASK
 	bl      PLTJMP(sigprocmask)
 
+	/* sigprocmask clobbered r0; point it back at the VFP/iWMMXt
+	   save area inside ucontext_t (uc_regspace[]) before storing
+	   any coprocessor state there.  */
+	add     r0, r4, #UCONTEXT_REGSPACE
+
 #if defined __UCLIBC_HAS_FLOATS__ && ! defined __UCLIBC_HAS_SOFT_FLOAT__
 # ifdef __VFP_FP__
 	/* Store the VFP registers.  */

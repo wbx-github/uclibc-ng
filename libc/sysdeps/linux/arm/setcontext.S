@@ -26,6 +26,10 @@
 
 ENTRY(__setcontext)
 	mov	r4, r0
+	/* Point r0 at the VFP/iWMMXt save area (uc_regspace[]) before
+	   restoring any coprocessor state.  Without this r0 still points
+	   at the start of ucontext_t and we would read uc_flags etc.  */
+	add     r0, r0, #UCONTEXT_REGSPACE
 
 #if defined __UCLIBC_HAS_FLOATS__ && ! defined __UCLIBC_HAS_SOFT_FLOAT__
 # ifdef __VFP_FP__
