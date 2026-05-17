@@ -11,7 +11,7 @@ extern "C" {
 
 extern int _libiconv_version; /* Likewise */
 
-typedef long iconv_t;
+typedef void *iconv_t;
 
 extern iconv_t
 iconv_open(const char *tocode, const char *fromcode);
