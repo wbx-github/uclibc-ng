@@ -1577,6 +1577,14 @@ config UCLIBC_HAS_WCHAR
 
 	  Most people will answer N.
 
+config UCLIBC_HAS_UCHAR
+	bool "C11 Character Support"
+	select UCLIBC_HAS_WCHAR
+	help
+	  Answer Y to enable c11 character support.
+	  Provides types and functions for handling Unicode characters
+	  and UTF-16/UTF-32 strings.
+
 config UCLIBC_HAS_LIBICONV
 	bool "Iconv Support"
 	select UCLIBC_HAS_WCHAR

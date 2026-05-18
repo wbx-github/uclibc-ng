@@ -1,0 +1,21 @@
+# Makefile for uClibc-ng
+#
+# Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+#
+
+subdirs += libc/misc/uchar
+
+CSRC-y := mbrtoc16.c mbrtoc32.c c16rtomb.c c32rtomb.c
+
+MISC_UCHAR_DIR := $(top_srcdir)libc/misc/uchar
+MISC_UCHAR_OUT := $(top_builddir)libc/misc/uchar
+
+MISC_UCHAR_SRC := $(patsubst %.c,$(MISC_UCHAR_DIR)/%.c,$(CSRC-y))
+MISC_UCHAR_OBJ := $(patsubst %.c,$(MISC_UCHAR_OUT)/%.o,$(CSRC-y))
+
+libc-$(UCLIBC_HAS_UCHAR) += $(MISC_UCHAR_OBJ)
+
+objclean-y += CLEAN_libc/misc/uchar
+
+CLEAN_libc/misc/uchar:
+	$(do_rm) $(addprefix $(MISC_UCHAR_OUT)/*., o os)

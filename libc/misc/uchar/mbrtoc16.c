@@ -20,31 +20,36 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Imported from musl C library, adapted to uClibc-ng
+ * Imported from musl C library
  */
 
-#ifndef _UCHAR_H
-#define _UCHAR_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if __cplusplus < 201103L
-typedef unsigned short char16_t;
-typedef unsigned char32_t;
-#endif
-
+#include <uchar.h>
 #include <wchar.h>
 
-size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
-size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+size_t mbrtoc16(char16_t *restrict pc16, const char *restrict s, size_t n, mbstate_t *restrict ps)
+{
+	static unsigned internal_state;
+	if (!ps) ps = (void *)&internal_state;
+	unsigned *pending = (unsigned *)ps;
 
-size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
-size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+	if (!s) return mbrtoc16(0, "", 1, ps);
 
-#ifdef __cplusplus
+	/* mbrtowc states for partial UTF-8 characters have the high bit set;
+	 * we use nonzero states without high bit for pending surrogates. */
+	if ((int)*pending > 0) {
+ 		if (pc16) *pc16 = *pending;
+		*pending = 0;
+		return -3;
+	}
+
+	wchar_t wc;
+	size_t ret = mbrtowc(&wc, s, n, ps);
+	if (ret <= 4) {
+		if (wc >= 0x10000) {
+			*pending = (wc & 0x3ff) + 0xdc00;
+			wc = 0xd7c0 + (wc >> 10);
+		}
+		if (pc16) *pc16 = wc;
+	}
+	return ret;
 }
-#endif
-
-#endif

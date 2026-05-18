@@ -294,6 +294,7 @@ HEADERS_RM-$(UCLIBC_HAS_THREADS)             += *thread*.h semaphore.h \
 HEADERS_RM-$(UCLIBC_HAS_THREADS_NATIVE)      += atomic.h bits/atomic.h
 HEADERS_RM-$(UCLIBC_HAS_UTMP)               += bits/utmp.h utmp.h
 HEADERS_RM-$(UCLIBC_HAS_UTMPX)               += bits/utmpx.h utmpx.h
+HEADERS_RM-$(UCLIBC_HAS_UCHAR)               += uchar.h
 HEADERS_RM-$(UCLIBC_HAS_WCHAR)               += wchar.h wctype.h
 HEADERS_RM-$(UCLIBC_HAS_WORDEXP)             += wordexp.h
 HEADERS_RM-$(UCLIBC_HAS_XATTR)               += sys/xattr.h

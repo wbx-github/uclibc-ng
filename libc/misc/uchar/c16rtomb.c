@@ -20,31 +20,41 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Imported from musl C library, adapted to uClibc-ng
+ * Imported from musl C library
  */
 
-#ifndef _UCHAR_H
-#define _UCHAR_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if __cplusplus < 201103L
-typedef unsigned short char16_t;
-typedef unsigned char32_t;
-#endif
-
+#include <uchar.h>
+#include <errno.h>
 #include <wchar.h>
 
-size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
-size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+size_t c16rtomb(char *restrict s, char16_t c16, mbstate_t *restrict ps)
+{
+	static unsigned internal_state;
+	if (!ps) ps = (void *)&internal_state;
+	unsigned *x = (unsigned *)ps;
+	wchar_t wc;
 
-size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
-size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+	if (!s) {
+		if (*x) goto ilseq;
+		return 1;
+	}
 
-#ifdef __cplusplus
+	if (!*x && c16 - 0xd800u < 0x400) {
+		*x = c16 - 0xd7c0 << 10;
+		return 0;
+	}
+
+	if (*x) {
+		if (c16 - 0xdc00u >= 0x400) goto ilseq;
+		else wc = *x + c16 - 0xdc00;
+		*x = 0;
+	} else {
+		wc = c16;
+	}
+	return wcrtomb(s, wc, 0);
+
+ilseq:
+	*x = 0;
+	errno = EILSEQ;
+	return -1;
 }
-#endif
-
-#endif

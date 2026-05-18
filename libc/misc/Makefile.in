@@ -30,6 +30,7 @@ include $(top_srcdir)libc/misc/sysvipc/Makefile.in
 include $(top_srcdir)libc/misc/time/Makefile.in
 include $(top_srcdir)libc/misc/ttyent/Makefile.in
 include $(top_srcdir)libc/misc/utmp/Makefile.in
+include $(top_srcdir)libc/misc/uchar/Makefile.in
 include $(top_srcdir)libc/misc/wchar/Makefile.in
 include $(top_srcdir)libc/misc/wctype/Makefile.in
 include $(top_srcdir)libc/misc/wordexp/Makefile.in

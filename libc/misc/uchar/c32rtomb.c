@@ -20,31 +20,13 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Imported from musl C library, adapted to uClibc-ng
+ * Imported from musl C library
  */
 
-#ifndef _UCHAR_H
-#define _UCHAR_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if __cplusplus < 201103L
-typedef unsigned short char16_t;
-typedef unsigned char32_t;
-#endif
-
+#include <uchar.h>
 #include <wchar.h>
 
-size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
-size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
-
-size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
-size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
-
-#ifdef __cplusplus
+size_t c32rtomb(char *restrict s, char32_t c32, mbstate_t *restrict ps)
+{
+	return wcrtomb(s, c32, ps);
 }
-#endif
-
-#endif
