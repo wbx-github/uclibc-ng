@@ -61,6 +61,29 @@
 #define TCP_REPAIR_OPTIONS       22 /* Repair TCP connection options */
 #define TCP_FASTOPEN             23 /* Enable FastOpen on listeners */
 #define TCP_TIMESTAMP            24 /* TCP time stamp */
+#define TCP_NOTSENT_LOWAT	 25 /* Limit number of unsent bytes in
+				       write queue.  */
+#define TCP_CC_INFO		 26 /* Get Congestion Control
+				       (optional) info.  */
+#define TCP_SAVE_SYN		 27 /* Record SYN headers for new
+				       connections.  */
+#define TCP_SAVED_SYN		 28 /* Get SYN headers recorded for
+				       connection.  */
+#define TCP_REPAIR_WINDOW	 29 /* Get/set window parameters.  */
+#define TCP_FASTOPEN_CONNECT	 30 /* Attempt FastOpen with connect.  */
+#define TCP_ULP			 31 /* Attach a ULP to a TCP connection.  */
+#define TCP_MD5SIG_EXT		 32 /* TCP MD5 Signature with extensions.  */
+#define TCP_FASTOPEN_KEY	 33 /* Set the key for Fast Open (cookie).  */
+#define TCP_FASTOPEN_NO_COOKIE	 34 /* Enable TFO without a TFO cookie.  */
+#define TCP_ZEROCOPY_RECEIVE	 35
+#define TCP_INQ			 36 /* Notify bytes available to read
+				       as a cmsg on read.  */
+#define TCP_CM_INQ		 TCP_INQ
+#define TCP_TX_DELAY		 37 /* Delay outgoing packets by XX usec.  */
+
+#define TCP_REPAIR_ON		 1
+#define TCP_REPAIR_OFF		 0
+#define TCP_REPAIR_OFF_NO_WP	 -1
 
 #ifdef __USE_MISC
 # include <sys/types.h>
