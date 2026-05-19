@@ -340,9 +340,12 @@
 # define __USE_LARGEFILE64	1
 #endif
 
-#if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
-# define __USE_FILE_OFFSET64	1
+#if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS != 64
+# error "_FILE_OFFSET_BITS != 64 is not supported by uClibc-ng"
 #endif
+#undef  _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS	64
+#define __USE_FILE_OFFSET64	1
 
 #if defined _BSD_SOURCE || defined _SVID_SOURCE
 # define __USE_MISC	1
