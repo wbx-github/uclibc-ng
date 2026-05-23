@@ -45,10 +45,11 @@ static enum po_entry get_type_and_start(struct po_info *info, char* lp, char* en
 			if((x = strstr(lp, "charset="))) {
 				// charset=xxx\\n
 				int len = strlen(x+=8) - 4;
-				assert(len <= 11);
-				if(strncmp(x, "UTF-8", 5) && strncmp(x, "utf-8", 5)) {
-					memcpy(info->charset, x, len);
-					info->charset[len] = 0;
+				if(len > 0 && len < (int)sizeof(info->charset)) {
+					if(strncmp(x, "UTF-8", 5) && strncmp(x, "utf-8", 5)) {
+						memcpy(info->charset, x, len);
+						info->charset[len] = 0;
+					}
 				}
 			}
 		}
