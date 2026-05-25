@@ -76,6 +76,8 @@ enum
 #define IPPROTO_DSTOPTS		IPPROTO_DSTOPTS
     IPPROTO_MTP = 92,	   /* Multicast Transport Protocol.  */
 #define IPPROTO_MTP		IPPROTO_MTP
+    IPPROTO_BEETPH = 94,   /* IP option pseudo header for BEET.  */
+#define IPPROTO_BEETPH		IPPROTO_BEETPH
     IPPROTO_ENCAP = 98,	   /* Encapsulation Header.  */
 #define IPPROTO_ENCAP		IPPROTO_ENCAP
     IPPROTO_PIM = 103,	   /* Protocol Independent Multicast.  */
@@ -88,8 +90,16 @@ enum
 #define IPPROTO_MH		IPPROTO_MH
     IPPROTO_UDPLITE = 136, /* UDP-Lite protocol.  */
 #define IPPROTO_UDPLITE		IPPROTO_UDPLITE
+    IPPROTO_MPLS = 137,    /* MPLS in IP.  */
+#define IPPROTO_MPLS		IPPROTO_MPLS
+    IPPROTO_ETHERNET = 143, /* Ethernet-within-IPv6 Encapsulation.  */
+#define IPPROTO_ETHERNET	IPPROTO_ETHERNET
     IPPROTO_RAW = 255,	   /* Raw IP packets.  */
 #define IPPROTO_RAW		IPPROTO_RAW
+    IPPROTO_SMC = 256,	   /* Shared Memory Communications.  */
+#define IPPROTO_SMC		IPPROTO_SMC
+    IPPROTO_MPTCP = 262,   /* Multipath TCP connection.  */
+#define IPPROTO_MPTCP		IPPROTO_MPTCP
     IPPROTO_MAX
   };
 
