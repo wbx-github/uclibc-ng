@@ -20,6 +20,7 @@ CSRC-$(UCLIBC_LINUX_SPECIFIC) += \
 	bdflush.c \
 	capget.c \
 	capset.c \
+	copy_file_range.c \
 	dup3.c \
 	euidaccess.c \
 	eventfd.c \
