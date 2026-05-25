@@ -32,3 +32,21 @@
 # define F_ADD_SEALS	1033	/* Add seals to file.  */
 # define F_GET_SEALS	1034	/* Get seals for file.  */
 #endif
+
+#ifdef __USE_GNU
+/* Flags for name_to_handle_at.  See comment in fcntl.h about the use
+   of the same AT_* flag bits for different purposes in different
+   functions.  */
+# define AT_HANDLE_FID		AT_REMOVEDIR /* File handle is needed
+						to compare object
+						identity and may not
+						be usable to
+						open_by_handle_at.  */
+# define AT_HANDLE_MNT_ID_UNIQUE 1 /* Return the 64-bit unique mount
+				      ID.  */
+# define AT_HANDLE_CONNECTABLE 2 /* Request a connectable file handle */
+
+/* Flags for execveat2(2). */
+# define AT_EXECVE_CHECK 0x10000 /* Only perform a check if execution
+				    would be allowed */
+#endif
