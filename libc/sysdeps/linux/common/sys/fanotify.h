@@ -18,7 +18,6 @@
 #ifndef	_SYS_FANOTIFY_H
 #define	_SYS_FANOTIFY_H	1
 
-#include <linux/types.h>
 #include <stdint.h>
 #include <sys/statfs.h>
 
