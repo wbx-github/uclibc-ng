@@ -5,7 +5,24 @@
 # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
 #
 
-.NOTPARALLEL:
+# Scope .NOTPARALLEL to the generated locale headers/data only.  A bare
+# .NOTPARALLEL: (without prerequisites) used to be specified here, but
+# since this Makefile.in is `include`-d into the top-level Makefile, the
+# bare form serializes the *entire* uClibc-ng build, defeating make -jN
+# across every architecture, every target, since 2016.  The prerequisite
+# form (GNU Make 4.4+) limits the serial-only build to the locale data
+# generation, which is the original intent.  GNU Make < 4.4 silently
+# falls back to global serialization, i.e. previous behavior, so this
+# change is forward- and backward-compatible.
+.NOTPARALLEL: \
+	$(locale_OUT)/c8tables.h \
+	$(locale_OUT)/wctables.h \
+	$(locale_OUT)/locale_tables.h \
+	$(locale_OUT)/locale_collate.h \
+	$(locale_OUT)/lt_defines.h \
+	$(locale_SRC) \
+	$(locale_OUT)/uClibc_locale_data.h \
+	$(top_builddir)include/bits/uClibc_locale_data.h
 
 locale_DIR := $(top_srcdir)extra/locale
 locale_OUT := $(top_builddir)extra/locale
