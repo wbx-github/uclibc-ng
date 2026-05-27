@@ -22,7 +22,6 @@
    only. Don't read too much into it. Don't use it for anything other
    than gdb/strace unless you know what you are doing. */
 
-#include <bits/uClibc_page.h>
 #include <asm/reg.h>
 
 struct user
@@ -39,11 +38,5 @@ struct user
   unsigned long	int magic;			/* identifies a core file */
   char u_comm[32];				/* user command name */
 };
-
-#define NBPG			PAGE_SIZE
-#define UPAGES			1
-#define HOST_TEXT_START_ADDR	(u.start_code)
-#define HOST_DATA_START_ADDR	(u.start_data)
-#define HOST_STACK_END_ADDR	(u.start_stack + u.u_ssize * NBPG)
 
 #endif	/* sys/user.h */

@@ -22,8 +22,6 @@
 #define PAGE_SHIFT		12
 #endif
 
-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
-#define PAGE_MASK	(~(PAGE_SIZE-1))
 
 /* TBD: fix this with runtime value for a PAGE_SIZE agnostic uClibc */
 #define MMAP2_PAGE_SHIFT PAGE_SHIFT

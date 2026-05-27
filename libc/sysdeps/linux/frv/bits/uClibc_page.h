@@ -22,11 +22,5 @@
 
 /* PAGE_SHIFT determines the page size -- in this case 4096 */
 #define PAGE_SHIFT	(14)
-#ifndef __ASSEMBLY__
-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
-#else
-#define PAGE_SIZE	(1 << PAGE_SHIFT)
-#endif
-#define PAGE_MASK	(~(PAGE_SIZE-1))
 
 #endif /* _UCLIBC_PAGE_H */

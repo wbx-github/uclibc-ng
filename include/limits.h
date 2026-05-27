@@ -151,3 +151,16 @@
 #ifdef	__USE_XOPEN
 # include <bits/xopen_lim.h>
 #endif
+
+/* Page size as a compile-time constant, defined centrally like musl and
+   gated on the same feature macros; the run-time value is getpagesize()
+   / sysconf(_SC_PAGESIZE).  PAGE_SHIFT comes from <bits/uClibc_page.h>.  */
+#if defined __USE_MISC || defined __USE_XOPEN || defined __USE_GNU
+# include <bits/uClibc_page.h>
+# ifndef PAGESIZE
+#  define PAGESIZE	(1UL << PAGE_SHIFT)
+# endif
+# ifndef PAGE_SIZE
+#  define PAGE_SIZE	PAGESIZE
+# endif
+#endif

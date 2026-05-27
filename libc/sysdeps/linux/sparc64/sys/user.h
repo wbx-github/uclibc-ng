@@ -76,8 +76,4 @@ struct user {
   unsigned int  sigcode;
 };
 
-#define NBPG			0x2000
-#define UPAGES			1
-#define SUNOS_CORE_MAGIC	0x080456
-
 #endif
