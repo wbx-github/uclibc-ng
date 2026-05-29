@@ -109,7 +109,7 @@ void (*_dl_free_function) (void *p);
 char *_dl_library_path         = NULL;         /* Where we look for libraries */
 #endif
 int _dl_errno                  = 0;         /* We can't use the real errno in ldso */
-size_t _dl_pagesize            = 0; /* Store the page size for use later */
+/* _dl_pagesize is provided by dl-support.c (always co-linked from libc.a) */
 /* This global variable is also to communicate with debuggers such as gdb. */
 struct r_debug *_dl_debug_addr = NULL;
 

@@ -30,7 +30,7 @@ void (*_dl_init_static_tls) (struct link_map *) = &_dl_nothread_init_static_tls;
 
 ElfW(Phdr) *_dl_phdr;
 size_t _dl_phnum;
-size_t _dl_pagesize;
+size_t _dl_pagesize = (1UL << PAGE_SHIFT);	/* fallback; overridden from AT_PAGESZ if present */
 
 ElfW(auxv_t) _dl_auxvt[AUX_MAX_AT_ID];
 ElfW(auxv_t) *_dl_auxv_start;
@@ -52,8 +52,9 @@ void internal_function _dl_aux_init (ElfW(auxv_t) *av)
    /* Get the number of program headers from the aux vect */
    _dl_phnum = (size_t) _dl_auxvt[AT_PHNUM].a_un.a_val;
 
-   /* Get the pagesize from the aux vect */
-   _dl_pagesize = (_dl_auxvt[AT_PAGESZ].a_un.a_val) ? (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val : 0;
+   /* Override the fallback only if AT_PAGESZ is present and non-zero */
+   if (_dl_auxvt[AT_PAGESZ].a_type == AT_PAGESZ && _dl_auxvt[AT_PAGESZ].a_un.a_val)
+      _dl_pagesize = (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val;
 }
 
 #if defined(USE_TLS) && USE_TLS

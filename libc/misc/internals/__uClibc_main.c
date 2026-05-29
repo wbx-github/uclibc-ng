@@ -369,7 +369,7 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
 		    char **argv, void (*app_init)(void), void (*app_fini)(void),
 		    void (*rtld_fini)(void), void *stack_end attribute_unused)
 {
-#ifndef SHARED
+#if !defined(SHARED) && !defined(__UCLIBC_FORMAT_FLAT__)
     unsigned long *aux_dat;
 #endif
 
@@ -395,7 +395,9 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
     }
 
 #ifndef SHARED
-    /* Pull stuff from the ELF header when possible */
+# ifndef __UCLIBC_FORMAT_FLAT__
+    /* Pull stuff from the ELF header when possible. binfmt_flat passes no
+       aux vector, so skip this for FLAT. */
     aux_dat = (unsigned long*)__environ;
     while (*aux_dat) {
 	aux_dat++;
@@ -404,6 +406,7 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
     /* Get the program headers (_dl_phdr) from the aux vector
        It will be used into __libc_setup_tls. */
     _dl_aux_init ((ElfW(auxv_t) *)aux_dat);
+# endif
 #endif
 
     /* We need to initialize uClibc.  If we are dynamically linked this

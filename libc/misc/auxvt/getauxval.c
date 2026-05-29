@@ -33,7 +33,8 @@ unsigned long int __getauxval (unsigned long int __type)
 	}
 
 	// Otherwise we have to iterate the auxiliary vector.
-	for (ElfW(auxv_t) *entry = _dl_auxv_start; entry->a_type != AT_NULL; entry++)
+	// _dl_auxv_start is NULL when there is no aux vector (e.g. FLAT).
+	for (ElfW(auxv_t) *entry = _dl_auxv_start; entry && entry->a_type != AT_NULL; entry++)
 		if (entry->a_type == __type)
 			return entry->a_un.a_val;
 

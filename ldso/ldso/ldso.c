@@ -52,7 +52,7 @@ char *_dl_library_path         = NULL;	/* Where we look for libraries */
 char *_dl_preload              = NULL;	/* Things to be loaded before the libs */
 #endif
 int _dl_errno                  = 0;	/* We can't use the real errno in ldso */
-size_t _dl_pagesize            = 0;	/* Store the page size for use later */
+size_t _dl_pagesize            = (1UL << PAGE_SHIFT);	/* fallback; overridden from AT_PAGESZ if present */
 struct r_debug *_dl_debug_addr = NULL;	/* Used to communicate with the gdb debugger */
 void *(*_dl_malloc_function) (size_t size) = NULL;
 void (*_dl_free_function) (void *p) = NULL;
@@ -460,8 +460,9 @@ void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE load_addr,
 
 	_dl_memset(app_tpnt, 0, sizeof(*app_tpnt));
 
-	/* Store the page size for later use */
-	_dl_pagesize = (_dl_auxvt[AT_PAGESZ].a_un.a_val) ? (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val : 0;
+	/* Override the fallback only if AT_PAGESZ is present and non-zero */
+	if (_dl_auxvt[AT_PAGESZ].a_type == AT_PAGESZ && _dl_auxvt[AT_PAGESZ].a_un.a_val)
+		_dl_pagesize = (size_t) _dl_auxvt[AT_PAGESZ].a_un.a_val;
 	/* Make it so _dl_malloc can use the page of memory we have already
 	 * allocated.  We shouldn't need to grab any more memory.  This must
 	 * be first since things like _dl_dprintf() use _dl_malloc()...
