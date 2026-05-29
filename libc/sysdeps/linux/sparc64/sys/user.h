@@ -76,4 +76,6 @@ struct user {
   unsigned int  sigcode;
 };
 
+#define UPAGES	1
+
 #endif
