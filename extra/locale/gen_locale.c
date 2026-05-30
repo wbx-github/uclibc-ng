@@ -542,6 +542,23 @@ static void read_locale_list(void)
 /*  			   locales[num_locales].dot_cs, */
 /*  			   locales[num_locales].glibc_name */
 /*  			   ); */
+
+		/* The per-category data below is harvested from the build host via
+		 * setlocale()+nl_langinfo().  If the host cannot provide this locale,
+		 * setlocale() leaves the previously set (unrelated) locale active and
+		 * we would bake *that* locale's data -- e.g. a multibyte thousands_sep
+		 * from another language -- into this entry.  Skip it instead, with a
+		 * clear message so the missing host locale can be generated. */
+		if (!setlocale(LC_ALL, locales[num_locales].glibc_name)) {
+			fprintf(stderr,
+				"gen_locale: skipping locale '%s': not available on the build "
+				"host (generate it, e.g. via localedef / your distro's locale "
+				"package, to include it)\n",
+				locales[num_locales].glibc_name);
+			*line_buf = 0;
+			continue;
+		}
+
 		++num_locales;
 		*line_buf = 0;
 	} while (1);
