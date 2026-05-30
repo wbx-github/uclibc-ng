@@ -181,8 +181,9 @@ menuconfig-clean-y: HEADERCLEAN_config
 # libc/sysdeps/linux/Makefile.commonarch to headers-y
 headers-y += $(target-headers-sysdep)
 
-headers: $(top_builddir)include/bits/uClibc_config.h | subdirs $(top_builddir)extra/locale
-	$(Q)$(if $(UCLIBC_HAS_LOCALE),$(MAKE) -C extra/locale locale_headers)
+# locale_headers as a normal prerequisite, not a recursive "$(MAKE) -C
+# extra/locale": the sub-make's CWD differs, racing the top make under -jN.
+headers: $(top_builddir)include/bits/uClibc_config.h $(locale_headers-y) | subdirs $(top_builddir)extra/locale
 
 subdirs: $(addprefix $(top_builddir),$(subdirs))
 
