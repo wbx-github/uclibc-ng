@@ -45,8 +45,8 @@ struct semid_ds
 #else
   __time_t sem_otime;			/* last semop() time */
 #endif
-#if (__WORDSIZE == 32 && !defined(__ARC64_ARCH32__) && !defined(__arc__) && !defined(__arm__) && !defined(__or1k__) && !defined(__xtensa__) && !defined(__riscv)) || \
-    ((defined(__ARC64_ARCH32__) || defined(__arc__) || defined(__arm__) || defined(__or1k__) || defined(__xtensa__) || defined(__riscv)) && !defined(__UCLIBC_USE_TIME64__))
+#if (__WORDSIZE == 32 && !defined(__ARC64_ARCH32__) && !defined(__arc__) && !defined(__arm__) && !defined(__or1k__) && !defined(__xtensa__) && !defined(__riscv) && !defined(__csky__)) || \
+    ((defined(__ARC64_ARCH32__) || defined(__arc__) || defined(__arm__) || defined(__or1k__) || defined(__xtensa__) || defined(__riscv) || defined(__csky__)) && !defined(__UCLIBC_USE_TIME64__))
   unsigned long int __uclibc_unused1;
 #endif
 #if defined(__UCLIBC_USE_TIME64__)
@@ -55,8 +55,8 @@ struct semid_ds
 #else
   __time_t sem_ctime;			/* last time changed by semctl() */
 #endif
-#if (__WORDSIZE == 32 && !defined(__ARC64_ARCH32__) && !defined(__arc__) && !defined(__arm__) && !defined(__or1k__) && !defined(__xtensa__) && !defined(__riscv)) || \
-    ((defined(__ARC64_ARCH32__) || defined(__arc__) || defined(__arm__) || defined(__or1k__) || defined(__xtensa__) || defined(__riscv)) && !defined(__UCLIBC_USE_TIME64__))
+#if (__WORDSIZE == 32 && !defined(__ARC64_ARCH32__) && !defined(__arc__) && !defined(__arm__) && !defined(__or1k__) && !defined(__xtensa__) && !defined(__riscv) && !defined(__csky__)) || \
+    ((defined(__ARC64_ARCH32__) || defined(__arc__) || defined(__arm__) || defined(__or1k__) || defined(__xtensa__) || defined(__riscv) || defined(__csky__)) && !defined(__UCLIBC_USE_TIME64__))
   unsigned long int __uclibc_unused2;
 #endif
   unsigned long int sem_nsems;		/* number of semaphores in set */
