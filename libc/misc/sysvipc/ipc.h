@@ -12,6 +12,10 @@
 # else
 #  define __IPC_64      0x0
 # endif
+#elif defined __hppa__
+/* parisc has no ARCH_WANT_IPC_PARSE_VERSION: the kernel never strips
+   IPC_64, so passing it makes semctl & co. fail with EINVAL.  */
+#  define __IPC_64	0x0
 #else
 # if __WORDSIZE == 32 || defined __alpha__
 #  define __IPC_64	0x100
