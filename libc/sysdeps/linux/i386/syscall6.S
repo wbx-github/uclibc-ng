@@ -47,10 +47,23 @@
 	.globl	__libc_i386_syscall6
 	.type	__libc_i386_syscall6,@function
 __libc_i386_syscall6:
+	/* Emit CFI (DWARF reg numbers: ebx=3, ebp=5, esi=6, edi=7) so an
+	   async pthread cancellation can unwind through this helper when a
+	   thread is cancelled while blocked in the syscall; %ebp holds arg6
+	   here, so the saved frame pointer must be found on the stack. */
+	.cfi_startproc
 	push	ebp
+	.cfi_adjust_cfa_offset 4
+	.cfi_rel_offset 5, 0
 	push	ebx
+	.cfi_adjust_cfa_offset 4
+	.cfi_rel_offset 3, 0
 	push	esi
+	.cfi_adjust_cfa_offset 4
+	.cfi_rel_offset 6, 0
 	push	edi
+	.cfi_adjust_cfa_offset 4
+	.cfi_rel_offset 7, 0
 	mov	eax,[esp + 20]	/* nr */
 	mov	ebx,[esp + 24]	/* arg1 */
 	mov	ecx,[esp + 28]	/* arg2 */
@@ -60,8 +73,17 @@ __libc_i386_syscall6:
 	mov	ebp,[esp + 44]	/* arg6 */
 	int	0x80
 	pop	edi
+	.cfi_adjust_cfa_offset -4
+	.cfi_restore 7
 	pop	esi
+	.cfi_adjust_cfa_offset -4
+	.cfi_restore 6
 	pop	ebx
+	.cfi_adjust_cfa_offset -4
+	.cfi_restore 3
 	pop	ebp
+	.cfi_adjust_cfa_offset -4
+	.cfi_restore 5
 	ret
+	.cfi_endproc
 	.size	__libc_i386_syscall6,.-__libc_i386_syscall6
