@@ -6,7 +6,9 @@
 
 #ifndef __ARCH_HAS_DEPRECATED_SYSCALLS__
 #  define __IPC_64	0x0
-#elif defined __mips__ || defined __m68k__
+#elif defined __mips__ || defined __m68k__ || defined __i386__
+/* 5.1+ uses the direct *ctl syscalls, which (unlike ipc()) do not strip
+   IPC_64 -- passing it would make them fail with EINVAL.  */
 # if __LINUX_KERNEL_VERSION < 0x050100
 #  define __IPC_64      0x100
 # else
