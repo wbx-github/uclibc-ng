@@ -107,7 +107,13 @@ pthread_getattr_np (
 		      && (uintptr_t) __libc_stack_end < to)
 		    {
 		      /* Found the entry.  Now we have the info we need.  */
+#ifdef __ARCH_USE_MMU__
 		      iattr->stacksize = rl.rlim_cur;
+#else
+		      /* On no-MMU, RLIMIT_STACK is not used and the stack is a
+			 fixed contiguous allocation.  */
+		      iattr->stacksize = to - from;
+#endif
 		      iattr->stackaddr = (void *) to;
 
 		      /* The limit might be too high.  */
