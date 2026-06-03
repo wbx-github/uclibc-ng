@@ -336,7 +336,7 @@ define link.so
 		$(CFLAG_-nostdlib) $(CFLAG_-nostartfiles) \
 		-o $(dir $@)$(1) $(START_FILE-$(notdir $@)) \
 		-Wl,--whole-archive $(firstword $^) -Wl,--no-whole-archive -shared \
-		$(LIBS-$(notdir $@)) $(LIBGCC) $(END_FILE-$(notdir $@))
+		$(LIBS-$(notdir $@)) $(LIBGCC) $(EHFRAME_TERM) $(END_FILE-$(notdir $@))
 	$(Q)$(LN) -sf $(1) $@.$(2)
 	$(Q)$(LN) -sf $(1) $@
 endef
@@ -428,6 +428,17 @@ endif
 ifeq ($(HAS_NO_THREADS)$(UCLIBC_HAS_THREADS_NATIVE),)
 $(lib-so-y): $(CTOR_TARGETS)
 endif
+
+# .eh_frame zero terminator, linked at the end of every shared object:
+# we link with -nostdlib, so gcc's crtendS.o never provides it
+EHFRAME_TERM := $(top_builddir)lib/ehframe-term.o
+CFLAGS-ehframe-term.c := -fno-unwind-tables -fno-asynchronous-unwind-tables
+$(EHFRAME_TERM): $(top_builddir)lib/%.o : $(top_srcdir)libc/sysdeps/linux/common/%.c | $(top_builddir)lib
+	$(compile.c)
+# both the soname targets and the recipe-bearing unversioned targets
+# (the ldso rule runs link.so on $(ldso:.$(ABI_VERSION)=))
+$(lib-so-y): $(EHFRAME_TERM)
+$(lib-so-y:.$(ABI_VERSION)=): $(EHFRAME_TERM)
 
 ifeq ($(UCLIBC_FORMAT_FDPIC_ELF),y)
 CRTRELOC=$(top_builddir)lib/crtreloc.o
