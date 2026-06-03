@@ -20,7 +20,7 @@
 /* Test if longjmp to JMPBUF would unwind the frame
    containing a local variable at ADDRESS.  */
 #define _JMPBUF_UNWINDS(jmpbuf, address) \
-  ((void *) (address) < (void *) (jmpbuf)->__aregs[5])
+  ((void *) (address) < (void *) (jmpbuf)->__sp)
 
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 #include <stdint.h>
