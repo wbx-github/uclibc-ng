@@ -65,6 +65,11 @@ static int __NC(accept)(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 # ifdef __NR_accept
 	return INLINE_SYSCALL(accept, 3, sockfd, addr, addrlen);
+# elif defined(__NR_accept4)
+	/* Targets without __NR_accept (e.g. m68k) must use the direct accept4
+	   syscall, not the asm __socketcall stub: the stub carries no CFI, so
+	   asynchronous cancellation cannot unwind out of the blocking call.  */
+	return INLINE_SYSCALL(accept4, 4, sockfd, addr, addrlen, 0);
 # elif defined(__NR_socketcall)
 	unsigned long args[3];
 
