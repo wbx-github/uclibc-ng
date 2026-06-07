@@ -900,15 +900,21 @@ _dl_tls_get_addr_soft (struct link_map *map)
   if (map->l_tls_modid == 0)
     return NULL;
 
-  /* This is called from dl_iterate_phdr to fill dl_phdr_info::dlpi_tls_data,
-     which the unwinder invokes during stack unwinding (e.g. pthread
-     cancellation).  In such contexts the calling thread may not have a
-     usable thread pointer / DTV yet (or any more), so THREAD_DTV() can
-     come back as a near-null bogus pointer.  dlpi_tls_data is optional,
-     so bail out instead of dereferencing it.  */
   dtv = THREAD_DTV ();
-  if (dtv == NULL || (uintptr_t) dtv < 4096)
+#if defined(__microblaze__)
+  /* microblaze keeps the thread pointer in r21, a non-reserved GPR, so when
+     the unwinder calls dl_iterate_phdr THREAD_DTV() can return a bogus
+     pointer.  Reject anything that does not look like a real (high, aligned)
+     DTV.  Not foolproof: an aligned scratch value above 0x10000 still slips
+     through.  Other targets use a reserved thread pointer; the NULL check
+     suffices there.  */
+  if (dtv == NULL || (uintptr_t) dtv < 0x10000
+      || ((uintptr_t) dtv & (__alignof__ (dtv_t) - 1)) != 0)
     return NULL;
+#else
+  if (dtv == NULL)
+    return NULL;
+#endif
   if (map->l_tls_modid > (size_t) dtv[-1].counter)
     return NULL;
 
