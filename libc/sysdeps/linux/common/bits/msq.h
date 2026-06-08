@@ -37,7 +37,7 @@ typedef unsigned long int msglen_t;
 struct msqid_ds
 {
   struct ipc_perm msg_perm;	/* structure describing operation permission */
-#if (__WORDSIZE == 32 && defined(__riscv) && defined(__UCLIBC_USE_TIME64__))
+#if (__WORDSIZE == 32 && defined(__UCLIBC_USE_TIME64__))
   unsigned long int msg_stime_internal_1;
   unsigned long int msg_stime_internal_2;
   unsigned long int msg_rtime_internal_1;
@@ -57,10 +57,11 @@ struct msqid_ds
   msglen_t msg_qbytes;		/* max number of bytes allowed on queue */
   __pid_t msg_lspid;		/* pid of last msgsnd() */
   __pid_t msg_lrpid;		/* pid of last msgrcv() */
-#if (__WORDSIZE == 32 && defined(__riscv) && defined(__UCLIBC_USE_TIME64__))
+#if (__WORDSIZE == 32 && defined(__UCLIBC_USE_TIME64__))
   __time_t msg_stime;		/* time of last msgsnd command */
   __time_t msg_rtime;		/* time of last msgrcv command */
   __time_t msg_ctime;		/* time of last change */
+# define __MSQID_DS_TIME64_SPLIT 1
 #endif
   unsigned long int __uclibc_unused4;
   unsigned long int __uclibc_unused5;
