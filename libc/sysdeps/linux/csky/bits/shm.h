@@ -39,17 +39,32 @@ struct shmid_ds
   {
     struct ipc_perm shm_perm;		/* operation permission struct */
     size_t shm_segsz;			/* size of segment in bytes */
+#if defined(__UCLIBC_USE_TIME64__)
+    unsigned long int __shm_atime_internal_1;
+    unsigned long int __shm_atime_internal_2;
+    unsigned long int __shm_dtime_internal_1;
+    unsigned long int __shm_dtime_internal_2;
+    unsigned long int __shm_ctime_internal_1;
+    unsigned long int __shm_ctime_internal_2;
+#else
     __time_t shm_atime;			/* time of last shmat() */
     unsigned long int __uclibc_unused1;
     __time_t shm_dtime;			/* time of last shmdt() */
     unsigned long int __uclibc_unused2;
     __time_t shm_ctime;			/* time of last change by shmctl() */
     unsigned long int __uclibc_unused3;
+#endif
     __pid_t shm_cpid;			/* pid of creator */
     __pid_t shm_lpid;			/* pid of last shmop */
     shmatt_t shm_nattch;		/* number of current attaches */
     unsigned long int __uclibc_unused4;
     unsigned long int __uclibc_unused5;
+#if defined(__UCLIBC_USE_TIME64__)
+    __time_t shm_atime;			/* time of last shmat() */
+    __time_t shm_dtime;			/* time of last shmdt() */
+    __time_t shm_ctime;			/* time of last change by shmctl() */
+# define __SHMID_DS_TIME64_SPLIT 1
+#endif
   };
 
 #ifdef __USE_MISC

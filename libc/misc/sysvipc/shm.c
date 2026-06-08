@@ -75,6 +75,14 @@ int shmctl(int shmid, int cmd, struct shmid_ds *buf)
 		arg.buff->shm_dtime = (__time_t)arg.buff->shm_dtime_internal_1 | (__time_t)(arg.buff->shm_dtime_internal_2) << 32;
 		arg.buff->shm_ctime = (__time_t)arg.buff->shm_ctime_internal_1 | (__time_t)(arg.buff->shm_ctime_internal_2) << 32;
 	}
+#elif defined(__SHMID_DS_TIME64_SPLIT)
+	// combine the kernel's split time words
+	// When cmd is IPC_RMID, buf should be NULL.
+	if (buf != NULL) {
+		buf->shm_atime = (__time_t)buf->__shm_atime_internal_1 | (__time_t)(buf->__shm_atime_internal_2) << 32;
+		buf->shm_dtime = (__time_t)buf->__shm_dtime_internal_1 | (__time_t)(buf->__shm_dtime_internal_2) << 32;
+		buf->shm_ctime = (__time_t)buf->__shm_ctime_internal_1 | (__time_t)(buf->__shm_ctime_internal_2) << 32;
+	}
 #endif
 	return __ret;
 #else
