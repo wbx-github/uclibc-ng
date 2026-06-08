@@ -43,7 +43,7 @@ setjmp:
 #else	/* N32 */
 	.cpsetup t9, v0, setjmp
 	PTR_LA	t9, __sigsetjmp
-	.cprestore
+	.cpreturn
 #endif	/* N32 */
 #endif
 	li	a1, 1		/* Pass a second argument of one.  */
