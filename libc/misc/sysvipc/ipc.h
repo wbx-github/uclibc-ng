@@ -6,7 +6,14 @@
 
 #ifndef __ARCH_HAS_DEPRECATED_SYSCALLS__
 #  define __IPC_64	0x0
-#elif defined __mips__ || defined __m68k__ || defined __i386__
+#elif defined __mips__
+/* mips routes the *ctl syscalls through sys_old_*ctl (and the ipc()
+   multiplexer), which call ipc_parse_version() and so strip IPC_64 out of
+   cmd to select the layout on every kernel version -- including n64.  The
+   bit must therefore always be set, otherwise the kernel returns the
+   ancient struct and e.g. sem_nsems comes back as 0.  */
+#  define __IPC_64	0x100
+#elif defined __m68k__ || defined __i386__
 /* 5.1+ uses the direct *ctl syscalls, which (unlike ipc()) do not strip
    IPC_64 -- passing it would make them fail with EINVAL.  */
 # if __LINUX_KERNEL_VERSION < 0x050100
