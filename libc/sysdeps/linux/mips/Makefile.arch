@@ -7,7 +7,8 @@
 
 CSRC-y := \
 	__longjmp.c  brk.c setjmp_aux.c \
-	pread_write.c sigaction.c _test_and_set.c
+	pread_write.c sigaction.c _test_and_set.c \
+	fallocate64.c
 
 SSRC-y := bsd-_setjmp.S bsd-setjmp.S setjmp.S syscall.S pipe.S syscall_error.S \
 	  vfork.S clone.S
