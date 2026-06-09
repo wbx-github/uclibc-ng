@@ -14,9 +14,19 @@
 
 #include <link.h>
 #include <ldso.h>
+#include <bits/uClibc_mutex.h>
 
 /* we want this in libc but nowhere else */
 #ifdef __USE_GNU
+
+/* Serialize the callback invocations.  glibc holds the loader's
+   dl_load_write_lock across dl_iterate_phdr; some callers (notably the
+   libgcc unwinder's _Unwind_IteratePhdrCallback) rely on that and mutate
+   shared state from the callback without locking themselves.  Without
+   serialization, concurrent unwinds (e.g. many threads cancelling at once)
+   corrupt that state and spin.  */
+__UCLIBC_MUTEX_STATIC(_dl_iterate_phdr_lock,
+		      PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP);
 
 static int
 __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void *data), void *data)
@@ -26,6 +36,7 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 	struct elf_resolve *l;
 	struct dl_phdr_info info;
 
+	__UCLIBC_MUTEX_CONDITIONAL_LOCK(_dl_iterate_phdr_lock, 1);
 	for (l = _dl_loaded_modules; l != NULL; l = l->next) {
 		info.dlpi_addr = l->loadaddr;
 		info.dlpi_name = l->libname;
@@ -49,6 +60,7 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 		if (ret)
 			break;
 	}
+	__UCLIBC_MUTEX_CONDITIONAL_UNLOCK(_dl_iterate_phdr_lock, 1);
 #endif
 	return ret;
 }
