@@ -59,6 +59,20 @@ pthread_cancel (
 	 expensive.  */
       if (CANCEL_ENABLED_AND_CANCELED_AND_ASYNCHRONOUS (newval))
 	{
+	  /* Cancelling ourselves needs no signal: deliver the cancellation
+	     directly instead of bouncing through tgkill+SIGCANCEL.  This
+	     avoids the syscall, the kernel-built signal frame and the extra
+	     (signal-frame) unwind step.  */
+	  if (pd == (volatile struct pthread *) THREAD_SELF)
+	    {
+	      if (atomic_compare_and_exchange_bool_acq (&pd->cancelhandling,
+							newval, oldval))
+		goto again;
+	      THREAD_SETMEM (THREAD_SELF, result, PTHREAD_CANCELED);
+	      __do_cancel ();
+	      /* NOTREACHED */
+	    }
+
 	  /* Mark the cancellation as "in progress".  */
 	  if (atomic_compare_and_exchange_bool_acq (&pd->cancelhandling,
 						    oldval | CANCELING_BITMASK,
