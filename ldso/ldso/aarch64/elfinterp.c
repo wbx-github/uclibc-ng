@@ -216,7 +216,11 @@ _dl_do_reloc (struct elf_resolve *tpnt, struct r_scope_elem *scope,
 #if defined USE_TLS && USE_TLS
 		case R_AARCH64_TLS_TPREL:
 			CHECK_STATIC_TLS ((struct link_map *) tls_tpnt);
-			*reloc_addr = (symbol_addr + tls_tpnt->l_tls_offset);
+			/* A local TLS symbol has no symbol table entry, so the
+			   offset inside the module's block travels in the
+			   addend and symbol_addr is zero.  */
+			*reloc_addr = (symbol_addr + rpnt->r_addend
+				       + tls_tpnt->l_tls_offset);
 			break;
 		case R_AARCH64_TLSDESC:
 				{
