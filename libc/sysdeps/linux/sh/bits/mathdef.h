@@ -35,9 +35,12 @@ typedef float float_t;		/* `float' expressions are evaluated as
 typedef double double_t;	/* `double' expressions are evaluated as
 				   `double'.  */
 
-/* The values returned by `ilogb' for 0 and NaN respectively.  */
-# define FP_ILOGB0	0x80000001
-# define FP_ILOGBNAN	0x7fffffff
+/* The values returned by `ilogb' for 0 and NaN respectively.  ISO C wants
+   these to be int, and 0x80000001 does not fit in one, so it used to be
+   unsigned: ilogb(0) returned -2147483647 while the macro compared equal to
+   2147483649.  */
+# define FP_ILOGB0	(-2147483647)
+# define FP_ILOGBNAN	2147483647
 
 #endif	/* ISO C99 */
 
