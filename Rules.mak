@@ -380,6 +380,12 @@ $(eval $(call check-ld-var,--sort-section=alignment))
 	CPU_CFLAGS-y+=-m32
 endif
 
+ifeq ($(TARGET_ARCH),alpha)
+	# Without -mieee the hardware traps on NaN, infinity and denormals, so
+	# printing them takes a SIGFPE instead of a string.
+	CPU_CFLAGS-y+=-mieee
+endif
+
 ifeq ($(TARGET_ARCH),sparc)
 	CPU_CFLAGS-$(CONFIG_SPARC_V7)+=-mcpu=v7
 	CPU_CFLAGS-$(CONFIG_SPARC_V8)+=-mcpu=v8
