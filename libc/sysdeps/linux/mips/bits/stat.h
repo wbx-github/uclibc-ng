@@ -102,7 +102,7 @@ struct stat {
     __gid_t st_gid;		/* Group ID of the file's group.*/
     unsigned int st_rdev;	/* Device number, if device.  */
     int st_pad2[3];
-    __off_t st_size;		/* Size of file, in bytes.  */
+    __off64_t st_size;		/* Size of file, in bytes.  */
 #if defined(__USE_MISC) || defined(__USE_XOPEN2K8)
     /* Nanosecond resolution timestamps are stored in a format
        equivalent to 'struct timespec'.  This is the type used
