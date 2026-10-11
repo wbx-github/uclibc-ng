@@ -150,16 +150,4 @@ static pid_t __fork(void)
 strong_alias(__fork,fork)
 strong_alias(__fork,vfork)
 
-#else
-
-/* We can't support pthread_atfork without MMU, since we don't have
-   fork(), and we can't offer the correct semantics for vfork().
-   But instead of failing, just provide a dummy */
-int pthread_atfork(void (*prepare)(void),
-                  void (*parent)(void),
-                  void (*child)(void))
-{
-  return 0;
-}
-
 #endif
