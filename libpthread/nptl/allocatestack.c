@@ -780,6 +780,22 @@ __make_stacks_executable (void **stack_endp)
   return err;
 }
 
+static int
+reclaim_check_list (list_t *l, list_t *elem)
+{
+  if (l->next->prev != l)
+    {
+      assert (l->next->prev == elem);
+
+      elem->next = l->next;
+      elem->prev = l;
+      l->next = elem;
+
+      return 1;
+    }
+
+  return 0;
+}
 
 /* In case of a fork() call the memory allocation in the child will be
    the same but only one thread is running.  All stacks except that of
@@ -803,24 +819,8 @@ __reclaim_stacks (void)
 	{
 	  /* We always add at the beginning of the list.  So in this
 	     case we only need to check the beginning of these lists.  */
-	  int check_list (list_t *l)
-	  {
-	    if (l->next->prev != l)
-	      {
-		assert (l->next->prev == elem);
-
-		elem->next = l->next;
-		elem->prev = l;
-		l->next = elem;
-
-		return 1;
-	      }
-
-	    return 0;
-	  }
-
-	  if (check_list (&stack_used) == 0)
-	    (void) check_list (&stack_cache);
+	  if (reclaim_check_list (&stack_used, elem) == 0)
+	    (void) reclaim_check_list (&stack_cache, elem);
 	}
       else
 	{
