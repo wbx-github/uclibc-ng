@@ -11,6 +11,28 @@
 #include <sys/resource.h>
 #include <errno.h>
 
+#if defined(__UCLIBC_USE_TIME64__)
+/* There is no wait4 or waitid with a 64-bit time_t: the kernel writes struct
+   rusage with 32-bit timevals, 16 bytes shorter than ours.  Hand it a pointer
+   4 32-bit words before ru_maxrss so the long fields land where they belong,
+   and rebuild the two timevals from those words afterwards.  */
+static __always_inline char *rusage_kernel_ptr(struct rusage *rusage)
+{
+	return rusage ? (char *)&rusage->ru_maxrss - 4 * sizeof(__S32_TYPE) : NULL;
+}
+
+static __always_inline void rusage_fixup_timevals(struct rusage *rusage, char *kru)
+{
+	__S32_TYPE r32[4];
+
+	if (!rusage)
+		return;
+	memcpy(r32, kru, sizeof(r32));
+	rusage->ru_utime = (struct timeval){ .tv_sec = r32[0], .tv_usec = r32[1] };
+	rusage->ru_stime = (struct timeval){ .tv_sec = r32[2], .tv_usec = r32[3] };
+}
+#endif
+
 #if defined(__NR_waitid)
 /* wait4() expressed via the waitid(2) syscall.  Used as the implementation
  * when the kernel/arch does not provide wait4, and as a runtime fallback
@@ -47,9 +69,21 @@ static pid_t __wait4_via_waitid(pid_t pid, int *status, int opts, struct rusage 
 		type = P_PID;
 	}
 
+#if defined(__UCLIBC_USE_TIME64__)
+	{
+		char *kru = rusage_kernel_ptr(rusage);
+
+		res = INLINE_SYSCALL(waitid, 5, type, pid, &info,
+				     opts | WEXITED, kru);
+		if (res < 0)
+			return res;
+		rusage_fixup_timevals(rusage, kru);
+	}
+#else
 	res = INLINE_SYSCALL(waitid, 5, type, pid, &info, opts | WEXITED, rusage);
 	if (res < 0)
 		return res;
+#endif
 
 	if (info.si_pid && status) {
 		int sw = 0;
@@ -87,8 +121,8 @@ pid_t __wait4_nocancel(pid_t pid, int *status, int opts, struct rusage *rusage)
 {
 	int ret;
 #if defined(__UCLIBC_USE_TIME64__)
-	/* Kernel returns 32-bit timevals in the rusage prefix; convert below. */
-	char *kru = rusage ? (char *)&rusage->ru_maxrss - 4 * sizeof(__S32_TYPE) : NULL;
+	char *kru = rusage_kernel_ptr(rusage);
+
 	ret = __syscall_wait4(pid, status, opts, (struct rusage *)kru);
 #else
 	ret = __syscall_wait4(pid, status, opts, rusage);
@@ -101,12 +135,8 @@ pid_t __wait4_nocancel(pid_t pid, int *status, int opts, struct rusage *rusage)
 #endif
 
 #if defined(__UCLIBC_USE_TIME64__)
-	if (ret > 0 && rusage) {
-		__S32_TYPE r32[4];
-		memcpy(r32, kru, 4 * sizeof(__S32_TYPE));
-		rusage->ru_utime = (struct timeval){ .tv_sec = r32[0], .tv_usec = r32[1] };
-		rusage->ru_stime = (struct timeval){ .tv_sec = r32[2], .tv_usec = r32[2] };
-	}
+	if (ret > 0)
+		rusage_fixup_timevals(rusage, kru);
 #endif
 	return ret;
 }
