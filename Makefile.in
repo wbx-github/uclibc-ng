@@ -257,7 +257,7 @@ HEADERS_RM- := \
 ifeq ($(UCLIBC_STRICT_HEADERS),y)
 HEADERS_RM- += sgtty.h
 endif
-HEADERS_RM-$(HAVE_SHARED)                    += dlfcn.h bits/dlfcn.h sys/auxv.h
+HEADERS_RM-$(HAVE_SHARED)                    += dlfcn.h bits/dlfcn.h
 HEADERS_RM-$(PTHREADS_DEBUG_SUPPORT)         += thread_db.h
 HEADERS_RM-$(UCLIBC_HAS_ARGP)                += argp.h
 HEADERS_RM-$(UCLIBC_HAS_BSD_ERR)             += err.h
