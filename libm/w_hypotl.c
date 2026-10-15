@@ -37,4 +37,5 @@ hypotl(long double x, long double y)
 	return (long double) __ieee754_hypot((double) x, (double) y);
 # endif /* __UCLIBC_HAS_FENV__ */
 }
+libm_hidden_def(hypotl)
 #endif /* __NO_LONG_DOUBLE_MATH */
