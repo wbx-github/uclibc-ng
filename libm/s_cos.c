@@ -42,8 +42,9 @@
 
 #include "math.h"
 #include "math_private.h"
+#include "x87-precision.h"
 
-double cos(double x)
+X87_ROUND53_WORKER double fdlibm_cos(double x)
 {
 	double y[2],z=0.0;
 	int32_t n, ix;
@@ -69,5 +70,20 @@ double cos(double x)
 		        return  __kernel_sin(y[0],y[1],1);
 	    }
 	}
+}
+/* The argument reduction below carries pi/2 in two words and relies on each
+   operation rounding to double; on x87 it does not, and the last bit goes.
+   Measured over the 999 points of tst-sin-ulp.c: cos misses the correctly
+   rounded result 68 times on i686 and 20 with the FPU set to 53 bits, which is
+   what every other target gives.  See x87-precision.h.  */
+double cos(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = fdlibm_cos (x);
+	X87_ROUND53_END ();
+	return r;
 }
 libm_hidden_def(cos)

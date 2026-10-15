@@ -29,12 +29,13 @@
 
 #include "math.h"
 #include "math_private.h"
+#include "x87-precision.h"
 
 static const double one = 1.0, huge = 1e300;
 
 static const double zero = 0.0;
 
-double __ieee754_atanh(double x)
+X87_ROUND53_WORKER double fdlibm_atanh(double x)
 {
 	double t;
 	int32_t hx,ix;
@@ -53,4 +54,19 @@ double __ieee754_atanh(double x)
 	} else
 	    t = 0.5*log1p((x+x)/(one-x));
 	if(hx>=0) return t; else return -t;
+}
+
+/* atanh builds the argument of log1p out of a division, and log1p then
+   rounds whatever it is handed.  On x87 that argument keeps the register's
+   extra bits, and the result lands two representable values out where every
+   other target lands one -- so round to double here.  */
+double __ieee754_atanh(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = fdlibm_atanh (x);
+	X87_ROUND53_END ();
+	return r;
 }

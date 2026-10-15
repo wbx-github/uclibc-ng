@@ -22,13 +22,14 @@
 
 #include "math.h"
 #include "math_private.h"
+#include "x87-precision.h"
 
 static const double
 one =  1.00000000000000000000e+00, /* 0x3FF00000, 0x00000000 */
 ln2 =  6.93147180559945286227e-01, /* 0x3FE62E42, 0xFEFA39EF */
 huge=  1.00000000000000000000e+300;
 
-double asinh(double x)
+X87_ROUND53_WORKER double fdlibm_asinh(double x)
 {
 	double t,w;
 	int32_t hx,ix;
@@ -48,5 +49,20 @@ double asinh(double x)
 	    w =log1p(fabs(x)+t/(one+__ieee754_sqrt(one+t)));
 	}
 	if(hx>0) return w; else return -w;
+}
+
+/* asinh builds the argument of log1p out of a division and a square root,
+   and log1p then rounds whatever it is handed.  On x87 that argument keeps
+   the register's extra bits, and the result lands two representable values
+   out where every other target lands one -- so round to double here.  */
+double asinh(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = fdlibm_asinh (x);
+	X87_ROUND53_END ();
+	return r;
 }
 libm_hidden_def(asinh)
