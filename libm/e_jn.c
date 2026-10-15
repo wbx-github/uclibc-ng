@@ -194,7 +194,15 @@ double __ieee754_jn(int n, double x)
 			}
 	     	    }
 		}
-	    	b = (t*__ieee754_j0(x)/b);
+		/* j0 and j1 lose almost all precision near their zeros, but
+		 * the two never vanish at the same x -- normalise with
+		 * whichever is further from zero.  */
+		z = __ieee754_j0(x);
+		w = __ieee754_j1(x);
+		if (fabs(z) >= fabs(w))
+		    b = (t*z/b);
+		else
+		    b = (t*w/a);
 	    }
 	}
 	if(sgn==1) return -b; else return b;
