@@ -20,12 +20,35 @@
 #include "math_private.h"
 #include <float.h>
 
+/* ln(10) as two doubles: LN10_HI + LN10_LO is ln(10) to 106 bits, and
+   LN10_HH + LN10_HL is LN10_HI split in halves so a product with a split
+   argument is exact.  */
+static const double LN10_HI = 0x1.26bb1bbb55516p+1;
+static const double LN10_LO = -0x1.f48ad494ea3e9p-53;
+static const double LN10_HH = 0x1.26bb1b8p+1;
+static const double LN10_HL = 0x1.daaa8bp-26;
+
 double __ieee754_exp10 (double arg)
 {
+  double p, e, corr, r, t, xh, xl;
+
   if (isfinite (arg) && arg < DBL_MIN_10_EXP - DBL_DIG - 10)
     return DBL_MIN * DBL_MIN;
-  else
-    /* This is a very stupid and inprecise implementation.  It'll get
-       replaced sometime (soon?).  */
-    return __ieee754_exp (M_LN10 * arg);
+
+  /* arg * LN10_HI as the exact sum p + e, by Dekker's product: the halves of
+     each factor carry 26 bits, so xh * LN10_HH fits in a double, and the
+     subtraction of p from it is exact.  */
+  p = arg * LN10_HI;
+  t = arg * (0x1p27 + 1.0);
+  xh = t - (t - arg);
+  xl = arg - xh;
+  e = ((xh * LN10_HH - p) + xh * LN10_HL + xl * LN10_HH) + xl * LN10_HL;
+
+  /* What the rounded product lost, plus the tail of ln(10).  */
+  corr = e + arg * LN10_LO;
+
+  r = __ieee754_exp (p);
+  if (!isfinite (r) || r == 0)
+    return r;
+  return r + r * corr;
 }
