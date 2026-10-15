@@ -49,7 +49,7 @@ ifeq ($(DO_C99_MATH),y)
 libm_CSRC := \
 	e_acos.c e_acosh.c e_asin.c e_atan2.c e_atanh.c e_cosh.c \
 	e_exp.c e_exp10.c e_fmod.c e_hypot.c \
-	e_lgamma_r.c e_log.c e_log2.c e_log10.c \
+	e_lgamma_r.c e_tgamma.c e_log.c e_log2.c e_log10.c \
 	e_pow.c e_remainder.c e_rem_pio2.c e_scalb.c e_sinh.c \
 	e_sqrt.c k_cos.c k_rem_pio2.c k_sin.c k_tan.c \
 	s_asinh.c s_atan.c s_cbrt.c s_ceil.c s_copysign.c s_cos.c \

@@ -294,36 +294,3 @@ double __ieee754_lgamma_r(double x, int *signgamp)
 	if(hx<0) r = nadj - r;
 	return r;
 }
-
-
-/* double tgamma(double x)
- * Return the Gamma function of x.
- */
-double __ieee754_tgamma(double x)
-{
-	int sign_of_gamma;
-	int32_t hx;
-	u_int32_t lx;
-
-	/* We don't have a real gamma implementation now.  We'll use lgamma
-	   and the exp function.  But due to the required boundary
-	   conditions we must check some values separately.  */
-
-	EXTRACT_WORDS(hx, lx, x);
-
-	if (((hx & 0x7fffffff) | lx) == 0) {
-		/* Return value for x == 0 is Inf with divide by zero exception.  */
-		return 1.0 / x;
-	}
-	if (hx < 0 && (u_int32_t)hx < 0xfff00000 && rint(x) == x) {
-		/* Return value for integer x < 0 is NaN with invalid exception.  */
-		return (x - x) / (x - x);
-	}
-	if ((u_int32_t)hx == 0xfff00000 && lx == 0) {
-		/* x == -Inf.  According to ISO this is NaN.  */
-		return x - x;
-	}
-
-	x = exp(lgamma_r(x, &sign_of_gamma));
-	return sign_of_gamma >= 0 ? x : -x;
-}
