@@ -34,19 +34,18 @@
  *	    | Lg1*s +...+Lg7*s    -  R(z) | <= 2
  *	    |                             |
  *	Note that 2s = f - s*f = f - hfsq + s*hfsq, where hfsq = f*f/2.
- *	In order to guarantee error in log below 1ulp, we compute log
- *	by
- *		log(1+f) = f - s*(f - R)	(if f is not too large)
- *		log(1+f) = f - (hfsq - s*(hfsq+R)).	(better accuracy)
  *
- *	3. Finally,  log(x) = k + log(1+f).
- *			    = k+(f-(hfsq-(s*(hfsq+R))))
+ *   3. Finally,  log2(x) = k + log(1+f)/ln2.
+ *
+ *	log(1+f) is kept as an unevaluated sum hi+lo, with the low word of
+ *	hi cleared so that hi*ivln2hi is exact, and 1/ln2 is carried in the
+ *	two words ivln2hi+ivln2lo.  A single-precision divide by ln2 here
+ *	would round once more and cost the result its last bit.
  *
  * Special cases:
  *	log2(x) is NaN with signal if x < 0 (including -INF) ;
  *	log2(+INF) is +INF; log(0) is -INF with signal;
  *	log2(NaN) is that NaN with no signal.
- *
  * Constants:
  * The hexadecimal values are the intended ones for the following
  * constants. The decimal values may be used, provided that the
@@ -58,8 +57,9 @@
 #include "math_private.h"
 
 static const double
-ln2 = 0.69314718055994530942,
 two54   =  1.80143985094819840000e+16,  /* 43500000 00000000 */
+ivln2hi =  1.44269504072144627571e+00,  /* 3FF71547 65200000 */
+ivln2lo =  1.67517131648865118353e-10,  /* 3DE705FC 2EEFA200 */
 Lg1 = 6.666666666666735130e-01,  /* 3FE55555 55555593 */
 Lg2 = 3.999999999940941908e-01,  /* 3FD99999 9997FA04 */
 Lg3 = 2.857142874366239149e-01,  /* 3FD24924 94229359 */
@@ -68,12 +68,10 @@ Lg5 = 1.818357216161805012e-01,  /* 3FC74664 96CB03DE */
 Lg6 = 1.531383769920937332e-01,  /* 3FC39A09 D078C69F */
 Lg7 = 1.479819860511658591e-01;  /* 3FC2F112 DF3E5244 */
 
-static const double zero   =  0.0;
-
 double __ieee754_log2(double x)
 {
-	double hfsq,f,s,z,R,w,t1,t2,dk;
-	int32_t k,hx,i,j;
+	double hfsq,f,s,z,R,w,hi,lo,val_hi,val_lo,y;
+	int32_t k,hx,i;
 	u_int32_t lx;
 
 	EXTRACT_WORDS(hx,lx,x);
@@ -92,26 +90,25 @@ double __ieee754_log2(double x)
 	i = (hx+0x95f64)&0x100000;
 	SET_HIGH_WORD(x,hx|(i^0x3ff00000));	/* normalize x or x/2 */
 	k += (i>>20);
-	dk = (double) k;
-	f = x-1.0;
-	if((0x000fffff&(2+hx))<3) {	/* |f| < 2**-20 */
-	    if(f==zero) return dk;
-	    R = f*f*(0.5-0.33333333333333333*f);
-	    return dk-(R-f)/ln2;
-	}
-	s = f/(2.0+f);
-	z = s*s;
-	i = hx-0x6147a;
-	w = z*z;
-	j = 0x6b851-hx;
-	t1= w*(Lg2+w*(Lg4+w*Lg6));
-	t2= z*(Lg1+w*(Lg3+w*(Lg5+w*Lg7)));
-	i |= j;
-	R = t2+t1;
-	if(i>0) {
-	    hfsq=0.5*f*f;
-	    return dk-((hfsq-(s*(hfsq+R)))-f)/ln2;
-	} else {
-	    return dk-((s*(f-R))-f)/ln2;
-	}
+	y  = (double)k;
+	f  = x-1.0;
+	hfsq = 0.5*f*f;
+	s  = f/(2.0+f);
+	z  = s*s;
+	w  = z*z;
+	R  = z*(Lg1+w*(Lg3+w*(Lg5+w*Lg7))) + w*(Lg2+w*(Lg4+w*Lg6));
+
+	/* log(1+f) = hi+lo, hi with a clear low word so hi*ivln2hi is exact */
+	hi = f - hfsq;
+	SET_LOW_WORD(hi,0);
+	lo = (f - hi) - hfsq + s*(hfsq+R);
+
+	val_hi = hi*ivln2hi;
+	val_lo = (lo+hi)*ivln2lo + lo*ivln2hi;
+
+	/* y is an integer, so this sum is exact but for val_lo */
+	w = y + val_hi;
+	val_lo += (y - w) + val_hi;
+	val_hi = w;
+	return val_lo + val_hi;
 }
