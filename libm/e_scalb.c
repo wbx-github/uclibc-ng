@@ -21,7 +21,12 @@
 
 double __ieee754_scalb(double x, double fn)
 {
-	if (isnan(x)||isnan(fn)) return x*fn;
+	/* A NaN argument makes the result NaN.  Adding rather than multiplying,
+	   because m68k's soft-float __muldf3 returns infinity for inf * NaN --
+	   gcc's libgcc/config/m68k/lb1sf68.S, where Lmuldf$a$nf signals overflow
+	   for an infinite a without looking at b; the float path next to it does
+	   check.  Addition hands back a quiet NaN just as well.  */
+	if (isnan(x)||isnan(fn)) return x+fn;
 	if (!isfinite(fn)) {
 	    if(fn>0.0) return x*fn;
 	    else       return x/(-fn);
