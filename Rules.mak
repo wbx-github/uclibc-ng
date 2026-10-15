@@ -635,6 +635,12 @@ ifeq ($(UCLIBC_BUILD_NOW),y)
 LDFLAGS_NOSTRIP+=-Wl,-z,now
 endif
 
+# llvm lld does not emit traditional SysV DT_HASH table for symbol lookup
+LD_IS_LLD:=$(shell $(CC) $(CFLAGS) -fuse-ld=lld -Wl,--version 2>&1 | grep -q '^LLD' && echo y)
+ifeq ($(LD_IS_LLD),y)
+LDFLAGS_NOSTRIP+=-Wl,--hash-style=both
+endif
+
 ifeq ($(LDSO_GNU_HASH_SUPPORT),y)
 # Be sure that binutils support it
 $(eval $(call check-ld-var,--hash-style=gnu))
@@ -655,6 +661,10 @@ CFLAGS += $(OPTIMIZATION-$(GCC_MAJOR_VER))
 CFLAGS += $(OPTIMIZATION-$(GCC_MAJOR_VER).$(GCC_MINOR_VER))
 $(eval $(call check-ld-var,-O2))
 LDFLAGS_NOSTRIP += $(CFLAG_-Wl-O2)
+endif
+
+ifneq ($(strip $(UCLIBC_EXTRA_LDFLAGS)),"")
+LDFLAGS_NOSTRIP += $(call qstrip,$(UCLIBC_EXTRA_LDFLAGS))
 endif
 
 LDFLAGS:=$(LDFLAGS_NOSTRIP) -Wl,-z,defs
@@ -769,6 +779,11 @@ ASFLAGS += $(ASFLAG_--noexecstack)
 LIBGCC_CFLAGS ?= $(CFLAGS) $(CPU_CFLAGS-y)
 $(eval $(call cache-output-var,LIBGCC_A,$(CC) $(LIBGCC_CFLAGS) -print-libgcc-file-name))
 $(eval $(call cache-output-var,LIBGCC_EH,$(CC) $(LIBGCC_CFLAGS) -print-file-name=libgcc_eh.a))
+
+ifeq ($(shell $(CC) --version 2>/dev/null | grep -c 'clang'),1)
+LIBGCC_A := $(shell $(CC) $(LIBGCC_CFLAGS) -print-file-name=libclang_rt.builtins.a)
+endif
+
 # with -O0 we (e.g. lockf) might end up with references to
 # _Unwind_Resume, so pull in gcc_eh in this case..
 # with a --disable-shared toolchain, libgcc_eh.a and libgcc.a are combined
