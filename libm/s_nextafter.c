@@ -69,7 +69,11 @@ double nextafter(double x, double y)
 	return x;
 }
 libm_hidden_def(nextafter)
-#if LDBL_MANT_DIG == DBL_MANT_DIG
+/* Whether nexttoward can be an alias of nextafter is a question about the
+   ABI -- are the two argument types passed the same way -- so ask the
+   compiler.  LDBL_MANT_DIG cannot answer it: m68k and h8300 ship a float.h
+   of their own that pins it to 53 for the library build only.  */
+#if __SIZEOF_LONG_DOUBLE__ == __SIZEOF_DOUBLE__
 strong_alias_untyped(nextafter, nexttoward)
 libm_hidden_def(nexttoward)
 #else
