@@ -10,16 +10,15 @@
 
 double fdim(double x, double y)
 {
-  int cx = __fpclassify(x); /* need both NAN and INF */
-  int cy = __fpclassify(y); /* need both NAN and INF */
-  if (cx == FP_NAN || cy == NAN)
-    return x - y;
-
-  if (x <= y)
+  /* islessequal, not <=: the quiet comparison, so a NaN argument does not
+     raise invalid.  It is false for a NaN, so such a call falls through to
+     x - y, which is the NaN the caller wants and raises nothing either --
+     no test for it is needed.  */
+  if (islessequal(x, y))
 	  return .0;
 
   double z = x - y;
-  if (isinf(z) && cx != FP_INFINITE && cy != FP_INFINITE)
+  if (isinf(z) && !isinf(x) && !isinf(y))
 	  __set_errno(ERANGE);
 
   return z;
