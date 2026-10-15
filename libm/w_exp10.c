@@ -41,3 +41,8 @@ exp10 (double x)
 }
 libm_hidden_def(exp10)
 strong_alias (exp10, pow10)
+/* pow10 is declared with __MATHCALLI, so libm sees the name as __GI_pow10 and
+   the alias above carries that name.  This is the line that binds the public
+   one to it -- s_rint.c and w_lgamma.c pair their aliases the same way, and
+   without it pow10 has no public symbol at all.  */
+libm_hidden_def(pow10)
