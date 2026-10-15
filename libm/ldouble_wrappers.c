@@ -326,7 +326,12 @@ libm_hidden_def(__finitel)
 # endif
 
 # ifdef L___signbitl
-int_WRAPPER1(__signbit)
+/* Not int_WRAPPER1: narrowing to double canonicalizes a NaN, which drops the
+   sign, wherever long double is wider and the conversion is done in software. */
+int __signbitl(long double x)
+{
+	return __builtin_signbitl(x);
+}
 libm_hidden_def(__signbitl)
 # endif
 
