@@ -25,7 +25,7 @@
 __sighandler_t sigset (int sig, __sighandler_t disp)
 {
   struct sigaction act, oact;
-  sigset_t set;
+  sigset_t set, oset;
 
   /* Check signal extents to protect __sigismember.  */
   if (disp == SIG_ERR || sig < 1 || sig >= NSIG)
@@ -42,9 +42,14 @@ __sighandler_t sigset (int sig, __sighandler_t disp)
       __sigaddset (&set, sig);
 
       /* Add the signal set to the current signal mask.  */
-      sigprocmask (SIG_BLOCK, &set, NULL); /* can't fail */
+      sigprocmask (SIG_BLOCK, &set, &oset); /* can't fail */
 
-      return SIG_HOLD;
+      /* The previous disposition: SIG_HOLD if it was blocked.  */
+      if (__sigismember (&oset, sig))
+	return SIG_HOLD;
+      if (sigaction (sig, NULL, &oact) < 0)
+	return SIG_ERR;
+      return oact.sa_handler;
     }
 #endif	/* SIG_HOLD */
 
@@ -59,7 +64,7 @@ __sighandler_t sigset (int sig, __sighandler_t disp)
   __sigaddset (&set, sig);
 
   /* Remove the signal set from the current signal mask.  */
-  sigprocmask (SIG_UNBLOCK, &set, NULL); /* can't fail */
+  sigprocmask (SIG_UNBLOCK, &set, &oset); /* can't fail */
 
-  return oact.sa_handler;
+  return __sigismember (&oset, sig) ? SIG_HOLD : oact.sa_handler;
 }
