@@ -481,11 +481,11 @@ $(CRTS) $(CTOR_TARGETS) $(CRTS_COMPAT) $(CRTRELOC): | headers
 $(CRTS) $(CTOR_TARGETS) $(CRTS_COMPAT) $(CRTRELOC) \
 	$(LINK_FLAT_CRTS) $(SHARED_START_FILES) $(SHARED_END_FILES): | $(top_builddir)lib
 
-$(top_builddir)lib/$(NONSHARED_LIBNAME): $(libc-nonshared-y)
+$(top_builddir)lib/$(NONSHARED_LIBNAME): $(libc-nonshared-y) | $(top_builddir)lib
 	$(Q)$(RM) $@
 	$(do_ar)
 
-$(top_builddir)lib/libpthread_nonshared.a: $(libpthread-nonshared-y)
+$(top_builddir)lib/libpthread_nonshared.a: $(libpthread-nonshared-y) | $(top_builddir)lib
 	$(Q)$(RM) $@
 	$(do_ar)
 
