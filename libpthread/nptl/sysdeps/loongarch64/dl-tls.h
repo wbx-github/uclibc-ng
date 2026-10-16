@@ -13,9 +13,9 @@ typedef struct
 /* The thread pointer points to the first static TLS block.  */
 #define TLS_TP_OFFSET           0
 
-/* Dynamic thread vector pointers point 0x800 past the start of each
-   TLS block.  */
-#define TLS_DTV_OFFSET          0x800
+/* Dynamic thread vector pointers point to the start of each TLS block;
+   unlike riscv, LoongArch has no DTV bias.  */
+#define TLS_DTV_OFFSET          0
 
 extern void *__tls_get_addr (tls_index *ti);
 
