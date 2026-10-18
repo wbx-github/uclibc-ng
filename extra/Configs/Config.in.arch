@@ -180,7 +180,8 @@ config UCLIBC_HAS_FENV
 		   TARGET_riscv64 || \
 		   (TARGET_sh && (CONFIG_SH4 || CONFIG_SH4A)) || \
 		   TARGET_sparc || \
-		   TARGET_x86_64
+		   TARGET_x86_64 || \
+		   TARGET_xtensa
 	help
 	  If you want the uClibc math library to contain the C99 floating
 	  point environment, rounding and exception handling functions then
