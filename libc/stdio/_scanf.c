@@ -2142,7 +2142,9 @@ int attribute_hidden __psfs_do_numeric(psfs_t *psfs, struct scan_cookie *sc)
 	{
 		__fpmax_t x;
 		char *e;
-		x = __strtofpmax((char *) buf, &e, exp_adjust);
+		x = __strtofpmax((char *) buf, &e, exp_adjust,
+						 (psfs->dataargtype & PA_FLAG_LONG_LONG) ? 2
+						 : (psfs->dataargtype & PA_FLAG_LONG) ? 1 : 0);
 		assert(!*e);
 		if (psfs->store) {
 			if (psfs->dataargtype & PA_FLAG_LONG_LONG) {

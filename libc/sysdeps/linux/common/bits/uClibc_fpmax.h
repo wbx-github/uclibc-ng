@@ -78,20 +78,22 @@ typedef float __fpmax_t;
 #endif /* DECIMAL_DIG */
 
 #if defined _LIBC && defined IS_IN_libc
-extern __fpmax_t __strtofpmax(const char *str, char **endptr, int exp_adjust) attribute_hidden;
+/* prec: the type the result is rounded for, 0 float, 1 double, 2 __fpmax_t. */
+extern __fpmax_t __strtofpmax(const char *str, char **endptr, int exp_adjust,
+							  int prec) attribute_hidden;
 
 #ifdef __UCLIBC_HAS_XLOCALE__
 extern __fpmax_t __strtofpmax_l(const char *str, char **endptr, int exp_adjust,
-								__locale_t locale_arg) attribute_hidden;
+								int prec, __locale_t locale_arg) attribute_hidden;
 #endif
 
 #ifdef __UCLIBC_HAS_WCHAR__
 extern __fpmax_t __wcstofpmax(const wchar_t *wcs, wchar_t **endptr,
-							  int exp_adjust) attribute_hidden;
+							  int exp_adjust, int prec) attribute_hidden;
 
 #ifdef __UCLIBC_HAS_XLOCALE__
 extern __fpmax_t __wcstofpmax_l(const wchar_t *wcs, wchar_t **endptr,
-								int exp_adjust, __locale_t locale_arg) attribute_hidden;
+								int exp_adjust, int prec, __locale_t locale_arg) attribute_hidden;
 #endif
 #endif /* __UCLIBC_HAS_WCHAR__ */
 #endif /* _LIBC */
