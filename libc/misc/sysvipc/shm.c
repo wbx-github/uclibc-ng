@@ -65,6 +65,8 @@ static __always_inline _syscall3(int, __syscall_shmctl, int, shmid, int, cmd, st
 #endif
 int shmctl(int shmid, int cmd, struct shmid_ds *buf)
 {
+	if (buf != NULL && cmd == IPC_SET)
+		__ipc_mode_to_kernel(&buf->shm_perm.mode);
 #ifdef __NR_shmctl
 	int __ret = __syscall_shmctl(shmid, cmd | __IPC_64, buf);
 #if (__WORDSIZE == 32) && defined(__mips) && defined(__UCLIBC_USE_TIME64__)
@@ -84,9 +86,16 @@ int shmctl(int shmid, int cmd, struct shmid_ds *buf)
 		buf->shm_ctime = (__time_t)buf->__shm_ctime_internal_1 | (__time_t)(buf->__shm_ctime_internal_2) << 32;
 	}
 #endif
+	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
+		__ipc_mode_from_kernel(&buf->shm_perm.mode);
 	return __ret;
 #else
-    return __syscall_ipc(IPCOP_shmctl, shmid, cmd | __IPC_64, 0, buf, 0);
+    {
+	int __ret = __syscall_ipc(IPCOP_shmctl, shmid, cmd | __IPC_64, 0, buf, 0);
+	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
+		__ipc_mode_from_kernel(&buf->shm_perm.mode);
+	return __ret;
+    }
 #endif
 }
 #endif

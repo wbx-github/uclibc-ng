@@ -47,12 +47,7 @@ struct ipc_perm
     __gid_t gid;			/* Owner's group ID.  */
     __uid_t cuid;			/* Creator's user ID.  */
     __gid_t cgid;			/* Creator's group ID.  */
-#if __WORDSIZE == 64
-    unsigned  int mode;
-#else
-    unsigned short int mode;		/* Read/write permission.  */
-    unsigned short int __pad1;
-#endif
+    __mode_t mode;			/* Read/write permission.  */
     unsigned short int __seq;		/* Sequence number.  */
     unsigned short int __pad2;
     unsigned long int __uclibc_unused1;

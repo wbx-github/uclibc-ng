@@ -45,8 +45,8 @@ struct ipc_perm
     __gid_t gid;			/* Owner's group ID.  */
     __uid_t cuid;			/* Creator's user ID.  */
     __gid_t cgid;			/* Creator's group ID.  */
-    unsigned short int __pad1;
-    unsigned short int mode;		/* Read/write permission.  */
+    /* Kernel pads in front of its 16-bit mode, not behind.  */
+    __mode_t mode;			/* Read/write permission.  */
     unsigned short int __pad2;
     unsigned short int __seq;		/* Sequence number.  */
     unsigned long long int __uclibc_unused1;

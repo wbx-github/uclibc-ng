@@ -60,4 +60,45 @@ extern int __syscall_ipc (unsigned int __call, long __first, long __second,
 
 #endif
 
+#include <stddef.h>
+#include <endian.h>
+#include <linux/posix_types.h>
+#include <asm/ipcbuf.h>
+
+/* struct ipc_perm declares mode as a mode_t, the way POSIX asks for it.  The
+   kernel keeps a __kernel_mode_t there, 16 bit on the older architectures,
+   padded to four bytes -- so the field covers the mode and the padding, and
+   on a big-endian machine the mode is not where we read it.  Which half
+   carries it depends on the side the kernel pads on: hppa and sparc put the
+   padding in front, the asm-generic definition puts it behind.  Ask the
+   kernel header instead of keeping a list.  */
+#define __IPC_KERNEL_MODE_NARROW \
+	(sizeof (((struct ipc64_perm *) 0)->mode) < sizeof (__mode_t))
+#define __IPC_KERNEL_MODE_PADS_BEHIND \
+	(offsetof (struct ipc64_perm, mode) \
+	 == offsetof (struct ipc64_perm, cgid) \
+	    + sizeof (((struct ipc64_perm *) 0)->cgid))
+
+static __always_inline void __ipc_mode_from_kernel (__mode_t *m)
+{
+	if (__IPC_KERNEL_MODE_NARROW) {
+#if __BYTE_ORDER == __BIG_ENDIAN
+		if (__IPC_KERNEL_MODE_PADS_BEHIND)
+			*m >>= 16;
+#endif
+		/* A kernel that does not clear the padding leaves it here.  */
+		*m &= 0xFFFF;
+	}
+}
+
+static __always_inline void __ipc_mode_to_kernel (__mode_t *m)
+{
+#if __BYTE_ORDER == __BIG_ENDIAN
+	if (__IPC_KERNEL_MODE_NARROW && __IPC_KERNEL_MODE_PADS_BEHIND)
+		*m <<= 16;
+#else
+	(void) m;
+#endif
+}
+
 #endif							/* IPC_H */

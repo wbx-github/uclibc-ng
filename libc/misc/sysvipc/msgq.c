@@ -24,6 +24,8 @@ static __inline__ _syscall3(int, __libc_msgctl, int, msqid, int, cmd, struct msq
 /* Message queue control operation.  */
 int msgctl(int msqid, int cmd, struct msqid_ds *buf)
 {
+	if (buf != NULL && cmd == IPC_SET)
+		__ipc_mode_to_kernel(&buf->msg_perm.mode);
 #ifdef __NR_msgctl
 	int __ret = __libc_msgctl(msqid, cmd | __IPC_64, buf);
 #if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__) && (defined(__mips) || defined(__MSQID_DS_TIME64_SPLIT))
@@ -35,9 +37,16 @@ int msgctl(int msqid, int cmd, struct msqid_ds *buf)
 		arg.buff->msg_ctime = (__time_t)arg.buff->msg_ctime_internal_1 | (__time_t)(arg.buff->msg_ctime_internal_2) << 32;
 	}
 #endif
+	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
+		__ipc_mode_from_kernel(&buf->msg_perm.mode);
 	return __ret;
 #else
-	return __syscall_ipc(IPCOP_msgctl, msqid, cmd | __IPC_64, 0, buf, 0);
+	{
+	int __ret = __syscall_ipc(IPCOP_msgctl, msqid, cmd | __IPC_64, 0, buf, 0);
+	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
+		__ipc_mode_from_kernel(&buf->msg_perm.mode);
+	return __ret;
+	}
 #endif
 }
 #endif
