@@ -200,6 +200,26 @@ __fpmax_t attribute_hidden __strtofpmax(const Wchar *str, Wchar **endptr, int ex
 
 #else  /* defined(__UCLIBC_HAS_XLOCALE__) && !defined(__UCLIBC_DO_XLOCALE) */
 
+#ifdef _STRTOD_LOG_SCALING
+static __fpmax_t scale(__fpmax_t number, __fpmax_t p_base, int exponent_temp, int exponent_power)
+{
+	while (exponent_temp) {
+		if (exponent_temp & 1) {
+			if (exponent_power < 0) {
+				/* Warning... caluclating a factor for the exponent and
+				 * then dividing could easily be faster.  But doing so
+				 * might cause problems when dealing with denormals. */
+				number /= p_base;
+			} else {
+				number *= p_base;
+			}
+		}
+		exponent_temp >>= 1;
+		p_base *= p_base;
+	}
+	return number;
+}
+#endif
 
 __fpmax_t attribute_hidden __XL_NPP(__strtofpmax)(const Wchar *str, Wchar **endptr, int exponent_power
 								 __LOCALE_PARAM )
@@ -427,20 +447,17 @@ __fpmax_t attribute_hidden __XL_NPP(__strtofpmax)(const Wchar *str, Wchar **endp
 		exponent_temp = -exponent_temp;
 	}
 
-	while (exponent_temp) {
-		if (exponent_temp & 1) {
-			if (exponent_power < 0) {
-				/* Warning... caluclating a factor for the exponent and
-				 * then dividing could easily be faster.  But doing so
-				 * might cause problems when dealing with denormals. */
-				number /= p_base;
-			} else {
-				number *= p_base;
-			}
-		}
-		exponent_temp >>= 1;
-		p_base *= p_base;
+	/* p_base will become Inf in the scaling loop below,
+	 * but input value may still be representable and
+	 * non-zero. Split it into two parts that won't overflow
+	 * p_base. */
+	if ((p_base == 2 && exponent_temp >= FPMAX_MAX_EXP) ||
+	    (p_base == 10 && exponent_temp >= FPMAX_MAX_10_EXP)) {
+		number = scale(number, p_base, exponent_temp / 2, exponent_power);
+		exponent_temp -= exponent_temp / 2;
 	}
+
+	number = scale(number, p_base, exponent_temp, exponent_power);
 
 #else  /* _STRTOD_LOG_SCALING */
 	while (exponent_power) {
