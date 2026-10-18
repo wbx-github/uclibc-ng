@@ -143,8 +143,10 @@ pregen-headers-$(UCLIBC_HAS_THREADS_NATIVE) += $(PTHREAD_LINUX_SYM_H)
 HEADERS_BITS_PTHREAD     := $(notdir $(wildcard $(libpthread_linux_DIR)/bits/*.h))
 ALL_HEADERS_BITS_PTHREAD := $(addprefix $(top_builddir)include/bits/,$(HEADERS_BITS_PTHREAD))
 
+# An arch may override one of these with a file of the same name in its own
+# bits/, as alpha and sparc do with local_lim.h.
 $(ALL_HEADERS_BITS_PTHREAD): $(top_builddir)include/bits/%: | $(top_builddir)include/bits
-	$(do_ln) $(call rel_srcdir)$(libpthread_linux_DIR)/bits/$(@F) $@
+	$(do_ln) $(call rel_srcdir)$(if $(wildcard $(libpthread_linux_arch_DIR)/bits/$(@F)),$(libpthread_linux_arch_DIR),$(libpthread_linux_DIR))/bits/$(@F) $@
 
 HEADERCLEAN_libpthread/nptl/sysdeps/unix/sysv/linux:
 	$(do_rm) $(PTHREAD_LINUX_SYM_H)
