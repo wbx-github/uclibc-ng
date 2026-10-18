@@ -48,13 +48,32 @@ static __inline__ _syscall4(int, __semctl, int, semid, int, semnum, int, cmd, vo
 
 int semctl(int semid, int semnum, int cmd, ...)
 {
-    union semun arg;
+    union semun arg = { 0 };
     va_list ap;
 
-    /* Get the argument.  */
-    va_start (ap, cmd);
-    arg = va_arg (ap, union semun);
-    va_end (ap);
+    /* Only these commands take a fourth argument.  Reading it anyway is not
+       free: where the ABI hands a union over by reference, va_arg becomes a
+       load through a pointer the caller never wrote.  */
+    switch (cmd) {
+    case SETVAL:
+    case GETALL:
+    case SETALL:
+    case IPC_STAT:
+    case IPC_SET:
+#ifdef IPC_INFO
+    case IPC_INFO:
+#endif
+#ifdef SEM_STAT
+    case SEM_STAT:
+#endif
+#ifdef SEM_INFO
+    case SEM_INFO:
+#endif
+	va_start (ap, cmd);
+	arg = va_arg (ap, union semun);
+	va_end (ap);
+	break;
+    }
 #ifdef __NR_semctl
     int __ret = __semctl(semid, semnum, cmd | __IPC_64, arg.__pad);
 #if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__)
