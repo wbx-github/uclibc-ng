@@ -24,7 +24,8 @@
  * (asm-generic/signal.h without SA_RESTORER).  sigaction() hands ours to
  * the kernel unchanged, so the field must not precede sa_mask there.  */
 #if defined __riscv || defined __csky__ || defined __microblaze__ \
- || defined __or1k__ || defined __nds32__ || defined __kvx__
+ || defined __or1k__ || defined __nds32__ || defined __kvx__ \
+ || defined __loongarch__
 # define __UCLIBC_NO_KERNEL_SA_RESTORER__ 1
 #endif
 
