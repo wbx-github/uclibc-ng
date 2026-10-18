@@ -32,7 +32,9 @@ asinl (long double x)
       && _LIB_VERSION != _IEEE_)
     {
       /* asin(|x|>1) */
+#ifdef FE_INVALID
       feraiseexcept (FE_INVALID);
+#endif
       return __kernel_standard_l (x, x, 202);
     }
 # endif

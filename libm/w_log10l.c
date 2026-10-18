@@ -31,12 +31,16 @@ log10l (long double x)
     {
       if (x == 0.0L)
 	{
+#ifdef FE_DIVBYZERO
 	  feraiseexcept (FE_DIVBYZERO);
+#endif
 	  return __kernel_standard_l (x, x, 218); /* log10(0) */
 	}
       else
 	{
+#ifdef FE_INVALID
 	  feraiseexcept (FE_INVALID);
+#endif
 	  return __kernel_standard_l (x, x, 219); /* log10(x<0) */
 	}
     }

@@ -30,7 +30,9 @@ asinf (float x)
       && _LIB_VERSION != _IEEE_)
     {
       /* asin(|x|>1) */
+#ifdef FE_INVALID
       feraiseexcept (FE_INVALID);
+#endif
       return __kernel_standard_f (x, x, 102);
     }
 #endif

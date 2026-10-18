@@ -48,13 +48,17 @@ y0l (long double x)
       if (x < 0.0L)
 	{
 	  /* d = zero/(x-x) */
+#ifdef FE_INVALID
 	  feraiseexcept (FE_INVALID);
+#endif
 	  return __kernel_standard_l (x, x, 209);
 	}
       else if (x == 0.0L)
 	{
 	  /* d = -one/(x-x) */
+#ifdef FE_DIVBYZERO
 	  feraiseexcept (FE_DIVBYZERO);
+#endif
 	  return __kernel_standard_l (x, x, 208);
 	}
       else if (_LIB_VERSION != _POSIX_)

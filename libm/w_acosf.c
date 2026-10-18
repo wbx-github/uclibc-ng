@@ -30,7 +30,9 @@ acosf (float x)
       && _LIB_VERSION != _IEEE_)
     {
       /* acos(|x|>1) */
+#ifdef FE_INVALID
       feraiseexcept (FE_INVALID);
+#endif
       return __kernel_standard_f (x, x, 101);
     }
 #endif

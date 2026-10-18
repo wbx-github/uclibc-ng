@@ -45,13 +45,17 @@ yn (int n, double x)
       if (x < 0.0)
 	{
 	  /* d = zero/(x-x) */
+#ifdef FE_INVALID
 	  feraiseexcept (FE_INVALID);
+#endif
 	  return __kernel_standard (n, x, 13);
 	}
       else if (x == 0.0)
 	{
 	  /* d = -one/(x-x) */
+#ifdef FE_DIVBYZERO
 	  feraiseexcept (FE_DIVBYZERO);
+#endif
 	  return __kernel_standard (n, x, 12);
 	}
       else if (_LIB_VERSION != _POSIX_)

@@ -32,12 +32,16 @@ log2l (long double x)
     {
       if (x == 0.0L)
 	{
+#ifdef FE_DIVBYZERO
 	  feraiseexcept (FE_DIVBYZERO);
+#endif
 	  return __kernel_standard_l (x, x, 248); /* log2(0) */
 	}
       else
 	{
+#ifdef FE_INVALID
 	  feraiseexcept (FE_INVALID);
+#endif
 	  return __kernel_standard_l (x, x, 249); /* log2(x<0) */
 	}
     }
