@@ -34,6 +34,14 @@
 sem_timedwait:
 .LSTARTCODE:
 	cfi_startproc
+#ifdef SHARED
+	cfi_personality(DW_EH_PE_pcrel | DW_EH_PE_sdata4 | DW_EH_PE_indirect,
+			DW.ref.__gcc_personality_v0)
+	cfi_lsda(DW_EH_PE_pcrel | DW_EH_PE_sdata4, .LexceptSTART)
+#else
+	cfi_personality(DW_EH_PE_udata4, __gcc_personality_v0)
+	cfi_lsda(DW_EH_PE_udata4, .LexceptSTART)
+#endif
 #if VALUE == 0
 	movl	(%rdi), %eax
 #else
