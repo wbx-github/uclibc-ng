@@ -18,6 +18,9 @@
 
 #include "math.h"
 #include "math_private.h"
+#if defined(__UCLIBC_HAS_FENV__)
+#include <fenv.h>
+#endif
 
 int ilogb(double x)
 {
@@ -28,8 +31,12 @@ int ilogb(double x)
 
 	if (hx < 0x00100000) {
 		GET_LOW_WORD(lx, x);
-		if ((hx|lx)==0)  /* +-0, ilogb(0) = FP_ILOGB0 */
+		if ((hx|lx)==0) { /* +-0, ilogb(0) = FP_ILOGB0 */
+#ifdef FE_INVALID
+			feraiseexcept (FE_INVALID);
+#endif
 			return FP_ILOGB0;
+		}
 		/* subnormal x */
 		ix = -1043;
 		if (hx != 0) {
@@ -47,11 +54,18 @@ int ilogb(double x)
 
 	if (FP_ILOGBNAN != (~0U >> 1)) {
 		GET_LOW_WORD(lx, x);
-		if (hx == 0x7ff00000 && lx == 0)  /* +-inf */
+		if (hx == 0x7ff00000 && lx == 0) { /* +-inf */
+#ifdef FE_INVALID
+			feraiseexcept (FE_INVALID);
+#endif
 			return ~0U >> 1; /* = INT_MAX */
+		}
 	}
 
 	/* NAN. ilogb(NAN) = FP_ILOGBNAN */
+#ifdef FE_INVALID
+	feraiseexcept (FE_INVALID);
+#endif
 	return FP_ILOGBNAN;
 }
 libm_hidden_def(ilogb)
