@@ -62,6 +62,7 @@ extern int __syscall_ipc (unsigned int __call, long __first, long __second,
 
 #include <stddef.h>
 #include <endian.h>
+#include <sys/ipc.h>
 #include <linux/posix_types.h>
 #include <asm/ipcbuf.h>
 
@@ -100,5 +101,33 @@ static __always_inline void __ipc_mode_to_kernel (__mode_t *m)
 	(void) m;
 #endif
 }
+
+/* _Static_assert wants gcc 4.6 or C11, and this tree is still built with a
+   gcc 4.4; same two-way form as _FP_STATIC_ASSERT in sparc64/soft-fp.  */
+#if ((defined __GNUC__							\
+      && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)))	\
+     || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L))
+# define __ipc_assert(expr, msg)	_Static_assert ((expr), msg)
+#else
+# define __ipc_assert(expr, msg)					\
+  extern int (*__ipc_assert_function (void))				\
+    [!!sizeof (struct { int __error_if_negative: (expr) ? 2 : -1; })]
+#endif
+
+/* The *ctl calls hand these structures to the kernel as they are, so a
+   mismatch is not a wrong value but a write past the caller's object: the
+   kernel copies sizeof(its own) bytes and cannot know ours.  Ask at build
+   time, which is the only time the twelve targets that never boot under an
+   emulator can be asked at all.  */
+__ipc_assert (sizeof (struct ipc_perm) >= sizeof (struct ipc64_perm),
+	      "struct ipc_perm is shorter than the kernel's ipc64_perm");
+/* The helpers above write through this field; a narrower one is written past.  */
+__ipc_assert (sizeof (((struct ipc_perm *) 0)->mode) == sizeof (__mode_t),
+	      "ipc_perm.mode is not a mode_t");
+__ipc_assert (offsetof (struct ipc_perm, mode)
+	      + sizeof (((struct ipc_perm *) 0)->mode)
+	      >= offsetof (struct ipc64_perm, mode)
+		 + sizeof (((struct ipc64_perm *) 0)->mode),
+	      "ipc_perm.mode does not cover the kernel's mode");
 
 #endif							/* IPC_H */
