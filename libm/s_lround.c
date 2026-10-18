@@ -19,6 +19,9 @@
 
 #include <math.h>
 #include "math_private.h"
+#if defined(__UCLIBC_HAS_FENV__)
+#include <fenv.h>
+#endif
 
 long int
 lround (double x)
@@ -65,6 +68,9 @@ lround (double x)
     {
       /* The number is too large.  It is left implementation defined
 	 what happens.  */
+#ifdef FE_INVALID
+      feraiseexcept (FE_INVALID);
+#endif
       return (long int) x;
     }
 
