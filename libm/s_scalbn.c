@@ -41,9 +41,9 @@ double scalbln(double x, long n)
 	}
 	if (k == 0x7ff)
 		return x + x; /* NaN or Inf */
-	k = k + n;
-	if (k > 0x7fe)
+	if ((k >= 0 && n > 0x7fe) || k + n > 0x7fe)
 		return huge * copysign(huge, x); /* overflow */
+	k = k + n;
 	if (n < -50000)
 		return tiny * copysign(tiny, x); /* underflow */
 	if (k > 0) { /* normal result */
