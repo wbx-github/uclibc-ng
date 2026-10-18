@@ -1,16 +1,6 @@
-/* dummy _init and _fini */
+/* Dummy crti file.
 
-	.section .init
-	.globl	_init
-	.align	2
-	.type	_init,@function
-
-_init:
-
-
-	.section .fini
-	.global	_fini
-	.align	2
-	.type	_fini,@function
-
-_fini: 
+   In this configuration, crti.o and crtn.o are both empty because the
+   .init_array/.fini_array sections are used exclusively.  No _init or
+   _fini either: a label in an empty .init gets DT_INIT pointed at
+   whatever the linker places next, the PLT.  */
