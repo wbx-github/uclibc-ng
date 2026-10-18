@@ -572,5 +572,7 @@ PTHREAD_STATIC_FN_REQUIRE (pthread_getspecific)
 
 /* UCLIBC_MUTEX_xxx macros expects to have these as well */
 PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_init)
-PTHREAD_STATIC_FN_REQUIRE (_pthread_cleanup_push_defer)
-PTHREAD_STATIC_FN_REQUIRE (_pthread_cleanup_pop_restore)
+/* The __ names: __uClibc_main.o already defines the _ ones as weak
+   dummies, which would satisfy the reference and keep the real ones out.  */
+PTHREAD_STATIC_FN_REQUIRE (__pthread_cleanup_push_defer)
+PTHREAD_STATIC_FN_REQUIRE (__pthread_cleanup_pop_restore)
