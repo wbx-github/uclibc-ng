@@ -23,7 +23,7 @@
 #include <math.h>
 #include "math_private.h"
 
-#ifdef FP_FAST_FMA
+#ifdef __FP_FAST_FMA
 
 double fma (double x, double y, double z)
 {
@@ -212,6 +212,6 @@ double fma(double x, double y, double z)
 	return scalbn(r, e);
 }
 
-#endif /* FP_FAST_FMA */
+#endif /* __FP_FAST_FMA */
 
 libm_hidden_def(fma)
