@@ -139,30 +139,32 @@ static const __fpmax_t exp10_table[] =
 #error scaling code can not handle FPMAX_MAX_EXP < -FPMAX_MIN_EXP
 #endif
 
+/* 2^FPMAX_MAX_EXP itself is out of range, so stop one entry short of it;
+ * values too small for one pass over the table get a second one below. */
 static const __fpmax_t exp16_table[] = {
 	0x1.0p1L, 0x1.0p2L, 0x1.0p4L, 0x1.0p8L, 0x1.0p16L, 0x1.0p32L, 0x1.0p64L,
-#if FPMAX_MAX_EXP >= 128
+#if FPMAX_MAX_EXP > 128
 	0x1.0p128L,
 #endif
-#if FPMAX_MAX_EXP >= 256
+#if FPMAX_MAX_EXP > 256
 	0x1.0p256L,
 #endif
-#if FPMAX_MAX_EXP >= 512
+#if FPMAX_MAX_EXP > 512
 	0x1.0p512L,
 #endif
-#if FPMAX_MAX_EXP >= 1024
+#if FPMAX_MAX_EXP > 1024
 	0x1.0p1024L,
 #endif
-#if FPMAX_MAX_EXP >= 2048
+#if FPMAX_MAX_EXP > 2048
 	0x1.0p2048L,
 #endif
-#if FPMAX_MAX_EXP >= 4096
+#if FPMAX_MAX_EXP > 4096
 	0x1.0p4096L,
 #endif
-#if FPMAX_MAX_EXP >= 8192
+#if FPMAX_MAX_EXP > 8192
 	0x1.0p8192L,
 #endif
-#if FPMAX_MAX_EXP >= 16384
+#if FPMAX_MAX_EXP > 16384
 	0x1.0p16384L
 #endif
 #if FPMAX_MAX_EXP >= 32768
@@ -341,6 +343,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 
 		{
 			int exp_neg = 0;
+			int i0 = i, j0 = j;
 			if (x < lower_bnd) { /* Do we need to scale up or down? */
 				exp_neg = 1;
 			}
@@ -359,6 +362,12 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 					}
 				}
 				j >>= 1;
+				/* One pass reaches less than the whole range down to
+				 * the subnormals; go over the table again. */
+				if (!i && exp_neg && x < lower_bnd) {
+					i = i0;
+					j = j0;
+				}
 			} while (i);
 		}
 	}
