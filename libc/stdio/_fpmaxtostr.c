@@ -28,10 +28,9 @@
  *
  * Notes:
  *
- * At most DECIMAL_DIG significant digits are kept.  Any trailing digits
- * are treated as 0 as they are really just the results of rounding noise
- * anyway.  If you want to do better, use an arbitary precision arithmetic
- * package.  ;-)
+ * At most DECIMAL_DIG significant digits are kept, and printed as 0
+ * beyond that.  The digits that are kept are exact: they come out of the
+ * binary value by integer arithmetic, see fpmax_dec_digits().
  *
  * It should also be fairly portable, as no assumptions are made about the
  * bit-layout of doubles.  Of course, that does make it less efficient than
@@ -89,48 +88,8 @@ static const char fmt[] = "inf\0INF\0nan\0NAN\0.\0,";
 #define EMPTY_STRING_OFFSET 3
 
 /*****************************************************************************/
-#if FPMAX_MAX_10_EXP < -FPMAX_MIN_10_EXP
-#error scaling code can not handle FPMAX_MAX_10_EXP < -FPMAX_MIN_10_EXP
-#endif
-
-static const __fpmax_t exp10_table[] =
-{
-	1e1L, 1e2L, 1e4L, 1e8L, 1e16L, 1e32L,	/* floats */
-#if FPMAX_MAX_10_EXP < 32
-#error unsupported FPMAX_MAX_10_EXP (< 32).  ANSI/ISO C requires >= 37.
-#endif
-#if FPMAX_MAX_10_EXP >= 64
-	1e64L,
-#endif
-#if FPMAX_MAX_10_EXP >= 128
-	1e128L,
-#endif
-#if FPMAX_MAX_10_EXP >= 256
-	1e256L,
-#endif
-#if FPMAX_MAX_10_EXP >= 512
-	1e512L,
-#endif
-#if FPMAX_MAX_10_EXP >= 1024
-	1e1024L,
-#endif
-#if FPMAX_MAX_10_EXP >= 2048
-	1e2048L,
-#endif
-#if FPMAX_MAX_10_EXP >= 4096
-	1e4096L
-#endif
-#if FPMAX_MAX_10_EXP >= 8192
-#error unsupported FPMAX_MAX_10_EXP.  please increase table
-#endif
-};
-
-#define EXP10_TABLE_SIZE     (sizeof(exp10_table)/sizeof(exp10_table[0]))
-#define EXP10_TABLE_MAX      (1U<<(EXP10_TABLE_SIZE-1))
 
 /*****************************************************************************/
-#ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
-
 #if FLT_RADIX != 2
 #error FLT_RADIX != 2 is not currently supported
 #endif
@@ -175,12 +134,209 @@ static const __fpmax_t exp16_table[] = {
 #define EXP16_TABLE_SIZE     (sizeof(exp16_table)/sizeof(exp16_table[0]))
 #define EXP16_TABLE_MAX      (1U<<(EXP16_TABLE_SIZE-1))
 
-#endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
+/*****************************************************************************/
+
+struct dec_out {
+	char *o;
+	int left;
+	int sticky;
+};
+
+/* Append the nd decimal digits of v, most significant first; what does not
+ * fit any more only matters for rounding. */
+static void put_limb(struct dec_out *w, uint32_t v, int nd)
+{
+	char t[9];
+	int i;
+
+	for (i = nd; i--; ) {
+		t[i] = '0' + v % 10;
+		v /= 10;
+	}
+	for (i = 0; i < nd; i++) {
+		if (w->left) {
+			*w->o++ = t[i];
+			w->left--;
+		} else if (t[i] != '0') {
+			w->sticky = 1;
+		}
+	}
+}
+
+static int limb_digits(uint32_t v)
+{
+	int n = 1;
+
+	while (v >= 10) {
+		v /= 10;
+		n++;
+	}
+	return n;
+}
+
+/* Base 1e9 limbs of the integer in n[0..w-1] (destroys it), least
+ * significant first; returns their number. */
+static int to_limbs(uint32_t *n, int w, uint32_t *d)
+{
+	int nl = 0, k;
+
+	while (w && !n[w - 1])
+		w--;
+	while (w) {
+		uint32_t rem = 0;
+
+		for (k = w; k--; ) {
+			uint64_t cur = (uint64_t) rem << 32 | n[k];
+			n[k] = cur / 1000000000;
+			rem = cur % 1000000000;
+		}
+		d[nl++] = rem;
+		while (w && !n[w - 1])
+			w--;
+	}
+	return nl;
+}
+
+static void put_limbs(struct dec_out *w, const uint32_t *d, int nl)
+{
+	put_limb(w, d[nl - 1], limb_digits(d[nl - 1]));
+	while (--nl)
+		put_limb(w, d[nl - 1], 9);
+}
+
+#define MANT_WORDS ((FPMAX_MANT_DIG + 31) / 32)
+
+/* Write the first nd decimal digits of x > 0 to out, exactly, and return
+ * the decimal exponent of the first one.  *sticky tells whether anything
+ * nonzero follows them.
+ *
+ * x is M * 2^e2 with an FPMAX_MANT_DIG-bit integer M.  Taking it apart
+ * only multiplies and divides by powers of two, which is exact, and the
+ * rest is integer arithmetic, so it needs no precision beyond x's own. */
+static int fpmax_dec_digits(__fpmax_t x, char *out, int nd, int *sticky)
+{
+	struct dec_out w = { out, nd, 0 };
+	uint32_t m[MANT_WORDS];
+	int e2 = 0, i, k, exp;
+
+	for (i = EXP16_TABLE_SIZE; i--; ) {	/* into [1, 2) */
+		while (x >= exp16_table[i]) {
+			x /= exp16_table[i];
+			e2 += 1 << i;
+		}
+	}
+	for (i = EXP16_TABLE_SIZE; i--; ) {
+		while (x * exp16_table[i] < 2) {
+			x *= exp16_table[i];
+			e2 -= 1 << i;
+		}
+	}
+	x *= (__fpmax_t) (1UL << (FPMAX_MANT_DIG - 32 * (MANT_WORDS - 1) - 1));
+	for (k = MANT_WORDS; k--; ) {
+		m[k] = (uint32_t) x;
+		x = (x - m[k]) * 4294967296.0;
+	}
+	e2 -= FPMAX_MANT_DIG - 1;
+
+	if (e2 >= 0) {				/* an integer, M << e2 */
+		int nw = MANT_WORDS + e2 / 32 + 1;
+		uint32_t n[nw], d[nw + nw / 8 + 2];
+
+		memset(n, 0, sizeof(n));
+		for (k = 0; k < MANT_WORDS; k++) {
+			uint64_t v = (uint64_t) m[k] << (e2 % 32);
+			n[k + e2 / 32] |= (uint32_t) v;
+			n[k + e2 / 32 + 1] |= (uint32_t) (v >> 32);
+		}
+		k = to_limbs(n, nw, d);
+		exp = limb_digits(d[k - 1]) - 1 + 9 * (k - 1);
+		put_limbs(&w, d, k);
+	} else {				/* M / 2^s */
+		int s = -e2, fw = (s + 31) / 32;
+		int sh = 32 * fw - s;		/* g holds the fraction << sh */
+		uint32_t g[fw], ip[MANT_WORDS + 1], d[MANT_WORDS + 2];
+
+		memset(ip, 0, sizeof(ip));
+		memset(g, 0, sizeof(g));
+		for (k = 0; k < MANT_WORDS; k++) {
+			int bit = 32 * k - s;	/* m[k] in the integer part */
+			uint64_t v;
+
+			if (bit >= 0) {
+				v = (uint64_t) m[k] << (bit % 32);
+				ip[bit / 32] |= (uint32_t) v;
+				ip[bit / 32 + 1] |= (uint32_t) (v >> 32);
+			} else if (bit > -32) {
+				ip[0] |= m[k] >> -bit;
+			}
+			bit = 32 * k + sh;	/* m[k] in the fraction */
+			if (bit < 32 * fw) {
+				v = (uint64_t) m[k] << (bit % 32);
+				g[bit / 32] |= (uint32_t) v;
+				if (bit / 32 + 1 < fw)
+					g[bit / 32 + 1] |= (uint32_t) (v >> 32);
+			}
+		}
+
+		k = to_limbs(ip, MANT_WORDS + 1, d);
+		exp = -1;
+		if (k) {
+			exp = limb_digits(d[k - 1]) - 1 + 9 * (k - 1);
+			put_limbs(&w, d, k);
+		}
+
+		/* The fraction times 1e9 carries the next nine digits out of
+		 * the top word. */
+		for (i = 0; i < fw; ) {
+			uint64_t c = 0;
+			uint32_t limb;
+
+			if (!g[i]) {
+				i++;
+				continue;
+			}
+			if (!w.left) {
+				w.sticky = 1;
+				break;
+			}
+			for (k = i; k < fw; k++) {
+				c += (uint64_t) g[k] * 1000000000;
+				g[k] = (uint32_t) c;
+				c >>= 32;
+			}
+			limb = (uint32_t) c;
+			if (w.left == nd) {	/* no digit yet */
+				if (!limb) {
+					exp -= 9;
+					continue;
+				}
+				exp -= 9 - limb_digits(limb);
+				put_limb(&w, limb, limb_digits(limb));
+			} else {
+				put_limb(&w, limb, 9);
+			}
+		}
+	}
+	while (w.left) {
+		*w.o++ = '0';
+		w.left--;
+	}
+	*sticky = w.sticky;
+	return exp;
+}
 /*****************************************************************************/
 
 #define FPO_ZERO_PAD    (0x80 | '0')
 #define FPO_STR_WIDTH   (0x80 | ' ');
 #define FPO_STR_PREC    'p'
+
+#ifndef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
+#define block_scale  (__fpmax_t)1e9
+#define dpb          DIGITS_PER_BLOCK
+#define base         10
+#define ndb          NUM_DIGIT_BLOCKS
+#define nd           DECIMAL_DIG
+#endif
 
 ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 					__fp_outfunc_t fp_outfunc)
@@ -192,7 +348,6 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 #endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
 	uint_fast32_t base = 10;
-	const __fpmax_t *power_table;
 	int dpb = DIGITS_PER_BLOCK;
 	int ndb = NUM_DIGIT_BLOCKS;
 	int nd = DECIMAL_DIG;
@@ -208,6 +363,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 #endif /* __UCLIBC_HAS_GLIBC_DIGIT_GROUPING__ */
 	int round, o_exp;
 	int exp;
+	int sticky = 0;			/* nonzero digits beyond the buffer */
 	int width, preci;
 	int cnt;
 	char *s;
@@ -293,89 +449,58 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 		goto EXIT_SPECIAL;
 	}
 
-	{
-		int i, j;
+	if ((mode|0x20) != 'a') {
+		exp = fpmax_dec_digits(x, buf + 2, NUM_DIGIT_BLOCKS * DIGITS_PER_BLOCK,
+							   &sticky);
+		goto DIGITS_DONE;
+	}
 
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
+	{
+		int i = EXP16_TABLE_SIZE, j = EXP16_TABLE_MAX;
+		int exp_neg = 0;
 
-		if ((mode|0x20) == 'a') {
-			lower_bnd = 0x1.0p28L;
-			upper_bnd = 0x1.0p29L;
-			block_scale = 0x1.0p32L;
-			power_table = exp16_table;
-			exp = 28;
-			i = EXP16_TABLE_SIZE;
-			j = EXP16_TABLE_MAX;
-			dpb = HEX_DIGITS_PER_BLOCK;
-			ndb = NUM_HEX_DIGIT_BLOCKS;
-			nd = NUM_HEX_DIGITS;
-			base = 16;
-		} else {
-			lower_bnd = 1e8;
-			/* 		upper_bnd = 1e9; */
-			power_table = exp10_table;
-			exp = DIGITS_PER_BLOCK - 1;
-			i = EXP10_TABLE_SIZE;
-			j = EXP10_TABLE_MAX;
-			/* 		dpb = DIGITS_PER_BLOCK; */
-			/* 		ndb = NUM_DIGIT_BLOCKS; */
-			/* 		base = 10; */
+		lower_bnd = 0x1.0p28L;
+		upper_bnd = 0x1.0p29L;
+		block_scale = 0x1.0p32L;
+		exp = 28;
+		dpb = HEX_DIGITS_PER_BLOCK;
+		ndb = NUM_HEX_DIGIT_BLOCKS;
+		nd = NUM_HEX_DIGITS;
+		base = 16;
+
+		if (x < lower_bnd) { /* Do we need to scale up or down? */
+			exp_neg = 1;
 		}
 
-
-
-#else  /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
-
-#define lower_bnd    (__fpmax_t)1e8
-#define upper_bnd    (__fpmax_t)1e9
-#define block_scale  (__fpmax_t)1e9
-#define power_table  exp10_table
-#define dpb          DIGITS_PER_BLOCK
-#define base         10
-#define ndb          NUM_DIGIT_BLOCKS
-#define nd           DECIMAL_DIG
-
-		exp = DIGITS_PER_BLOCK - 1;
-		i = EXP10_TABLE_SIZE;
-		j = EXP10_TABLE_MAX;
-
-#endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
-
-		{
-			int exp_neg = 0;
-			int i0 = i, j0 = j;
-			if (x < lower_bnd) { /* Do we need to scale up or down? */
-				exp_neg = 1;
+		do {
+			--i;
+			if (exp_neg) {
+				if (x * exp16_table[i] < upper_bnd) {
+					x *= exp16_table[i];
+					exp -= j;
+				}
+			} else {
+				if (x / exp16_table[i] >= lower_bnd) {
+					x /= exp16_table[i];
+					exp += j;
+				}
 			}
-
-			do {
-				--i;
-				if (exp_neg) {
-					if (x * power_table[i] < upper_bnd) {
-						x *= power_table[i];
-						exp -= j;
-					}
-				} else {
-					if (x / power_table[i] >= lower_bnd) {
-						x /= power_table[i];
-						exp += j;
-					}
-				}
-				j >>= 1;
-				/* One pass reaches less than the whole range down to
-				 * the subnormals; go over the table again. */
-				if (!i && exp_neg && x < lower_bnd) {
-					i = i0;
-					j = j0;
-				}
-			} while (i);
-		}
+			j >>= 1;
+			/* One pass reaches less than the whole range down to the
+			 * subnormals; go over the table again. */
+			if (!i && exp_neg && x < lower_bnd) {
+				i = EXP16_TABLE_SIZE;
+				j = EXP16_TABLE_MAX;
+			}
+		} while (i);
 	}
 	if (x >= upper_bnd) {		/* Handle bad rounding case. */
-		x /= power_table[0];
+		x /= exp16_table[0];
 		++exp;
 	}
 	assert(x < upper_bnd);
+#endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
 
  GENERATE_DIGITS:
 	{
@@ -399,6 +524,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 			} while (j < dpb);
 		} while (++i < ndb);
 	}
+ DIGITS_DONE:
 
 	/*************************************************************************/
 
@@ -431,9 +557,21 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 		i = 0;
 		e = s + nd + 1;
 		if (round < nd) {
+			char *dend = buf + 2 + ndb * dpb;	/* end of the digits */
+
 			e = s + round + 2;
-			if (*e >= '0' + (base/2)) {	/* NOTE: We always round away from 0! */
+			if (e < dend && *e >= '0' + (base/2)) {
 				i = 1;
+				/* Exactly half way: round to even, as glibc does. */
+				if (*e == '0' + (base/2) && !sticky) {
+					char *q = e;
+
+					while (++q < dend && *q == '0')
+						;
+					if (q == dend && !((e[-1] - '0') & 1)) {
+						i = 0;
+					}
+				}
 			}
 		}
 
