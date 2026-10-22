@@ -210,7 +210,9 @@ extern size_t wcsxfrm_l (wchar_t *__s1, const wchar_t *__s2,
 libc_hidden_proto(wcsxfrm_l)
 
 #endif /* __UCLIBC_HAS_XLOCALE__ */
+#endif
 
+#ifdef __USE_XOPEN2K8
 /* Duplicate S, returning an identical malloc'd string.  */
 extern wchar_t *wcsdup (const wchar_t *__s) __THROW __attribute_malloc__;
 #endif
