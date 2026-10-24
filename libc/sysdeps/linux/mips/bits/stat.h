@@ -95,7 +95,7 @@ struct stat
 struct stat {
     unsigned int st_dev;
     int st_pad1[3];
-    __ino_t st_ino;		/* File serial number.		*/
+    __ino64_t st_ino;		/* File serial number.		*/
     __mode_t st_mode;		/* File mode.  */
     __nlink_t st_nlink;		/* Link count.  */
     __uid_t st_uid;		/* User ID of the file's owner.	*/
@@ -126,7 +126,7 @@ struct stat {
 #endif
     int st_blksize;	/* Optimal block size for I/O.  */
     int st_pad3;
-    __blkcnt_t st_blocks;	/* Number of 512-byte blocks allocated.  */
+    __blkcnt64_t st_blocks;	/* Number of 512-byte blocks allocated.  */
     int st_pad4[14];
 };
 #endif /* N32 || N64 */
@@ -176,14 +176,14 @@ struct stat64
 struct stat64 {
     unsigned int st_dev;
     int st_pad1[3];
-    __ino_t st_ino;		/* File serial number.		*/
+    __ino64_t st_ino;		/* File serial number.		*/
     __mode_t st_mode;		/* File mode.  */
     __nlink_t st_nlink;		/* Link count.  */
     __uid_t st_uid;		/* User ID of the file's owner.	*/
     __gid_t st_gid;		/* Group ID of the file's group.*/
     unsigned int st_rdev;	/* Device number, if device.  */
     int st_pad2[3];
-    __off_t st_size;		/* Size of file, in bytes.  */
+    __off64_t st_size;		/* Size of file, in bytes.  */
 #if defined(__USE_MISC) || defined(__USE_XOPEN2K8)
     /* Nanosecond resolution timestamps are stored in a format
        equivalent to 'struct timespec'.  This is the type used
@@ -207,7 +207,7 @@ struct stat64 {
 #endif
     int st_blksize;	/* Optimal block size for I/O.  */
     int st_pad3;
-    __blkcnt_t st_blocks;	/* Number of 512-byte blocks allocated.  */
+    __blkcnt64_t st_blocks;	/* Number of 512-byte blocks allocated.  */
     int st_pad4[14];
 };
 #endif	/* N32 || N64 */
