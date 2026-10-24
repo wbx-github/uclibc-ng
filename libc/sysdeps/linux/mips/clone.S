@@ -120,14 +120,9 @@ L(thread_start):
 	/* Call the user's function.  */
 	jal		t9
 
-	/* Call _exit rather than doing it inline for breakpoint purposes.  */
 	move		a0,v0
-#ifdef __PIC__
-	PTR_LA		t9,_exit
-	jalr		t9
-#else
-	jal		_exit
-#endif
+	li		v0,__NR_exit
+	syscall
 
 	END(__thread_start)
 

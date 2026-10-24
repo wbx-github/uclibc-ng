@@ -95,8 +95,9 @@ __clone:
 	mtctr	r30
 	mr	r3,r31
 	bctrl
-	/* Call _exit with result from procedure.  */
-	b	HIDDEN_JUMPTARGET(_exit)
+	/* Exit the thread with result from procedure.  */
+	li 0, __NR_exit
+	sc
 
 .Lparent:
 	/* Parent.  Restore registers & return.  */

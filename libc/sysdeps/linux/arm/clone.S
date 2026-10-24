@@ -71,7 +71,8 @@ __clone:
 #endif
 
 	@ and we are done, passing the return value through r0
-	bl	HIDDEN_JUMPTARGET(_exit)
+	ldr	r7, =SYS_ify(exit)
+	swi	0x0
 	@ Should never return
 	b	.
 
@@ -146,7 +147,8 @@ PSEUDO_END (__clone)
 #endif
 
 	@ and we are done, passing the return value through r0
-	b	HIDDEN_JUMPTARGET(_exit)
+	ldr	r7, =SYS_ify(exit)
+	swi	0x0
 
 __error:
 	b	__syscall_error

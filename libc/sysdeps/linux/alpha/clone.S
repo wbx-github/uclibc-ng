@@ -84,9 +84,9 @@ thread_start:
 	jsr	ra,(pv)
 	ldgp	gp,0(ra)
 
-	/* Call _exit rather than doing it inline for breakpoint purposes */
 	mov	v0,a0
-	jsr	ra,HIDDEN_JUMPTARGET(_exit)
+	ldiq	v0,__NR_exit
+	call_pal 131
 
 	/* Die horribly.  */
 	halt
