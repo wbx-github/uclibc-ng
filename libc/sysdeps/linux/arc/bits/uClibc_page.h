@@ -26,6 +26,9 @@
 #define PAGE_SHIFT		13
 #endif
 
+/* No PAGE_SIZE for programs: the kernel they run on may differ.  */
+#define __UCLIBC_PAGE_SIZE_VARIES__ 1
+
 
 /* TBD: fix this with runtime value for a PAGE_SIZE agnostic uClibc */
 #define MMAP2_PAGE_SHIFT PAGE_SHIFT

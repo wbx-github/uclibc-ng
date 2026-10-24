@@ -30,4 +30,7 @@
 #endif
 #define PAGE_SHIFT	12
 
+/* No PAGE_SIZE for programs: it would be wrong on 16K/64K kernels.  */
+#define __UCLIBC_PAGE_SIZE_VARIES__ 1
+
 #endif /* _UCLIBC_PAGE_H */

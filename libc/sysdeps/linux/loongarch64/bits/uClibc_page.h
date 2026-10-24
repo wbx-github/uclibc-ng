@@ -10,8 +10,9 @@
 
 /* LoongArch supports 4K, 16K, and 64K pages; default is 16K */
 #define PAGE_SHIFT	14
-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
-#define PAGE_MASK	(~(PAGE_SIZE-1))
+
+/* No PAGE_SIZE for programs: it would be wrong on 4K/64K kernels.  */
+#define __UCLIBC_PAGE_SIZE_VARIES__ 1
 
 #define MMAP2_PAGE_SHIFT PAGE_SHIFT
 

@@ -154,13 +154,15 @@
 
 /* Page size as a compile-time constant, defined centrally like musl and
    gated on the same feature macros; the run-time value is getpagesize()
-   / sysconf(_SC_PAGESIZE).  PAGE_SHIFT comes from <bits/uClibc_page.h>.  */
+   / sysconf(_SC_PAGESIZE).  PAGE_SHIFT comes from <bits/uClibc_page.h>.
+   Not defined where the kernel picks the page size and PAGE_SHIFT is only
+   a guess (__UCLIBC_PAGE_SIZE_VARIES__), as musl does.  */
 #if defined __USE_MISC || defined __USE_XOPEN || defined __USE_GNU
 # include <bits/uClibc_page.h>
-# ifndef PAGESIZE
+# if !defined PAGESIZE && !defined __UCLIBC_PAGE_SIZE_VARIES__
 #  define PAGESIZE	(1UL << PAGE_SHIFT)
 # endif
-# ifndef PAGE_SIZE
+# if !defined PAGE_SIZE && defined PAGESIZE
 #  define PAGE_SIZE	PAGESIZE
 # endif
 #endif
