@@ -19,6 +19,15 @@
 #undef __UCLIBC_SYSCALL_ALIGN_64BIT__
 #endif
 
+/* does one syscall argument register of your target hold 64 bits ?
+   n32 says no to __WORDSIZE == 64 and yes to this: long is 32 bit, the
+   registers are not */
+#if _MIPS_SIM == _ABIO32
+#undef __UCLIBC_SYSCALL_ARG_64BIT__
+#else
+#define __UCLIBC_SYSCALL_ARG_64BIT__
+#endif
+
 /* does your target have a broken create_module() ? */
 #undef __UCLIBC_BROKEN_CREATE_MODULE__
 
