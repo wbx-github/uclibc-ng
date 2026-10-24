@@ -41,7 +41,7 @@ __NTH (_test_and_set (int *p, int v))
     ("/* Inline test and set */\n"
      "1:\n\t"
      ".set	push\n\t"
-#if _MIPS_SIM == _ABIO32
+#if _MIPS_SIM == _ABIO32 && __mips < 2
      ".set	mips2\n\t"
 #endif
      "ll	%0,%3\n\t"
