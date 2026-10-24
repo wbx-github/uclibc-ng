@@ -17,7 +17,9 @@ _syscall2(int, fanotify_init, unsigned int, flags, unsigned int, event_f_flags)
 # include <bits/wordsize.h>
 # include <fcntl.h>
 
-# if __WORDSIZE == 64
+/* __WORDSIZE says how wide a long is, not how wide an argument register is;
+   on an ILP32 ABI with 64-bit registers the mask still goes in one piece.  */
+# if __WORDSIZE == 64 || defined __UCLIBC_SYSCALL_ARG_64BIT__
 _syscall5(int, fanotify_mark, int, fanotify_fd, unsigned int, flags,
 	  uint64_t, mask, int, dirfd, const char *, pathname)
 # else
