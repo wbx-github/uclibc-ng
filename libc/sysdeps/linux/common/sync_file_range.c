@@ -21,8 +21,15 @@
 # ifdef __NR_sync_file_range
 static int __NC(sync_file_range)(int fd, off64_t offset, off64_t nbytes, unsigned int flags)
 {
-#  if defined __powerpc__ && __WORDSIZE == 64
+#  if __WORDSIZE == 64 || defined __UCLIBC_SYSCALL_ARG_64BIT__
+	/* One argument register per 64-bit value, so hand both over whole.
+	   __WORDSIZE does not decide this on its own: an ILP32 ABI on 64-bit
+	   registers says 32 while its registers hold 64.  */
+#   ifdef __NR_sync_file_range2
 	return INLINE_SYSCALL(sync_file_range, 4, fd, flags, offset, nbytes);
+#   else
+	return INLINE_SYSCALL(sync_file_range, 4, fd, offset, nbytes, flags);
+#   endif
 #  elif defined __arm__ && defined __thumb__
 	return INLINE_SYSCALL(sync_file_range, 6, fd,
 			OFF64_HI_LO(offset), OFF64_HI_LO(nbytes), flags);
