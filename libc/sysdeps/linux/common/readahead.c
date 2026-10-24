@@ -23,9 +23,13 @@
 # include <fcntl.h>
 # include <bits/wordsize.h>
 
-# if __WORDSIZE == 64
+/* __WORDSIZE answers how wide a long is, not how wide an argument register
+   is.  On an ILP32 ABI with 64-bit registers the two differ, and there the
+   kernel takes the offset whole -- splitting it would shift the length into
+   the register the kernel reads the offset from.  */
+# if __WORDSIZE == 64 || defined __UCLIBC_SYSCALL_ARG_64BIT__
 
-_syscall3(ssize_t, readahead, int, fd, off_t, offset, size_t, count)
+_syscall3(ssize_t, readahead, int, fd, __off64_t, offset, size_t, count)
 
 # else
 
