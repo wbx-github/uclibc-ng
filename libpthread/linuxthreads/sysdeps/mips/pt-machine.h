@@ -41,7 +41,9 @@ __NTH (_test_and_set (int *p, int v))
     ("/* Inline test and set */\n"
      "1:\n\t"
      ".set	push\n\t"
+#if __mips < 2
      ".set	mips2\n\t"
+#endif
      "ll	%0,%3\n\t"
      "move	%1,%4\n\t"
      "beq	%0,%4,2f\n\t"
@@ -85,7 +87,9 @@ __compare_and_swap (long int *p, long int oldval, long int newval)
     ("/* Inline compare & swap */\n"
      "1:\n\t"
      ".set	push\n\t"
+#if __mips < 2
      ".set	mips2\n\t"
+#endif
      "ll	%1,%5\n\t"
      "move	%0,$0\n\t"
      "bne	%1,%3,2f\n\t"
