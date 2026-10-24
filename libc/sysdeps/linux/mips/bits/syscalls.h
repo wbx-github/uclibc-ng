@@ -21,7 +21,7 @@
    call.  */
 #define INLINE_SYSCALL(name, nr, args...)                               \
   ({ INTERNAL_SYSCALL_DECL(err);					\
-     long result_var = INTERNAL_SYSCALL(name, err, nr, args);		\
+     ARG_TYPE result_var = INTERNAL_SYSCALL(name, err, nr, args);	\
      if ( INTERNAL_SYSCALL_ERROR_P (result_var, err) )			\
        {								\
 	 __set_errno (INTERNAL_SYSCALL_ERRNO (result_var, err));	\
@@ -32,7 +32,7 @@
 #define INLINE_SYSCALL_NOERR_NCS(name, nr, args...)			\
 ({									\
 	INTERNAL_SYSCALL_DECL(err);					\
-	long res = INTERNAL_SYSCALL_NCS(name, err, nr, args);		\
+	ARG_TYPE res = INTERNAL_SYSCALL_NCS(name, err, nr, args);	\
 	if (unlikely(INTERNAL_SYSCALL_ERROR_P(res, err))) {		\
 	    res = -res;							\
 	}								\
@@ -60,7 +60,7 @@
 
 #define internal_syscall0(ncs_init, cs_init, input, err, dummy...)	\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -81,7 +81,7 @@
 
 #define internal_syscall1(ncs_init, cs_init, input, err, arg1)		\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -103,7 +103,7 @@
 
 #define internal_syscall2(ncs_init, cs_init, input, err, arg1, arg2)	\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -126,7 +126,7 @@
 
 #define internal_syscall3(ncs_init, cs_init, input, err, arg1, arg2, arg3)\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -150,7 +150,7 @@
 
 #define internal_syscall4(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4)\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -182,7 +182,7 @@
 
 #define internal_syscall5(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4, arg5)\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
@@ -212,7 +212,7 @@
 
 #define internal_syscall6(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4, arg5, arg6)\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
@@ -243,7 +243,7 @@
 
 #define internal_syscall7(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4, arg5, arg6, arg7)\
 ({									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
@@ -286,7 +286,7 @@
 
 #define internal_syscall5(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4, arg5) \
 ({ 									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
@@ -311,7 +311,7 @@
 
 #define internal_syscall6(ncs_init, cs_init, input, err, arg1, arg2, arg3, arg4, arg5, arg6) \
 ({ 									\
-	long _sys_result;						\
+	ARG_TYPE _sys_result;						\
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
