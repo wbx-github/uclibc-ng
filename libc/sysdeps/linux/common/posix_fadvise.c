@@ -21,7 +21,10 @@
 # include <endian.h>
 # include <bits/wordsize.h>
 
-# if defined(__NR_fadvise64_64)
+/* posix_fadvise64.c builds the 64-bit entry point only for __WORDSIZE == 32,
+   so only hand the work over there.  A 64-bit target that has fadvise64_64
+   would otherwise call a function nobody defines.  */
+# if defined(__NR_fadvise64_64) && __WORDSIZE == 32
 #include <_lfs_64.h>
 
 int posix_fadvise64(int fd, off64_t offset, off64_t len, int advice);
