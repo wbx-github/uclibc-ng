@@ -10,6 +10,7 @@
 .global __sigsetjmp
 
 __sigsetjmp:
+	mov.l	er1,er2		; savemask
 	add.l	#JB_SIZE,er0
 	mov.l	@sp,er1		; return PC
 	mov.l	er1,@-er0
@@ -17,5 +18,10 @@ __sigsetjmp:
 	mov.l	er6,@-er0
 	mov.l	er5,@-er0
 	mov.l	er4,@-er0
-	sub.l	er0,er0
-	rts
+	mov.l	er2,er1		; __sigjmp_save (env, savemask), returns 0
+#if !defined(__PIC__)
+	jmp	@__sigjmp_save
+#else
+	mov.l	@(__sigjmp_save@GOTOFF,er5),er3
+	jmp	@er3
+#endif
