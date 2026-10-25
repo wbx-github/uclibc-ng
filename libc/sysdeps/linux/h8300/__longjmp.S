@@ -18,6 +18,7 @@ __longjmp:
 	mov.l	@er0+,er6
 	mov.l	@er0+,sp
 	mov.l	@er0+,er3	; return PC
+	mov.l	er1,er0		; setjmp's return value
 	adds	#4,sp		; adjust return stack
 	jmp	@er3
 
