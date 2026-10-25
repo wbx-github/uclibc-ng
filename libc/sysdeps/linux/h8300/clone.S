@@ -23,11 +23,14 @@
 .globl	clone
 clone:
 	/* Sanity check arguments.  */
-	mov.l	#-EINVAL,er3
 	mov.l	er0,er0			/* no NULL function pointers */
-	beq	__syscall_error
+	beq	1f
 	mov.l	er1,er1			/* no NULL stack pointers */
-	beq	__syscall_error
+	bne	2f
+1:
+	mov.l	#-EINVAL,er0
+	bra	__syscall_error
+2:
 
 	/* Allocate space and copy the argument onto the new stack.  */
 	mov.l	@(4:16,sp),er3
@@ -67,7 +70,7 @@ __syscall_error:
 	mov.l	@(__errno_location@GOTOFF,er5),er1
 	jsr	@er1
 #endif
-	mov.l	@sp,er1
+	mov.l	@sp+,er1
 	mov.l	er1,@er0
 	sub.l	er0,er0
 	dec.l	#1,er0
