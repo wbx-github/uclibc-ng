@@ -37,6 +37,7 @@
 #define _dl_free free
 #endif
 
+#include <sys/mman.h>
 #include <ldso.h>
 #include <stdio.h>
 #include <string.h>

@@ -28,10 +28,14 @@ choice
 	  - "SH3" SuperH SH-3
 	  - "SH4" SuperH SH-4
 	  - "SH4A" SuperH SH-4a
+	  - "J2" J2-Core
+
+config CONFIG_J2
+	select ARCH_HAS_NO_MMU
+	bool "J2"
 
 config CONFIG_SH2A
 	select ARCH_HAS_NO_MMU
-	select HAVE_NO_PIC
 	bool "SH2A"
 
 config CONFIG_SH2

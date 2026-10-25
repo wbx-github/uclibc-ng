@@ -234,7 +234,9 @@ DL_START(unsigned long args)
 	   We are only doing ourself right now - we will have to do the rest later */
 	SEND_EARLY_STDERR_DEBUG("Scanning DYNAMIC section\n");
 	tpnt->dynamic_addr = dpnt;
-#if defined(NO_FUNCS_BEFORE_BOOTSTRAP)
+#ifdef DL_PARSE_DYNAMIC_INFO
+	DL_PARSE_DYNAMIC_INFO(dpnt, tpnt->dynamic_info, NULL, load_addr);
+#elif defined(NO_FUNCS_BEFORE_BOOTSTRAP)
 	/* Some architectures cannot call functions here, must inline */
 	__dl_parse_dynamic_info(dpnt, tpnt->dynamic_info, NULL, load_addr);
 #else

@@ -24,6 +24,11 @@ ifeq ($(TARGET_ARCH),bfin)
 CFLAGS-rtld += -ffreestanding
 endif
 
+# avoid ld.so linking error: undefined reference to abort/memset/memcpy/strlen
+ifeq ($(TARGET_ARCH),sh)
+CFLAGS-rtld += -fno-delete-null-pointer-checks -ffreestanding
+endif
+
 CFLAGS-rtld += -I$(top_srcdir)ldso/ldso/$(TARGET_ARCH) -I$(top_srcdir)ldso/include -I$(top_srcdir)ldso/ldso
 CFLAGS-rtld += -DUCLIBC_RUNTIME_PREFIX=\"$(RUNTIME_PREFIX)\" -DUCLIBC_LDSO=\"$(UCLIBC_LDSO)\"
 

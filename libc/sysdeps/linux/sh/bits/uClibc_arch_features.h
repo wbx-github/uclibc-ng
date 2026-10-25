@@ -6,7 +6,7 @@
 #define _BITS_UCLIBC_ARCH_FEATURES_H
 
 /* instruction used when calling abort() to kill yourself */
-#ifdef __sh2__
+#if defined(__sh2__) || defined(__CONFIG_J2__)
 # define __UCLIBC_ABORT_INSTRUCTION__ "trapa #32"
 #else
 # define __UCLIBC_ABORT_INSTRUCTION__ "trapa #0xff"

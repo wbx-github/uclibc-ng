@@ -203,7 +203,7 @@ unsigned int __dl_parse_dynamic_info(ElfW(Dyn) *dpnt, unsigned long dynamic_info
 	/* Don't adjust .dynamic unnecessarily.  For FDPIC targets,
 	   we'd have to walk all the loadsegs to find out if it was
 	   actually unnecessary, so skip this optimization.  */
-#if !defined __FRV_FDPIC__ && !defined __BFIN_FDPIC__ && !defined __DSBT__ && !defined __FDPIC__
+#if !defined __FRV_FDPIC__ && !defined __BFIN_FDPIC__ && !defined __SH_FDPIC__ && !defined __DSBT__ && !defined __FDPIC__
 	if (load_off != 0)
 #endif
 	{

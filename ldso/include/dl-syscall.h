@@ -229,7 +229,7 @@ static __always_inline _syscall4(int, _dl_readlink, int, id, const char *, path,
 
 #ifdef __NR_pread64
 #define __NR___syscall_pread __NR_pread64
-#ifdef __UCLIBC_SYSCALL_ALIGN_64BIT__
+#if defined(__UCLIBC_SYSCALL_ALIGN_64BIT__) || defined(__SH_FDPIC__)
 static __always_inline _syscall6(ssize_t, __syscall_pread, int, fd, void *, buf, size_t, dummy,
 			size_t, count, off_t, offset_hi, off_t, offset_lo)
 

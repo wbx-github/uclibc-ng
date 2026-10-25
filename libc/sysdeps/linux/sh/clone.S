@@ -19,6 +19,7 @@
 
 #include <features.h>
 #include <asm/unistd.h>
+#include <sys/syscall.h>
 #include <sysdep.h>
 #define _ERRNO_H	1
 #include <bits/errno.h>
@@ -48,9 +49,9 @@ ENTRY(__clone)
 	mov.l	@(8,r15), r7
 	mov.l	@(4,r15), r0
 	mov	#+SYS_ify(clone), r3
-	trapa	#0x15
+	trapa	#(__SH_SYSCALL_TRAP_BASE + 5)
 	mov     r0, r1
-#ifdef __sh2__
+#if defined(__sh2__) || defined(__CONFIG_J2__)
 /* 12 arithmetic shifts for the sh2, because shad doesn't exist! */
         shar    r1
         shar    r1
@@ -72,7 +73,14 @@ ENTRY(__clone)
 	tst	r1, r1			// i.e. error in linux
 	bf	.Lclone_end
 .Lsyscall_error:
+#ifdef __SH_FDPIC__
+	/* SYSCALL_ERROR_HANDLER has no FDPIC variant; this one takes
+	   __errno_location's descriptor from the GOT in r12 */
+	bra	__syscall_error
+	 mov	r0, r4
+#else
 	SYSCALL_ERROR_HANDLER
+#endif
 .Lclone_end:
 	tst	r0, r0
 	bt	2f
@@ -85,34 +93,22 @@ ENTRY(__clone)
 
 	/* thread starts */
 	mov.l	@r15, r1
+#ifdef __SH_FDPIC__
+	/* fn is a function descriptor: entry point and GOT */
+	mov.l	@(4,r1), r12
+	mov.l	@r1, r1
+#endif
 	jsr	@r1
 	 mov.l	@(4,r15), r4
 
 	/* we are done, passing the return value through r0  */
-	mov.l	.L3, r1
-#ifdef SHARED
-	mov.l	r12, @-r15
-	sts.l	pr, @-r15
 	mov	r0, r4
-	mova	.LG, r0
-	mov.l	.LG, r12
-	add	r0, r12
-	mova	.L3, r0
-	add	r0, r1
-	jsr	@r1
-	 nop
-	lds.l	@r15+, pr
-	rts
-	 mov.l	@r15+, r12
-#else
-	jmp	@r1
-	 mov	r0, r4
-#endif
-	.align	2
-.LG:
-	.long	_GLOBAL_OFFSET_TABLE_
-.L3:
-	.long	PLTJMP(C_SYMBOL_NAME(_exit))
+	mov	#+SYS_ify(exit), r3
+	trapa	#(__SH_SYSCALL_TRAP_BASE + 5)
 
 PSEUDO_END (__clone)
 weak_alias (__clone, clone)
+
+#ifdef __SH_FDPIC__
+#include "syscall_error.S"
+#endif

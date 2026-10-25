@@ -79,7 +79,7 @@ extern struct r_debug _r_debug;
    */
 extern ElfW(Dyn) _DYNAMIC[];
 
-#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__FDPIC__)
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
 # include <bits/elf-fdpic.h>
 #endif
 #ifdef __DSBT__
@@ -97,7 +97,7 @@ struct link_map
     /* These first few members are part of the protocol with the debugger.
        This is the same format used in SVR4.  */
 
-#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__FDPIC__)
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
     struct elf32_fdpic_loadaddr l_addr;
 #else
 #ifdef __DSBT__
@@ -184,7 +184,7 @@ enum
 
 struct dl_phdr_info
   {
-#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__FDPIC__)
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
     struct elf32_fdpic_loadaddr dlpi_addr;
 #else
 #ifdef __DSBT__

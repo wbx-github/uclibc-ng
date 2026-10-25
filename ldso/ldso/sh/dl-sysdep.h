@@ -5,7 +5,10 @@
 
 /* Define this if the system uses RELOCA.  */
 #define ELF_USES_RELOCA
+
 #include <elf.h>
+
+#ifndef __SH_FDPIC__
 /*
  * Initialization sequence for a GOT.
  */
@@ -14,6 +17,7 @@
   GOT_BASE[2] = (unsigned long) _dl_linux_resolve; \
   GOT_BASE[1] = (unsigned long) (MODULE); \
 }
+#endif
 
 /* Here we define the magic numbers that this dynamic loader should accept */
 #define MAGIC1 EM_SH
@@ -23,7 +27,60 @@
 #define ELF_TARGET "sh"
 
 struct elf_resolve;
+
+#ifdef __SH_FDPIC__
+#include "../fdpic/dl-sysdep.h"
+#define ARCH_NEEDS_BOOTSTRAP_RELOCS
+#define ARCH_CANNOT_PROTECT_MEMORY
+#else
 extern unsigned long _dl_linux_resolver(struct elf_resolve * tpnt, int reloc_entry);
+#endif
+
+#define STRINGIFY1(s) #s
+#define STRINGIFY(s) STRINGIFY1 (s)
+#undef SEND_EARLY_STDERR
+#define SEND_EARLY_STDERR(S) \
+    do {								\
+	const char *__s;						\
+	int len;							\
+	__asm__("mova	1f, r0\n"					\
+	    "	bra	2f\n"						\
+	    "	  nop\n"						\
+	    "	.align 2\n"						\
+	    "1:	.string " STRINGIFY (S) "\n"				\
+	    "	.align 2\n"						\
+	    "2:"							\
+	    : "=z" (__s));						\
+	for (len = 0; __s[len] != '\0'; len++)				\
+	  ;								\
+	_dl_write (2, __s, len);					\
+    } while (0)
+
+
+/* We only support loading FDPIC independently-relocatable shared
+   libraries.  It probably wouldn't be too hard to support loading
+   shared libraries that require relocation by the same amount, but we
+   don't know that they exist or would be useful, and the dynamic
+   loader code could leak the whole-library map unless we keeping a
+   bit more state for DL_LOADADDR_UNMAP and DL_LIB_UNMAP, so let's
+   keep things simple for now.  */
+#ifdef __SH_FDPIC__
+#define DL_CHECK_LIB_TYPE(epnt, piclib, _dl_progname, libname) \
+do \
+{ \
+   if (((epnt)->e_flags & EF_SH_FDPIC)) \
+    (piclib) = 2; \
+  else \
+    { \
+      _dl_internal_error_number = LD_ERROR_NOTDYN; \
+      _dl_dprintf(2, "%s: '%s' is not an FDPIC shared library" \
+		  "\n", (_dl_progname), (libname)); \
+      _dl_close(infile); \
+      return NULL; \
+    } \
+} \
+while (0)
+#endif
 
 static __always_inline unsigned int
 _dl_urem(unsigned int n, unsigned int base)
@@ -94,6 +151,7 @@ _dl_urem(unsigned int n, unsigned int base)
     * ELF_RTYPE_CLASS_PLT)						      \
    | (((type) == R_SH_COPY) * ELF_RTYPE_CLASS_COPY))
 
+#ifndef __SH_FDPIC__
 /* Return the link-time address of _DYNAMIC.  Conveniently, this is the
    first element of the GOT.  This must be inlined in a function which
    uses global data.  */
@@ -104,7 +162,9 @@ elf_machine_dynamic (void)
 	__asm__ ("mov r12,%0" :"=r" (got));
 	return *got;
 }
+#endif
 
+#ifndef __SH_FDPIC__
 /* Return the run-time load address of the shared object.  */
 static __always_inline Elf32_Addr __attribute__ ((unused))
 elf_machine_load_address (void)
@@ -123,6 +183,22 @@ elf_machine_load_address (void)
 	     : "=r" (addr) : : "r0", "r1", "r2");
 	return addr;
 }
+#else
+/* FDPIC needs access to the loadmap for this.  */
+#include <bits/elf-fdpic.h>
+
+#define elf_machine_load_address() \
+		elf_machine_load_address1 (dl_boot_ldsomap, dl_boot_progmap)
+static __always_inline Elf32_Addr __attribute__ ((unused))
+elf_machine_load_address1 (struct elf32_fdpic_loadmap *ldso_map,
+			   struct elf32_fdpic_loadmap *exec_map)
+{
+  struct elf32_fdpic_loadmap *map = (ldso_map ?: exec_map);
+
+  /* The ELF header is assumed to be the first entry in the load map.  */
+  return map->segs[0].addr;
+}
+#endif
 
 #define COPY_UNALIGNED_WORD(swp, twp, align) \
   { \
@@ -149,9 +225,15 @@ elf_machine_load_address (void)
   }
 
 static __always_inline void
+#ifdef __SH_FDPIC__
+elf_machine_relative (DL_LOADADDR_TYPE load_off, const Elf32_Addr rel_addr,
+		      Elf32_Word relative_count)
+#else
 elf_machine_relative (Elf32_Addr load_off, const Elf32_Addr rel_addr,
 		      Elf32_Word relative_count)
+#endif
 {
+#ifndef __SH_FDPIC__
 	Elf32_Addr value;
 	Elf32_Rela * rpnt = (void *)rel_addr;
 
@@ -167,5 +249,7 @@ elf_machine_relative (Elf32_Addr load_off, const Elf32_Addr rel_addr,
 		COPY_UNALIGNED_WORD (&value, reloc_addr, (int) reloc_addr & 3);
 		rpnt++;
 	} while (--relative_count);
+#endif
 #undef COPY_UNALIGNED_WORD
 }
+

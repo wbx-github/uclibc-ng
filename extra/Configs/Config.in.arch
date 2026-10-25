@@ -20,7 +20,7 @@ config UCLIBC_FORMAT_ELF
 	select HAVE_LDSO
 config UCLIBC_FORMAT_FDPIC_ELF
 	bool "FDPIC ELF"
-	depends on !ARCH_USE_MMU && (TARGET_bfin || TARGET_frv || TARGET_arm || TARGET_xtensa)
+	depends on !ARCH_USE_MMU && (TARGET_bfin || TARGET_frv || TARGET_arm || TARGET_xtensa || TARGET_sh)
 	select DOPIC
 config UCLIBC_FORMAT_DSBT_ELF
 	bool "DBST ELF"

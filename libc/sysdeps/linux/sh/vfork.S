@@ -38,7 +38,7 @@ __vfork:
 	mov.w	.L2, r3
 	trapa	#__SH_SYSCALL_TRAP_BASE
 	mov     r0, r1
-#ifdef __sh2__
+#if defined(__sh2__) || defined(__CONFIG_J2__)
 /* 12 arithmetic shifts for the crappy sh2, because shad doesn't exist!	 */
 	shar	r1
 	shar	r1
@@ -69,7 +69,7 @@ __vfork:
 	mov.w	.L3, r3
 	trapa	#__SH_SYSCALL_TRAP_BASE
 	mov     r0, r1
-#ifdef __sh2__
+#if defined(__sh2__) || defined(__CONFIG_J2__)
 /* 12 arithmetic shifts for the crappy sh2, because shad doesn't exist!	 */
 	shar	r1
 	shar	r1

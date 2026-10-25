@@ -1,4 +1,4 @@
-/* setjmp for SH3.
+/* setjmp for SH.
    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -74,7 +74,17 @@ __sigsetjmp_intern:
 	mov.l	r9, @-r4
 	mov.l	r8, @-r4
 
-#ifdef __HAVE_SHARED__
+#ifdef __SH_FDPIC__
+	/* Make a tail call to __sigjmp_save; it takes the same args.  */
+	mov.l	.L1, r0
+	mov.l	@(r0,r12), r0
+	mov.l	@(0,r0), r2
+	mov.l	@(4,r0), r12
+	jmp	@r2
+	mov	r1, r0
+	.align 2
+.L1:	.long	__sigjmp_save@GOTFUNCDESC
+#elif defined __HAVE_SHARED__
 	mov.l	.LG, r2
 	mova	.LG, r0
 	add	r0, r2

@@ -2926,6 +2926,11 @@ typedef Elf32_Addr Elf32_Conflict;
 
 /* SH specific declarations */
 
+/* SH flags.  */
+#define EF_SH_PIC		0x100	/* Segments of an FDPIC binary may
+					   be relocated independently.  */
+#define EF_SH_FDPIC		0x8000	/* Uses the FDPIC ABI.  */
+
 /* SH specific values for `st_other'.  */
 
 /* If set, this is a symbol pointing to SHmedia code, which will be branched
@@ -2972,6 +2977,12 @@ typedef Elf32_Addr Elf32_Conflict;
 #define	R_SH_GOTPC		167
 #define	R_SH_RELATIVE_LOW16	197
 #define	R_SH_RELATIVE_MEDLOW16	198
+#define	R_SH_GOTFUNCDESC	203
+#define	R_SH_GOTFUNCDESC20	204
+#define	R_SH_GOTOFFFUNCDESC	205
+#define	R_SH_GOTOFFFUNCDESC20	206
+#define	R_SH_FUNCDESC		207
+#define	R_SH_FUNCDESC_VALUE	208
 #define	R_SH_IMM_LOW16		246
 #define	R_SH_IMM_LOW16_PCREL	247
 #define	R_SH_IMM_MEDLOW16	248

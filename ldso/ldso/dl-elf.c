@@ -29,6 +29,7 @@
  */
 
 
+#include "sys/mman.h"
 #include "ldso.h"
 
 #ifdef __LDSO_CACHE_SUPPORT__

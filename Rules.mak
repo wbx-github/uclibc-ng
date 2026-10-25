@@ -322,7 +322,7 @@ CPU_LDFLAGS-$(ARCH_LITTLE_ENDIAN) += -Wl,-EL
 CPU_LDFLAGS-$(ARCH_BIG_ENDIAN)    += -Wl,-EB
 
 PICFLAG-y := -fPIC
-PICFLAG-$(UCLIBC_FORMAT_FDPIC_ELF) := -mfdpic
+PICFLAG-$(UCLIBC_FORMAT_FDPIC_ELF) := -mfdpic -fPIC
 PICFLAG-$(UCLIBC_FORMAT_DSBT_ELF)  := -mdsbt -fpic
 PICFLAG := $(PICFLAG-y)
 PIEFLAG_NAME:=-fPIE
@@ -422,10 +422,17 @@ ifeq ($(TARGET_ARCH),nds32)
 endif
 
 ifeq ($(TARGET_ARCH),sh)
+ifeq ($(UCLIBC_FORMAT_FDPIC_ELF),y)
+	CPU_CFLAGS-y:=-mfdpic -fPIC
+	PICFLAG:=-fPIC
+	PIEFLAG_NAME:=-fpie
+else
 $(eval $(call check-gcc-var,-mprefergot))
 	OPTIMIZATION += $(CFLAG_-mprefergot)
+endif
 	CPU_CFLAGS-$(ARCH_LITTLE_ENDIAN)+=-ml
 	CPU_CFLAGS-$(ARCH_BIG_ENDIAN)+=-mb
+	CPU_CFLAGS-$(CONFIG_J2)+=-mj2
 	CPU_CFLAGS-$(CONFIG_SH2)+=-m2
 	CPU_CFLAGS-$(CONFIG_SH3)+=-m3
 ifeq ($(UCLIBC_HAS_FPU),y)

@@ -30,6 +30,13 @@
 
 #include "ldso.h"
 
+#if defined(__SH_FDPIC__)
+# define DL_CALL_ARRAY_FUNC(FN, LOADADDR) ((FN)())
+#else
+# define DL_CALL_ARRAY_FUNC(FN, LOADADDR) \
+	DL_CALL_FUNC_AT_ADDR(FN, LOADADDR, (void (*)(void)))
+#endif
+
 static void _dl_run_array_forward(unsigned long array, unsigned long size,
                                   DL_LOADADDR_TYPE loadaddr)
 {
@@ -42,7 +49,7 @@ static void _dl_run_array_forward(unsigned long array, unsigned long size,
 		for (j = 0; j < jm; ++j) {
 			void (*dl_elf_func) (void);
 			dl_elf_func = (void (*)(void)) (intptr_t) addrs[j];
-			DL_CALL_FUNC_AT_ADDR (dl_elf_func, loadaddr, (void (*)(void)));
+			DL_CALL_ARRAY_FUNC (dl_elf_func, loadaddr);
 		}
 	}
 }
@@ -70,7 +77,7 @@ void _dl_run_fini_array(struct elf_resolve *tpnt)
 		while (i-- > 0) {
 			void (*dl_elf_func) (void);
 			dl_elf_func = (void (*)(void)) (intptr_t) array[i];
-			DL_CALL_FUNC_AT_ADDR (dl_elf_func, tpnt->loadaddr, (void (*)(void)));
+			DL_CALL_ARRAY_FUNC (dl_elf_func, tpnt->loadaddr);
 		}
 	}
 }

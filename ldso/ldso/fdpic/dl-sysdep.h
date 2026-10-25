@@ -48,7 +48,7 @@ struct funcdesc_ht;
      (* SIGNATURE pf)(__VA_ARGS__); })
 
 #define DL_INIT_LOADADDR_BOOT(LOADADDR, BASEADDR) \
-  (__dl_init_loadaddr_map (&(LOADADDR), dl_boot_got_pointer, \
+  (__dl_init_loadaddr_map (&(LOADADDR), (Elf32_Addr) dl_boot_got_pointer, \
 			   dl_boot_ldsomap ?: dl_boot_progmap))
 
 #define DL_INIT_LOADADDR_PROG(LOADADDR, BASEADDR) \
@@ -85,7 +85,7 @@ struct funcdesc_ht;
  * since the offset between text and data is not fixed, so we arrange
  * for the ldso assembly entry point to pass this value as an argument
  * to _dl_start.  */
-#define DL_BOOT_COMPUTE_GOT(got) ((got) = dl_boot_got_pointer)
+#define DL_BOOT_COMPUTE_GOT(got) ((got) = (Elf32_Addr) dl_boot_got_pointer)
 
 #define DL_BOOT_COMPUTE_DYN(dpnt, got, load_addr) \
   ((dpnt) = dl_boot_ldso_dyn_pointer)
@@ -113,7 +113,7 @@ struct funcdesc_ht;
 #define DL_GET_READY_TO_RUN_EXTRA_PARMS \
     , struct elf32_fdpic_loadmap *dl_boot_progmap, Elf32_Addr dl_boot_got_pointer
 #define DL_GET_READY_TO_RUN_EXTRA_ARGS \
-    , dl_boot_progmap, dl_boot_got_pointer
+    , dl_boot_progmap, (Elf32_Addr) dl_boot_got_pointer
 
 /* Define this to declare the library offset. */
 #define DL_DEF_LIB_OFFSET

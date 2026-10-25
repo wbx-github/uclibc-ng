@@ -15,14 +15,14 @@ _dl_linux_resolve:
 	mov.l	r6, @-r15
 	mov.l	r7, @-r15
 	mov.l	r12, @-r15
-	movt	r3		! Save T flag
-	mov.l	r3, @-r15
+	movt	r4		! Save T flag
+	mov.l	r4, @-r15
 
 #ifdef HAVE_FPU
 	sts.l	fpscr, @-r15
-	mov	#8,r3
-	swap.w	r3, r3
-	lds	r3, fpscr
+	mov	#8,r4
+	swap.w	r4, r4
+	lds	r4, fpscr
 	fmov.s	fr11, @-r15
 	fmov.s	fr10, @-r15
 	fmov.s	fr9, @-r15
@@ -33,6 +33,31 @@ _dl_linux_resolve:
 	fmov.s	fr4, @-r15
 #endif
 	sts.l	pr, @-r15
+
+#ifdef __SH_FDPIC__
+	/* On entry,
+	     R0   the address of the resolver itself (this function)
+	     R3   the GOT address (FDPIC value) for the resolver's GOT
+	     R1   the address of the lazy PLT entry being resolved
+	     R12  the GOT address for the caller's GOT
+		  or sometimes for the called function's GOT
+
+	   The uncertainty in R12 is due to a race condition when overwriting
+	   the function descriptor. This code should not rely on R12.
+	
+	   Since we do not confidently know the value of the arguments to
+	   _dl_linux_resolver, we pass the information we do have, and let it
+	   work it out for itself ... it's easier to do this in C.  */
+
+	mov.l	@(8,r12), r4	! load map
+	mov	r1, r5		! Lazy PLT stub
+
+	mov.l   .L_dl_linux_resolver, r0
+	mov.l	@(r0, r3), r6
+	mov.l	@(0,r6), r7
+	jsr	@r7
+	  mov.l	@(4,r6), r12
+#else
 /* Note - The PLT entries have been "optimised" not to use r2.  r2 is used by
    GCC to return the address of large structures, so it should not be
    corrupted here.  This does mean however, that those PLTs does not conform
@@ -55,13 +80,15 @@ _dl_linux_resolve:
 	mov     r2, r0          ! link map address in r2 (SH PIC ABI)
 1:
 	mov     r0, r4          ! link map address in r0 (GNUs PLT)
+
 	mova    .LG, r0
 	mov.l   .LG, r5
 	add     r5, r0
-	mov.l   3f, r5
+	mov.l   .L_dl_linux_resolver, r5
 	mov.l   @(r0, r5),r5
 	jsr     @r5
 	 mov	r1, r5		! Reloc offset
+#endif
 
 	lds.l	@r15+, pr	! Get register content back
 
@@ -85,14 +112,23 @@ _dl_linux_resolve:
 	mov.l	@r15+, r5
 	mov.l	@r15+, r4
 	mov.l	@r15+, r3
+#ifdef __SH_FDPIC__
+	mov.l	@(4,r0), r12
+	mov.l	@(0,r0), r0
+#endif
 	jmp	@r0		! Jump to function address
 	 mov.l	@r15+, r2	! see Note2 above
 
 	.balign	4
 
-3:
+#ifdef __SH_FDPIC__
+.L_dl_linux_resolver:
+	.long   _dl_linux_resolver@GOTFUNCDESC
+#else
+.L_dl_linux_resolver:
 	.long   _dl_linux_resolver@GOT
 .LG:
 	.long	_GLOBAL_OFFSET_TABLE_
+#endif
 	.size	_dl_linux_resolve, . - _dl_linux_resolve
 

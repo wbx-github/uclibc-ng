@@ -30,7 +30,9 @@
 #define ASM_TYPE_DIRECTIVE(name,typearg) .type name,@##typearg;
 #define ASM_SIZE_DIRECTIVE(name) .size name,.-name
 
-#ifdef SHARED
+#ifdef __SH_FDPIC__
+#define PLTJMP(_x)	_x@PLT-.
+#elif defined __HAVE_SHARED__
 #define PLTJMP(_x)	_x##@PLT
 #else
 #define PLTJMP(_x)	_x

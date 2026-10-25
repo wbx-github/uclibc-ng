@@ -85,7 +85,11 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 
 	__UCLIBC_MUTEX_CONDITIONAL_LOCK(_dl_iterate_phdr_lock, 1);
 	for (l = _dl_loaded_modules; l != NULL; l = l->next) {
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__)
+		info.dlpi_addr = (struct elf32_fdpic_loadaddr) {0, 0};
+#else
 		info.dlpi_addr = l->loadaddr;
+#endif
 		info.dlpi_name = l->libname;
 		info.dlpi_phdr = l->ppnt;
 		info.dlpi_phnum = l->n_phent;
@@ -133,7 +137,7 @@ dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
       /* This entry describes this statically-linked program itself.  */
       struct dl_phdr_info info;
       int ret;
-#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__FDPIC__)
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
       info.dlpi_addr.map = NULL;
       info.dlpi_addr.got_value = NULL;
 #elif defined(__DSBT__)

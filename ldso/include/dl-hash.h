@@ -134,7 +134,7 @@ struct elf_resolve {
   unsigned long data_words;
 #endif
 
-#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__FDPIC__)
+#if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
   /* Every loaded module holds a hashtable of function descriptors of
      functions defined in it, such that it's easy to release the
      memory when the module is dlclose()d.  */
