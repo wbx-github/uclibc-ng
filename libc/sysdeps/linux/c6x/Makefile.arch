@@ -8,3 +8,5 @@
 CSRC-y := brk.c syscall.c prctl.c
 
 SSRC-y := __longjmp.S bsd-_setjmp.S bsd-setjmp.S clone.S setjmp.S _vfork.S
+
+libc-nonshared-y += $(ARCH_OUT)/c6xabi_unwind_cpp_pr.o

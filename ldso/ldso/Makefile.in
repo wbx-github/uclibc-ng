@@ -14,7 +14,7 @@ ifneq ($(TARGET_ARCH),arc)
 CFLAGS-rtld += -fno-omit-frame-pointer
 endif
 
-ifeq ($(TARGET_ARCH),arm)
+ifneq ($(filter arm c6x,$(TARGET_ARCH)),)
 # This stuff will not work with -funwind-tables / -fasynchronous-unwind-tables
 CFLAGS-rtld += -fno-unwind-tables -fno-asynchronous-unwind-tables
 endif
