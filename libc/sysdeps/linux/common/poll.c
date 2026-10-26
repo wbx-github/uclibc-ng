@@ -27,7 +27,34 @@
 static _syscall3(int, __NC(poll), struct pollfd *, fds,
 		 unsigned long int, nfds, int, timeout)
 
-#else /* !__NR_poll */
+#elif defined(__NR_ppoll) || \
+      (defined(__UCLIBC_USE_TIME64__) && defined(__NR_ppoll_time64))
+
+#include <stddef.h>
+#include <time.h>
+#ifdef __UCLIBC_USE_TIME64__
+# include "internal/time64_helpers.h"
+#endif
+
+static int __NC(poll)(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    struct timespec ts;
+    const struct timespec *tsp = NULL;
+
+    if (timeout >= 0) {
+	ts.tv_sec = timeout / 1000;
+	ts.tv_nsec = (timeout % 1000) * 1000000L;
+	tsp = &ts;
+    }
+
+#if defined(__UCLIBC_USE_TIME64__) && defined(__NR_ppoll_time64)
+    return INLINE_SYSCALL(ppoll_time64, 5, fds, nfds, TO_TS64_P(tsp), NULL, 0);
+#else
+    return INLINE_SYSCALL(ppoll, 5, fds, nfds, tsp, NULL, 0);
+#endif
+}
+
+#else /* no native poll/ppoll syscall */
 
 #include <alloca.h>
 #include <sys/types.h>
