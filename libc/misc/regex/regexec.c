@@ -63,7 +63,7 @@ static void update_regs (const re_dfa_t *dfa, regmatch_t *pmatch,
 			 int cur_idx, int nmatch) internal_function;
 static reg_errcode_t push_fail_stack (struct re_fail_stack_t *fs,
 				      int str_idx, int dest_node, int nregs,
-				      regmatch_t *regs,
+				      regmatch_t *regs, regmatch_t *prevregs,
 				      re_node_set *eps_via_nodes)
      internal_function;
 static reg_errcode_t set_regs (const regex_t *preg,
@@ -1161,6 +1161,7 @@ check_halt_state_context (const re_match_context_t *mctx,
 static int
 internal_function
 proceed_next_node (const re_match_context_t *mctx, int nregs, regmatch_t *regs,
+		   regmatch_t *prevregs,
 		   int *pidx, int node, re_node_set *eps_via_nodes,
 		   struct re_fail_stack_t *fs)
 {
@@ -1171,9 +1172,12 @@ proceed_next_node (const re_match_context_t *mctx, int nregs, regmatch_t *regs,
       re_node_set *cur_nodes = &mctx->state_log[*pidx]->nodes;
       re_node_set *edests = &dfa->edests[node];
       int dest_node;
-      err = re_node_set_insert (eps_via_nodes, node);
-      if (BE (err < 0, 0))
-	return -2;
+      if (!re_node_set_contains (eps_via_nodes, node))
+	{
+	  err = re_node_set_insert (eps_via_nodes, node);
+	  if (BE (err < 0, 0))
+	    return -2;
+	}
       /* Pick up a valid destination, or return -1 if none is found.  */
       for (dest_node = -1, i = 0; i < edests->nelem; ++i)
 	{
@@ -1193,7 +1197,7 @@ proceed_next_node (const re_match_context_t *mctx, int nregs, regmatch_t *regs,
 	      /* Otherwise, push the second epsilon-transition on the fail stack.  */
 	      else if (fs != NULL
 		       && push_fail_stack (fs, *pidx, candidate, nregs, regs,
-				           eps_via_nodes))
+					   prevregs, eps_via_nodes))
 		return -2;
 
 	      /* We know we are going to exit.  */
@@ -1261,7 +1265,8 @@ proceed_next_node (const re_match_context_t *mctx, int nregs, regmatch_t *regs,
 static reg_errcode_t
 internal_function
 push_fail_stack (struct re_fail_stack_t *fs, int str_idx, int dest_node,
-		 int nregs, regmatch_t *regs, re_node_set *eps_via_nodes)
+		 int nregs, regmatch_t *regs, regmatch_t *prevregs,
+		 re_node_set *eps_via_nodes)
 {
   reg_errcode_t err;
   int num = fs->num++;
@@ -1277,10 +1282,11 @@ push_fail_stack (struct re_fail_stack_t *fs, int str_idx, int dest_node,
     }
   fs->stack[num].idx = str_idx;
   fs->stack[num].node = dest_node;
-  fs->stack[num].regs = re_malloc (regmatch_t, nregs);
+  fs->stack[num].regs = re_malloc (regmatch_t, 2 * nregs);
   if (fs->stack[num].regs == NULL)
     return REG_ESPACE;
   memcpy (fs->stack[num].regs, regs, sizeof (regmatch_t) * nregs);
+  memcpy (fs->stack[num].regs + nregs, prevregs, sizeof (regmatch_t) * nregs);
   err = re_node_set_init_copy (&fs->stack[num].eps_via_nodes, eps_via_nodes);
   return err;
 }
@@ -1288,12 +1294,17 @@ push_fail_stack (struct re_fail_stack_t *fs, int str_idx, int dest_node,
 static int
 internal_function
 pop_fail_stack (struct re_fail_stack_t *fs, int *pidx, int nregs,
-		regmatch_t *regs, re_node_set *eps_via_nodes)
+		regmatch_t *regs, regmatch_t *prevregs,
+		re_node_set *eps_via_nodes)
 {
-  int num = --fs->num;
-  assert (num >= 0);
+  int num;
+
+  if (fs == NULL || fs->num == 0)
+    return -1;
+  num = --fs->num;
   *pidx = fs->stack[num].idx;
   memcpy (regs, fs->stack[num].regs, sizeof (regmatch_t) * nregs);
+  memcpy (prevregs, fs->stack[num].regs + nregs, sizeof (regmatch_t) * nregs);
   re_node_set_free (eps_via_nodes);
   re_free (fs->stack[num].regs);
   *eps_via_nodes = fs->stack[num].eps_via_nodes;
@@ -1353,36 +1364,35 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
     {
       update_regs (dfa, pmatch, prev_idx_match, cur_node, idx, nmatch);
 
-      if (idx == pmatch[0].rm_eo && cur_node == mctx->last_node)
+      /* A node already in eps_via_nodes means the epsilon walk went round
+	 in a circle; treat it like the end and backtrack (glibc BZ 11053).  */
+      if ((idx == pmatch[0].rm_eo && cur_node == mctx->last_node)
+	  || (fs && re_node_set_contains (&eps_via_nodes, cur_node)))
 	{
 	  int reg_idx;
+	  cur_node = -1;
 	  if (fs)
 	    {
 	      for (reg_idx = 0; reg_idx < nmatch; ++reg_idx)
 		if (pmatch[reg_idx].rm_so > -1 && pmatch[reg_idx].rm_eo == -1)
-		  break;
-	      if (reg_idx == nmatch)
-		{
-		  re_node_set_free (&eps_via_nodes);
-		  if (prev_idx_match_malloced)
-		    re_free (prev_idx_match);
-		  return free_fail_stack_return (fs);
-		}
-	      cur_node = pop_fail_stack (fs, &idx, nmatch, pmatch,
-					 &eps_via_nodes);
+		  {
+		    cur_node = pop_fail_stack (fs, &idx, nmatch, pmatch,
+					       prev_idx_match, &eps_via_nodes);
+		    break;
+		  }
 	    }
-	  else
+	  if (cur_node < 0)
 	    {
 	      re_node_set_free (&eps_via_nodes);
 	      if (prev_idx_match_malloced)
 		re_free (prev_idx_match);
-	      return REG_NOERROR;
+	      return free_fail_stack_return (fs);
 	    }
 	}
 
       /* Proceed to next node.  */
-      cur_node = proceed_next_node (mctx, nmatch, pmatch, &idx, cur_node,
-				    &eps_via_nodes, fs);
+      cur_node = proceed_next_node (mctx, nmatch, pmatch, prev_idx_match,
+				    &idx, cur_node, &eps_via_nodes, fs);
 
       if (BE (cur_node < 0, 0))
 	{
@@ -1394,14 +1404,14 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	      free_fail_stack_return (fs);
 	      return REG_ESPACE;
 	    }
-	  if (fs)
-	    cur_node = pop_fail_stack (fs, &idx, nmatch, pmatch,
-				       &eps_via_nodes);
-	  else
+	  cur_node = pop_fail_stack (fs, &idx, nmatch, pmatch,
+				     prev_idx_match, &eps_via_nodes);
+	  if (cur_node < 0)
 	    {
 	      re_node_set_free (&eps_via_nodes);
 	      if (prev_idx_match_malloced)
 		re_free (prev_idx_match);
+	      free_fail_stack_return (fs);
 	      return REG_NOMATCH;
 	    }
 	}
