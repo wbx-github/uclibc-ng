@@ -235,6 +235,9 @@ char *setlocale(int category, const char *locale)
 			return NULL;		/* Failed! */
 		}
 		update_hr_locale(__global_locale->cur_locale);
+	} else if (!*hr_locale) {
+		/* A query before any setlocale: the program starts in "C".  */
+		update_hr_locale(__global_locale->cur_locale);
 	}
 
 	/* Either a query or a successful set, so return current locale string. */
