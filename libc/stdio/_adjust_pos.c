@@ -34,9 +34,10 @@ int attribute_hidden __stdio_adjust_position(register FILE * __restrict stream,
 		if ((corr > 1) || stream->__ungot[1]) { /* User ungetwc, */
 			return -1;			/* so position is undefined. */
 		}
-		corr -= (1 + stream->__ungot_width[1]);
+		/* Back over the bytes of the scanf ungot, not forward. */
+		corr = stream->__ungot_width[1];
 		if (stream->__state.__mask > 0) { /* Incomplete (bad?) mb char. */
-			corr -= stream->__ungot_width[0];
+			corr += stream->__ungot_width[0];
 		}
 	}
 #endif
