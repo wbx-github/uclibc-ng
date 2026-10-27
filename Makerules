@@ -274,7 +274,7 @@ cmd_compile.m = $(cmd_compile.c) -DL_$(patsubst %$(suffix $(notdir $@)),%,$(notd
 cmd_compile.mi= $(cmd_compile.m:-c=-E -dD) $(UCLIBC_EXTRA_CPPFLAGS)
 
 cmd_compile-m = $(CC) $^ -c -o $@ $(CFLAGS) $(CFLAGS-$(suffix $@)) $(CFLAGS-$(notdir $(@D))) $(CFLAGS-$(notdir $@)) $(sort $(foreach d,$(^:$(top_srcdir)=),$(collect_multi_flags)))
-cmd_strip     = $(STRIPTOOL) $(STRIP_FLAGS) $^
+cmd_strip     = $(STRIPTOOL) $(STRIP_FLAGS) @$@.strip-list
 cmd_t_strip   = $(STRIPTOOL) $(STRIP_FLAGS) $@
 cmd_ar        = $(AR) $(ARFLAGS) $@ @$@.list
 
@@ -310,7 +310,10 @@ compile.S = @$(call maybe_exec,compile.S)
 compile.m = @$(call maybe_exec,compile.m)
 compile.mi=  $(call maybe_exec,compile.mi)
 compile-m = @$(disp_compile-m) ; $(cmd_compile-m) && $(cmd_t_strip)
-do_strip  = @$(disp_strip)     ; $(cmd_strip)
+# The objects go through a response file, like those of do_ar: with
+# O= and full paths, libc's list alone is longer than one shell argument
+# may be (128 KiB).
+do_strip  = @$(file >$@.strip-list,$^)$(disp_strip)     ; $(cmd_strip)
 do_t_strip= @$(disp_t_strip)   ; $(cmd_t_strip)
 do_unifdef= @$(disp_unifdef)   ; $(cmd_unifdef)
 hcompile.u= @$(disp_hcompile.u); $(cmd_hcompile.u)

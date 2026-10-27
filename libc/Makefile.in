@@ -86,7 +86,8 @@ $(libc.depend): $(libc_OUT)/libc_so.a $(LIBS-libc.so)
 $(libc_OUT)/libc_so.a: $(libc-so-y) | $(top_builddir)lib/libc.a $(top_builddir)lib/$(NONSHARED_LIBNAME)
 	$(Q)$(RM) $@
 ifeq ($(DOPIC),y)
-	$(Q)$(STRIPTOOL) $(STRIP_FLAGS) $(libc-shared-y)
+	$(file >$@.strip-list,$(libc-shared-y))
+	$(Q)$(STRIPTOOL) $(STRIP_FLAGS) @$@.strip-list
 else
 	$(do_strip)
 endif
