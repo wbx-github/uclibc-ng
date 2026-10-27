@@ -149,6 +149,19 @@
 
 #define KUHN 1
 
+/* POSIX gives the C locale 256 single-byte characters.  Bytes 0x80 to
+ * 0xff map to U+DF80 to U+DFFF, as in musl: surrogates, so they are never
+ * taken for a Unicode character and every isw* is false for them.  */
+#define C_LOCALE_HIBYTE_TO_WC(c)	((wchar_t) (0xdf00 | (c)))
+/* A range test, not "(unsigned) (wc - 0xdf80) < 0x80": a 16-bit wchar_t
+ * (h8300) is promoted to int, and the difference comes out negative.  */
+#define C_LOCALE_WC_IS_HIBYTE(wc)	((wc) >= 0xdf80 && (wc) <= 0xdfff)
+#ifdef __UCLIBC_HAS_LOCALE__
+#define IN_C_LOCALE		(ENCODING == __ctype_encoding_7_bit)
+#else
+#define IN_C_LOCALE		1
+#endif
+
 /* Implementation-specific work functions. */
 
 extern size_t _wchar_utf8sntowcs(wchar_t *__restrict pwc, size_t wn,
@@ -186,9 +199,14 @@ wint_t btowc(int c)
 		   || (ENCODING == __ctype_encoding_utf8));
 #endif
 
-	/* If we don't have 8-bit locale support, then this is trivial since
-	 * anything outside of 0-0x7f is illegal in C/POSIX and UTF-8 locales. */
-	return (((unsigned int)c) < 0x80) ? c : WEOF;
+	if (((unsigned int)c) < 0x80) {
+		return c;
+	}
+	/* High bytes are characters of their own in the C locale only. */
+	if (IN_C_LOCALE && (((unsigned int)c) < 0x100)) {
+		return C_LOCALE_HIBYTE_TO_WC(c);
+	}
+	return WEOF;
 
 #endif /* !__CTYPE_HAS_8_BIT_LOCALES */
 }
@@ -216,12 +234,13 @@ int wctob(wint_t c)
 		   || (ENCODING == __ctype_encoding_utf8));
 #endif /* __UCLIBC_HAS_LOCALE__ */
 
-	/* If we don't have 8-bit locale support, then this is trivial since
-	 * anything outside of 0-0x7f is illegal in C/POSIX and UTF-8 locales. */
-
-	/* TODO: need unsigned version of wint_t... */
-/*  	return (((unsigned int)c) < 0x80) ? c : WEOF; */
-	return ((c >= 0) && (c < 0x80)) ? c : EOF;
+	if ((c >= 0) && (c < 0x80)) {
+		return c;
+	}
+	if (IN_C_LOCALE && C_LOCALE_WC_IS_HIBYTE(c)) {
+		return c & 0xff;
+	}
+	return EOF;
 
 #endif /*  __CTYPE_HAS_8_BIT_LOCALES */
 }
@@ -720,7 +739,8 @@ size_t mbsnrtowcs(wchar_t *__restrict dst, const char **__restrict src,
 						  (__UCLIBC_CURLOCALE->idx8c2wc[wc >> Cc2wc_IDX_SHIFT]
 						   << Cc2wc_IDX_SHIFT) + (wc & (Cc2wc_ROW_LEN - 1))];
 				if (!wc) {
-					goto BAD;
+					__set_errno(EILSEQ);
+					return (size_t) -1;
 				}
 			}
 			if (!(*dst = wc)) {
@@ -748,11 +768,7 @@ size_t mbsnrtowcs(wchar_t *__restrict dst, const char **__restrict src,
 			break;
 		}
 		if (*dst >= 0x80) {
-#ifdef __CTYPE_HAS_8_BIT_LOCALES
-		BAD:
-#endif
-			__set_errno(EILSEQ);
-			return (size_t) -1;
+			*dst = C_LOCALE_HIBYTE_TO_WC(*dst);
 		}
 		++s;
 		dst += incr;
@@ -862,7 +878,7 @@ size_t wcsnrtombs(char *__restrict dst, const wchar_t **__restrict src,
 #endif
 
 	while (count) {
-		if (*s >= 0x80) {
+		if ((*s >= 0x80) && !C_LOCALE_WC_IS_HIBYTE(*s)) {
 #if defined(__CTYPE_HAS_8_BIT_LOCALES) && !defined(__WCHAR_REPLACEMENT_CHAR)
 		BAD:
 #endif
