@@ -1241,7 +1241,7 @@ size_t __XL_NPP(strftime)(CHAR_T *__restrict s, size_t maxsize,
 	int field_val = 0, i = 0, j, lvl;
 	int x[2];			/* wday, yday */
 	int yflag, ywidth;
-	char buf[__UIM_BUFLEN_LONG] = {0,};
+	char buf[__UIM_BUFLEN] = {0,};	/* %s: time_t as uintmax_t */
 	char ybuf[YEAR_BUFLEN];
 	unsigned char mod;
 	unsigned char code;
