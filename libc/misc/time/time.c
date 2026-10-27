@@ -1046,6 +1046,139 @@ static int load_field(int k, const struct tm *__restrict timeptr)
 	return r;
 }
 
+/* ISO 8601 week of the year; *ydelta gets -1, 0 or 1 for the week-based
+ * year.  Only the leap years matter, so any year is reduced to one with the
+ * same position in the 400-year cycle. */
+static int iso_week(const struct tm *__restrict timeptr, int *ydelta)
+{
+	int wday = load_field(6, timeptr);
+	int yday = load_field(7, timeptr);
+	int y, isofm, days;
+
+	if ((wday < 0) || (yday < 0)) {
+		return -1;
+	}
+	y = (timeptr->tm_year % 400 + 400 + 1900 % 400) % 400 + 2000;
+	*ydelta = 0;
+ ISO_LOOP:
+	isofm = (((yday - wday) + 11) % 7) - 3;	/* [-3,3] */
+	if (yday < isofm) {	/* belongs to previous year */
+		--y;
+		--*ydelta;
+		yday += 365 + __isleap(y);
+		goto ISO_LOOP;
+	}
+	days = 365 + __isleap(y);
+	if (yday >= ((isofm + 7*53 + 3 - days)) % 7 + days - 3) { /* next year */
+		yday -= days;
+		++y;
+		++*ydelta;
+		goto ISO_LOOP;
+	}
+	return ((yday - isofm) / 7) + 1;
+}
+
+#define YEAR_BUFLEN		64
+#define YEAR_MAX_WIDTH	32
+
+/* %C %F %G %g %Y %y for any year.  flag is 0, '0' or '+' and width -1 when
+ * none was given (POSIX.1-2008); both only apply to C, F, G and Y. */
+static const char *year_conv(char *b, int c, int flag, int width,
+							 const struct tm *__restrict timeptr)
+{
+	long long y = (long long) timeptr->tm_year + 1900;
+	unsigned long long u;
+	char *e = b + YEAR_BUFLEN - 1;
+	char *d;
+	int k, def = 4;
+
+	*e = 0;
+	if ((c == 'G') || (c == 'g')) {
+		if (iso_week(timeptr, &k) < 0) {
+			return NULL;
+		}
+		y += k;
+	}
+	if (c == 'F') {		/* %+4Y-%m-%d, or the year in width - 6 */
+		int mon = load_field(4, timeptr);
+		int mday = load_field(3, timeptr);
+
+		if ((mon < 0) || (mday < 0)) {
+			return NULL;
+		}
+		++mon;
+		e -= 6;
+		e[0] = '-';
+		e[1] = '0' + mon / 10;
+		e[2] = '0' + mon % 10;
+		e[3] = '-';
+		e[4] = '0' + mday / 10;
+		e[5] = '0' + mday % 10;
+		if (width < 0) {
+			if (!flag) {
+				flag = '+';
+			}
+			width = 10;
+		}
+		width = ((width < 6) ? 6 : width) - 6;
+	} else if (c == 'C') {
+		y /= 100;
+		def = 2;
+	} else if ((c == 'y') || (c == 'g')) {
+		y %= 100;
+		if (y < 0) {
+			y = -y;
+		}
+		flag = 0;
+		width = -1;
+		def = 2;
+	}
+
+	u = (y < 0) ? -(unsigned long long) y : (unsigned long long) y;
+	d = e;
+	do {
+		*--d = '0' + (u % 10);
+		u /= 10;
+	} while (u);
+	k = e - d;
+
+	if (width < 0) {
+		if (!flag) {	/* zero-filled to the usual width, sign included */
+			while (k < def - (y < 0)) {
+				*--d = '0';
+				++k;
+			}
+			if (y < 0) {
+				*--d = '-';
+			}
+			return d;
+		}
+		width = def;
+	}
+	if (width < k) {
+		width = k;
+	}
+	/* The width includes the sign; '+' only once there are more digits
+	 * than the default (musl's rule). */
+	if (y < 0) {
+		c = '-';
+		--width;
+	} else if ((flag == '+') && (width >= ((c == 'C') ? 3 : 5))) {
+		c = '+';
+		--width;
+	} else {
+		c = 0;
+	}
+	while (k < width) {
+		*--d = '0';
+		++k;
+	}
+	if (c) {
+		*--d = c;
+	}
+	return d;
+}
+
 #if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
 static wchar_t* fmt_to_wc_1(const char *src)
 {
@@ -1106,9 +1239,10 @@ size_t __XL_NPP(strftime)(CHAR_T *__restrict s, size_t maxsize,
 	size_t count;
 	size_t o_count;
 	int field_val = 0, i = 0, j, lvl;
-	int x[3];			/* wday, yday, year */
-	int isofm, days;
+	int x[2];			/* wday, yday */
+	int yflag, ywidth;
 	char buf[__UIM_BUFLEN_LONG] = {0,};
+	char ybuf[YEAR_BUFLEN];
 	unsigned char mod;
 	unsigned char code;
 
@@ -1148,30 +1282,39 @@ LOOP:
 
 	o_count = 1;
 	if ((*(o = (CHAR_T *)p) == '%') && (*++p != '%')) {
-#if 0 /* TODO, same for strptime */
-		/* POSIX.1-2008 allows %0xY %+nY %-nY etc. for certain formats.
-		 * Just accept these for all (for now) */
-		const int plus = *p == '+';
-		CHAR_T *q = (CHAR_T *)p;
-		long int o_width = __XL_NPP(strtol)(p, &q, 0 __LOCALE_ARG);
-		if (o_width > 0 && o_width < 256) { /* arbitrary upper limit */
-			o_count = o_width;
-			if (plus) {
-				*s++ = '+';
-				--count;
-			}
-			p = q;
-		} else {
-			o_count = 2;
+		/* POSIX.1-2008: an optional '0' or '+' flag and a minimum field
+		 * width, used by %C %F %G %Y. */
+		yflag = 0;
+		ywidth = -1;
+		if ((*p == '0') || (*p == '+')) {
+			yflag = *p++;
 		}
-#else
-		o_count = 2;
-#endif
+		while ((*p >= '0') && (*p <= '9')) {
+			if (ywidth < 0) {
+				ywidth = 0;
+			}
+			if (ywidth < YEAR_MAX_WIDTH) {
+				ywidth = 10 * ywidth + (*p - '0');
+			}
+			++p;
+		}
+		if (ywidth > YEAR_MAX_WIDTH) {
+			ywidth = YEAR_MAX_WIDTH;
+		}
+		o_count = p - o + 1;
 		mod = ILLEGAL_SPEC;
 		if ((*p == 'O') || (*p == 'E')) { /* modifier */
 			mod |= ((*p == 'O') ? NO_O_MOD : NO_E_MOD);
 			++o_count;
 			++p;
+		}
+		if ((*p == 'C') || (*p == 'F') || (*p == 'G') || (*p == 'Y')
+			|| (*p == 'g') || (*p == 'y')) {
+			if ((ccp = year_conv(ybuf, *p, yflag, ywidth, timeptr)) != NULL) {
+				o_count = SIZE_MAX;
+				fmt_to_wc(o, ccp);
+			}
+			goto OUTPUT;
 		}
 		if ((((unsigned char)(((*p) | 0x20) - 'a')) >= 26)
 			|| (((code = spec[(int)(*p - 'A')]) & mod) >= ILLEGAL_SPEC)
@@ -1331,9 +1474,8 @@ LOOP:
 					goto OUTPUT;
 				}
 #endif
-			} else {
-				/* TODO: don't need year for U, W */
-				for (i=0 ; i < 3 ; i++) {
+			} else {	/* U, V, W; g and G went to year_conv() */
+				for (i=0 ; i < 2 ; i++) {
 					if ((x[i] = load_field(spec[CALC_OFFSETS+i],timeptr)) < 0) {
 						goto OUTPUT;
 					}
@@ -1350,33 +1492,8 @@ LOOP:
 					if ((*p == 'W') && !x[0]) {
 						--field_val;
 					}
-				} else {	/* ((*p == 'g') || (*p == 'G') || (*p == 'V')) */
-ISO_LOOP:
-					isofm = (((x[1] - x[0]) + 11) % 7) - 3;	/* [-3,3] */
-
-					if (x[1] < isofm) {	/* belongs to previous year */
-						--x[2];
-						x[1] += 365 + __isleap(x[2]);
-						goto ISO_LOOP;
-					}
-
-					field_val = ((x[1] - isofm) / 7) + 1; /* week # */
-					days = 365 + __isleap(x[2]);
-					isofm = ((isofm + 7*53 + 3 - days)) % 7 + days - 3; /* next year */
-					if (x[1] >= isofm) { /* next year */
-						x[1] -= days;
-						++x[2];
-						goto ISO_LOOP;
-					}
-
-					if (*p != 'V') { /* need year */
-						field_val = x[2]; /* TODO: what if x[2] now 10000 ?? */
-						if (*p == 'g') {
-							field_val %= 100;
-						} else {
-							i = 16 + 6;	/* 0-fill, width = 4 */
-						}
-					}
+				} else if ((field_val = iso_week(timeptr, &j)) < 0) {
+					goto OUTPUT;
 				}
 			}
 		} else {
