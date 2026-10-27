@@ -2488,8 +2488,8 @@ struct tm attribute_hidden *_time_t2tm(const time_t *__restrict timer,
 			if ((v = *vp) == 7) {
 				/* t counts days here, and tm_year is an int, so the
 				 * broken-down time only exists while t stays inside
-				 * [-784223472856, 784223421720] -- those bounds are
-				 * INT_MAX years either side of the epoch.
+				 * [-784352321873, 784352270736]: 1 January of the year
+				 * INT_MIN + 1900 and 31 December of INT_MAX + 1900.
 				 *
 				 * This used to ask whether long was wider than int,
 				 * which is false on the 32-bit targets that set
@@ -2501,8 +2501,8 @@ struct tm attribute_hidden *_time_t2tm(const time_t *__restrict timer,
 #if INT_MAX == 2147483647
 				if ((sizeof(time_t) > 4)
 					&& (((uintmax_t)((intmax_t) t + offset
-									 - (intmax_t) -784223472856LL))
-						> (uintmax_t)(784223421720LL - -784223472856LL))
+									 - (intmax_t) -784352321873LL))
+						> (uintmax_t)(784352270736LL - -784352321873LL))
 					) {
 					__set_errno(EOVERFLOW);
 					return NULL;
@@ -2569,12 +2569,10 @@ struct tm attribute_hidden *_time_t2tm(const time_t *__restrict timer,
 
 	p -= 2;						/* at result[5] */
 
-#if (LONG_MAX > INT_MAX) && (LONG_MAX > 2147483647L)
-	/* Protect against overflow.  TODO: Unecessary if int arith wraps? */
-	*p = ((((p[-2]<<2) + p[-1])*25 + p[0])<< 2) + (p[1] - 299); /* tm_year */
-#else
-	*p = ((((p[-2]<<2) + p[-1])*25 + p[0])<< 2) + p[1] - 299; /* tm_year */
-#endif
+	/* Years since 1601, less 299.  At the ends of the range the years
+	 * since 1601 do not fit an int, so count in unsigned. */
+	*p = (int)((((((unsigned) p[-2] << 2) + p[-1]) * 25 + p[0]) << 2)
+			   + p[1] - 299u); /* tm_year */
 
 	p[1] = wday;				/* result[6] .. tm_wday */
 
