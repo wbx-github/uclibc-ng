@@ -496,7 +496,8 @@ size_t attribute_hidden _wchar_utf8sntowcs(wchar_t *__restrict pwc, size_t wn,
 #else
 						 /* Note that we don't need to worry about exceeding */
 						 /* 31 bits as that is the most that UTF-8 provides. */
-						 || ( ((__uwchar_t)(wc - 0xfffeU)) < 2)
+						 /* U+FFFE and U+FFFF are noncharacters, but valid */
+						 /* scalar values: only the surrogates are refused. */
 #endif
 						 || ( ((__uwchar_t)(wc - 0xd800U)) < (0xe000U - 0xd800U) )
 #endif /* KUHN */
@@ -605,7 +606,6 @@ size_t attribute_hidden _wchar_wcsntoutf8s(char *__restrict s, size_t n,
 #else
 				/* UTF_8_MAX_LEN == 6 */
 				(wc > 0x7fffffffUL)
-				|| ( ((__uwchar_t)(wc - 0xfffeU)) < 2)
 #endif
 				|| ( ((__uwchar_t)(wc - 0xd800U)) < (0xe000U - 0xd800U) )
 				) {
