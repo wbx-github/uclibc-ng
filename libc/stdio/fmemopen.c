@@ -28,12 +28,14 @@ typedef struct {
 
 static ssize_t fmo_read(register void *cookie, char *buf, size_t bufsize)
 {
-	size_t count = COOKIE->len - COOKIE->pos;
+	size_t count;
 
 	/* Note: 0 < bufsize < SSIZE_MAX because of _stdio_READ. */
-	if (!count) {				/* EOF! */
+	/* POSIX: reading stops at the end position, not at the buffer size. */
+	if (COOKIE->pos >= COOKIE->eof) {	/* EOF! */
 		return 0;
 	}
+	count = COOKIE->eof - COOKIE->pos;
 
 	if (bufsize > count) {
 		bufsize = count;
@@ -79,7 +81,6 @@ static ssize_t fmo_write(register void *cookie, const char *buf, size_t bufsize)
 	return bufsize;
 }
 
-/* glibc doesn't allow seeking, but it has in-buffer seeks... we don't. */
 static int fmo_seek(register void *cookie, __offmax_t *pos, int whence)
 {
 	__offmax_t p = *pos;
@@ -92,10 +93,9 @@ static int fmo_seek(register void *cookie, __offmax_t *pos, int whence)
 		p += (whence == SEEK_CUR) ? COOKIE->pos : /* SEEK_END */ COOKIE->eof;
 	}
 
-	/* Note: glibc only allows seeking in the buffer.  We'll actually restrict
-	 * to the data. */
-	/* Check for offset < 0, offset > eof, or offset overflow... */
-	if (((uintmax_t) p) > COOKIE->eof) {
+	/* POSIX: anywhere from 0 to the buffer size. */
+	if (((uintmax_t) p) > COOKIE->len) {
+		__set_errno(EINVAL);
 		return -1;
 	}
 
@@ -154,6 +154,8 @@ FILE *fmemopen(void *s, size_t len, const char *modes)
 			cookie->fp = fp;
 			if (fp->__modeflags & __FLAG_READONLY) {
 				cookie->eof = len;
+			} else if (*modes == 'w' && len > 0) {
+				*cookie->buf = 0;	/* POSIX: 'w' truncates. */
 			}
 			if ((fp->__modeflags & __FLAG_APPEND) && (len > 0)) {
 				for (i = 0 ; i < len ; i++) {
