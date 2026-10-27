@@ -26,30 +26,17 @@ typedef struct {
 	size_t eof;
 	char **bufloc;
 	size_t *sizeloc;
-	size_t saved_at;		/* Where a data byte was replaced by the */
-	char saved_ch;			/* terminator, to put it back later. */
-	char have_saved;
 } __oms_cookie;
 
-/* POSIX wants the terminator in place and the size updated after every
- * fflush(), but a cookie stream has no flush callback: __stdio_wcommit() only
- * reaches oms_write() when the FILE buffer holds something.  So both are kept
- * current at all times instead.  Seeking back over existing data would destroy
- * the byte at the new position, so that one byte is remembered and restored
- * once the position moves on -- glibc writes the terminator from its flush hook
- * (_IO_mem_sync) and leaves the data alone, and programs may rely on that. */
+/* POSIX appends the null at the end of the data, not at the position, and
+ * wants the size after every fflush().  A cookie stream has no flush callback
+ * (__stdio_wcommit() only reaches oms_write() when the FILE buffer holds
+ * something), so both are kept current at all times.  The size is the smaller
+ * of length and position, which is the position: a seek past the end extends
+ * the length.  */
 static void oms_term(register __oms_cookie *c)
 {
-	if (c->have_saved) {
-		c->buf[c->saved_at] = c->saved_ch;
-		c->have_saved = 0;
-	}
-	if (c->pos < c->eof) {
-		c->saved_at = c->pos;
-		c->saved_ch = c->buf[c->pos];
-		c->have_saved = 1;
-	}
-	c->buf[c->pos] = 0;
+	c->buf[c->eof] = 0;
 	*c->sizeloc = c->pos;
 }
 
@@ -81,10 +68,6 @@ static ssize_t oms_write(register void *cookie, const char *buf, size_t bufsize)
 			}
 		}
 	}
-
-	/* bufsize is at least 1 here, so the saved byte -- which sits at pos --
-	 * is about to be overwritten and must not be restored. */
-	COOKIE->have_saved = 0;
 
 	memcpy(COOKIE->buf + COOKIE->pos, buf, bufsize);
 	COOKIE->pos += bufsize;
@@ -119,6 +102,7 @@ static int oms_seek(register void *cookie, __offmax_t *pos, int whence)
 	 * to the data. */
 	/* Check for offset < 0, offset >= too big (need nul), or overflow... */
 	if (((uintmax_t) p) >= SIZE_MAX - 1) {
+		__set_errno(EINVAL);
 		return -1;
 	}
 
@@ -176,7 +160,6 @@ FILE *open_memstream(char **bufloc, size_t *sizeloc)
 		*cookie->buf = 0;		/* Set nul terminator for buffer. */
 		*(cookie->bufloc = bufloc) = cookie->buf;
 		*(cookie->sizeloc = sizeloc) = cookie->eof = cookie->pos = 0;
-		cookie->have_saved = 0;
 
 #ifndef __BCC__
 		fp = fopencookie(cookie, "w", _oms_io_funcs);
