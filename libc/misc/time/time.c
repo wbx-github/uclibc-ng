@@ -1595,12 +1595,10 @@ char *strptime(const char *__restrict buf, const char *__restrict format,
 /* Notes:
  * There are several differences between this strptime and glibc's strptime.
  * 1) glibc strips leading space before numeric conversions.
- * 2) glibc will read fields without whitespace in between.  SUSv3 states
- *    that you must have whitespace between conversion operators.  Besides,
- *    how do you know how long a number should be if there are leading 0s?
- * 3) glibc attempts to compute some the struct tm fields based on the
- *    data retrieved; tm_wday in particular.  I don't as I consider it
- *     another glibc attempt at mind-reading...
+ * 2) Numbers are read up to the width of their field (%Y 4, %j 3, %w 1,
+ *    most others 2), so fields without separators work as in glibc.
+ * 3) As in glibc, tm_wday and tm_yday are derived from the date read,
+ *    and %U/%W with a weekday give the month and day.
  */
 
 #define NO_E_MOD		0x80
@@ -1728,6 +1726,86 @@ static const unsigned char spec[] = {
 
 #define MAX_PUSH 4
 
+static const unsigned short sp_ydays[12] = {
+	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+};
+
+static int sp_leap(long long y)
+{
+	return !(y % 4) && ((y % 100) || !(y % 400));
+}
+
+/* Days before month m (0..12).  */
+static int sp_mon_yday(int leap, int m)
+{
+	return (m == 12) ? 365 + leap : sp_ydays[m] + (leap && m > 1);
+}
+
+static long long sp_floordiv(long long a, int b)
+{
+	return (a - ((a % b) + b) % b) / b;
+}
+
+static int sp_wday(long long y, int yday)
+{
+	long long d = y - 1;
+	long long n = 365 * d + sp_floordiv(d, 4) - sp_floordiv(d, 100)
+		+ sp_floordiv(d, 400) + yday;
+
+	return (int)(((n + 1) % 7 + 7) % 7);	/* 0001-01-01 was a Monday */
+}
+
+static void sp_mon_mday(struct tm *tm, int leap, int set_mon, int set_mday)
+{
+	int m = 0;
+
+	while (m < 11 && sp_mon_yday(leap, m + 1) <= tm->tm_yday)
+		++m;
+	if (set_mon)
+		tm->tm_mon = m;
+	if (set_mday)
+		tm->tm_mday = tm->tm_yday - sp_mon_yday(leap, m) + 1;
+}
+
+/* Fill in what follows from the fields read, as glibc does.  */
+static void sp_derive(struct tm *tm, const int *fields, char week_kind,
+		      int week_no)
+{
+	int have_mday = fields[3] != INT_MIN;
+	int have_mon = fields[4] != INT_MIN;
+	int have_wday = fields[6] != INT_MIN;
+	int have_yday = fields[7] != INT_MIN;
+	long long y = 1900LL + tm->tm_year;
+	int leap = sp_leap(y);
+	int whole;
+
+	if (have_mday || have_mon || fields[5] != INT_MIN || have_yday) {
+		if (!have_wday && !(have_mon && have_mday) && have_yday) {
+			sp_mon_mday(tm, leap, !have_mon, !have_mday);
+			have_mon = have_mday = 1;
+		}
+		/* Only from a whole date: getdate leaves the fields the
+		   format does not set at INT_MIN.  */
+		whole = tm->tm_year != INT_MIN && (unsigned) tm->tm_mon < 12
+			&& tm->tm_mday >= 1 && tm->tm_mday <= 31;
+		if (!have_wday && whole)
+			tm->tm_wday = sp_wday(y, sp_mon_yday(leap, tm->tm_mon)
+					      + tm->tm_mday - 1);
+		if (!have_yday && whole)
+			tm->tm_yday = sp_mon_yday(leap, tm->tm_mon) + tm->tm_mday - 1;
+	}
+
+	if (week_kind && have_wday) {
+		int off = (week_kind == 'W');
+
+		if (!have_yday)
+			tm->tm_yday = (7 - (sp_wday(y, 0) - off)) % 7
+				+ (week_no - 1) * 7 + (tm->tm_wday - off + 7) % 7;
+		if (!have_mday || !have_mon)
+			sp_mon_mday(tm, leap, !have_mon, !have_mday);
+	}
+}
+
 char *__XL_NPP(strptime)(const char *__restrict buf, const char *__restrict format,
 					 struct tm *__restrict tm   __LOCALE_PARAM)
 {
@@ -1738,6 +1816,8 @@ char *__XL_NPP(strptime)(const char *__restrict buf, const char *__restrict form
 	int fields[13];
 	unsigned char mod;
 	unsigned char code;
+	char week_kind = 0;
+	int week_no = 0;
 
 	i = 0;
 	do {
@@ -1760,6 +1840,8 @@ LOOP:
 					((int *) tm)[i] = fields[i];
 				}
 			} while (++i < 8);
+
+			sp_derive(tm, fields, week_kind, week_no);
 
 			return (char *) buf; /* Success. */
 		}
@@ -1924,8 +2006,11 @@ LOOP:
 			if ((j = x[1]) < 3) { /* upper bound (inclusive) */
 				j = ((j==1) ? 366 : 9999);
 			}
+			/* At most as many digits as the bound has, so that
+			 * fields without separators (%Y%m%d) can be read.  */
+			mod = (j >= 1000) ? 4 : (j >= 100) ? 3 : (j >= 10) ? 2 : 1;
 			i = -1;
-			while (ISDIGIT(*buf)) {
+			while (mod && ISDIGIT(*buf)) {
 				if (i < 0) {
 					i = 0;
 				}
@@ -1933,6 +2018,7 @@ LOOP:
 					return NULL;
 				}
 				++buf;
+				--mod;
 			}
 			if (i < (*x & 1)) {	/* This catches no-digit case too. */
 				return NULL;
@@ -1954,6 +2040,11 @@ LOOP:
 			}
 
 			fields[(*x) >> 3] = i;
+
+			if (p[-1] == 'U' || p[-1] == 'W') {
+				week_kind = p[-1];
+				week_no = i;
+			}
 
 			if (((unsigned char)(*x - (10 << 3) + 0 + 0)) <= 8) { /* %C or %y */
 				if ((j = fields[10]) < 0) {	/* No %C, so i must be %y data. */
