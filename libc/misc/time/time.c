@@ -1753,6 +1753,47 @@ LOOP:
 						 fields[i] = ((int *) tm)[i];
 					} while (++i < 8);
 				}
+			} else if (code == 1) {	/* z: Z, +hh, +hhmm or +hh:mm */
+				long off = 0;
+
+				if (*buf == 'Z') {
+					++buf;
+				} else {
+					if ((*buf != '+') && (*buf != '-')) {
+						return NULL;
+					}
+					j = (*buf++ == '-');
+					for (i = 0 ; i < 2 ; i++) {
+						if (!ISDIGIT(*buf)) {
+							return NULL;
+						}
+						off = 10*off + (*buf++ - '0');
+					}
+					off *= 60;
+					if (*buf == ':' && ISDIGIT(buf[1])) {
+						++buf;
+					}
+					if (ISDIGIT(*buf)) {
+						if (!ISDIGIT(buf[1]) || (*buf > '5')) {
+							return NULL;
+						}
+						off += 10*(*buf - '0') + (buf[1] - '0');
+						buf += 2;
+					}
+					off *= 60;
+					if (j) {
+						off = -off;
+					}
+				}
+#ifdef __UCLIBC_HAS_TM_EXTENSIONS__
+#ifdef __USE_BSD
+				tm->tm_gmtoff = off;
+#else
+				tm->__tm_gmtoff = off;
+#endif
+#else
+				(void) off;
+#endif
 			}
 			/* TODO: glibc treats %Z as a nop.  For now, do the same. */
 			goto LOOP;
