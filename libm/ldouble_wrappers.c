@@ -342,6 +342,7 @@ libm_hidden_def(__isnanl)
 
 # ifdef L___isinfl
 int_WRAPPER1(__isinf)
+weak_alias(__isinfl, isinfl)
 libm_hidden_def(__isinfl)
 # endif
 

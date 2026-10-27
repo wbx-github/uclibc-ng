@@ -20,4 +20,5 @@ int __isinff (float x)
 	t |= -t;
 	return ~(t >> 31) & (ix >> 30);
 }
+weak_alias(__isinff, isinff)
 libm_hidden_def(__isinff)

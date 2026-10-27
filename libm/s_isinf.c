@@ -20,4 +20,5 @@ int __isinf(double x)
 	lx |= -lx;
 	return ~(lx >> 31) & (hx >> 30);
 }
+weak_alias(__isinf, isinf)
 libm_hidden_def(__isinf)
