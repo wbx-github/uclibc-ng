@@ -42,6 +42,11 @@ ifeq ($(DO_C99_MATH),y)
 endif
 endif
 
+# The arch objects may sit below libm/$(TARGET_ARCH) (sh/sh4, powerpc/e500/fpu)
+# or beside it (sparc64 uses libm/sparc); an O= build has to create those too.
+libm_ARCH_SUBDIRS := $(filter-out libm/$(TARGET_ARCH),$(patsubst $(top_builddir)%/,%,$(sort $(dir $(libm-a-y)))))
+subdirs += $(libm_ARCH_SUBDIRS)
+
 FL_MSRC := float_wrappers.c
 LD_MSRC := ldouble_wrappers.c
 

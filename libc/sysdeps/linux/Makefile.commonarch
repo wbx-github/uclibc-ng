@@ -15,6 +15,10 @@ ARCH_SOBJ = $(patsubst %.s,%.o,$(patsubst %.S,%.o,$(addprefix $(ARCH_OUT)/,$(SSR
 
 ARCH_OBJS-y = $(ARCH_COBJ) $(ARCH_SOBJ)
 
+# Sources one level down (sparc64's soft-fp/) need their directory in an O= build.
+ARCH_SUBDIRS := $(filter-out libc/sysdeps/linux/$(TARGET_ARCH),$(patsubst %/,%,$(sort $(dir $(addprefix libc/sysdeps/linux/$(TARGET_ARCH)/,$(CSRC-y) $(SSRC-y))))))
+subdirs += $(ARCH_SUBDIRS)
+
 libc-y         += $(ARCH_OBJS-y)
 libc-nomulti-y += $(ARCH_SOBJ)
 objclean-y     += CLEAN_$(subst $(top_builddir),,$(ARCH_OUT))
