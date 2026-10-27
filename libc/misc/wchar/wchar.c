@@ -291,19 +291,14 @@ size_t mbrtowc(wchar_t *__restrict pwc, const char *__restrict s,
 		empty_string[0] = 0;	/* Init the empty string when necessary. */
 		s = empty_string;
 		n = 1;
+	} else if (!n) {
+		/* No byte to look at, not even a nul.  */
+		return (size_t) -2;
 	} else if (*s == '\0') {
 		if (pwc)
 			*pwc = '\0';
 	/* According to the ISO C 89 standard this is the expected behaviour.  */
 		return 0;
-	} else if (!n) {
-		/* TODO: change error code? */
-#if 0
-		return (ps->__mask && (ps->__wc == 0xffffU))
-			? ((size_t) -1) : ((size_t) -2);
-#else
-		return 0;
-#endif
 	}
 
 	p = s;
