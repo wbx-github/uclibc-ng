@@ -9,6 +9,8 @@
 # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
 #
 
+subdirs += libuargp
+
 CFLAGS-libuargp := -DNOT_IN_libc -DIS_IN_libuargp $(SSP_ALL_CFLAGS)
 
 libuargp_DIR := $(top_srcdir)libuargp
