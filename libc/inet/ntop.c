@@ -208,6 +208,9 @@ inet_pton4(const char *src, u_char *dst)
 		if (ch >= '0' && ch <= '9') {
 			u_int new = *tp * 10 + (ch - '0');
 
+			/* "03" would be octal to inet_aton */
+			if (saw_digit && *tp == 0)
+				return 0;
 			if (new > 255)
 				return 0;
 			*tp = new;
@@ -272,11 +275,11 @@ inet_pton6(const char *src, u_char *dst)
 		/* | 0x20 is cheap tolower(), valid for letters/numbers only */
 		pch = strchr(xdigits, (ch | 0x20));
 		if (pch != NULL) {
+			/* at most four digits, leading zeros included */
+			if (++saw_xdigit > 4)
+				return 0;
 			val <<= 4;
 			val |= (pch - xdigits);
-			if (val > 0xffff)
-				return 0;
-			saw_xdigit = 1;
 			continue;
 		}
 		if (ch == ':') {
