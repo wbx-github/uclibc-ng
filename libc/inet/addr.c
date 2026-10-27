@@ -20,17 +20,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <bits/uClibc_uintmaxtostr.h>
 
 #ifdef L_inet_aton
 /*
- * More undocumented inet_aton features.
- * (read: uclibc doesnt support but glibc does)
- * http://www.mkssoftware.com/docs/man3/inet_aton.3.asp
+ * The forms POSIX gives for inet_addr:
  *
- * *cp can take the form of:
  * a.b.c.d    - {a,b,c,d} -> 1 byte
  * a.b.c      - {a,b}     -> 1 byte    {c} -> 2 bytes
  * a.b        - {a}       -> 1 byte    {b} -> 3 bytes
@@ -43,39 +42,39 @@
  */
 int inet_aton(const char *cp, struct in_addr *addrptr)
 {
+	unsigned long part[4];
 	in_addr_t addr;
-	int value;
-	int part;
+	char *end;
+	int n, saved_errno = errno;
 
 	if (cp == NULL) {
 		return 0;
 	}
 
-	addr = 0;
-	for (part = 1; part <= 4; part++) {
-
+	__set_errno(0);
+	for (n = 0; ; n++) {
+		/* strtoul would also take a sign or leading space */
 		if (!isdigit(*cp))
+			goto fail;
+		part[n] = strtoul(cp, &end, 0);
+		cp = end;
+		if (*cp != '.' || n == 3)
+			break;
+		cp++;
+	}
+	/* on 32 bit an overflow would read as 255.255.255.255 */
+	if (errno == ERANGE || (*cp != '\0' && !isspace(*cp)))
+		goto fail;
+	__set_errno(saved_errno);
+
+	/* the last part fills the bytes the others leave */
+	if (part[n] > (0xffffffffUL >> (8 * n)))
+		return 0;
+	addr = part[n];
+	while (n--) {
+		if (part[n] > 0xff)
 			return 0;
-
-		value = 0;
-		while (isdigit(*cp)) {
-			value *= 10;
-			value += *cp++ - '0';
-			if (value > 255)
-				return 0;
-		}
-
-		if (part < 4) {
-			if (*cp++ != '.')
-				return 0;
-		} else {
-			char c = *cp++;
-			if (c != '\0' && !isspace(c))
-				return 0;
-		}
-
-		addr <<= 8;
-		addr |= value;
+		addr |= (in_addr_t) part[n] << (8 * (3 - n));
 	}
 
 	/*  W. Richard Stevens in his book UNIX Network Programming,
@@ -90,6 +89,10 @@ int inet_aton(const char *cp, struct in_addr *addrptr)
 	}
 
 	return 1;
+
+fail:
+	__set_errno(saved_errno);
+	return 0;
 }
 libc_hidden_def(inet_aton)
 #endif
