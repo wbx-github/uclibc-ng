@@ -536,8 +536,19 @@ clean: include_clean
 	$(Q)$(RM) $(top_builddir)extra/scripts/unifdef
 	$(Q)$(RM) -r $(LOCAL_INSTALL_PATH)
 
+# Generated next to their .sym: X.h, and gen_X.c on some arches.  A tree
+# reconfigured for another arch keeps the old arch's, which headers_clean
+# no longer knows about, so collect them for all arches.
+sym-sources := $(wildcard $(addprefix $(top_srcdir),libc/sysdeps/linux/*/*.sym \
+	libpthread/nptl/*.sym libpthread/nptl/sysdeps/*/*.sym \
+	libpthread/nptl/sysdeps/unix/sysv/linux/*.sym))
+sym-generated = $(foreach s,$(patsubst $(top_srcdir)%,$(1)%,$(sym-sources)),\
+	$(wildcard $(s:.sym=.h) $(dir $(s))gen_$(notdir $(s:.sym=.c))))
+
 distclean: realclean
 	-find . \( -name core -o -name \*.orig -o -name \*~ -o -name .\*.dep \) -exec $(RM) {} \;
+	-find $(top_builddir) -name \*.a.list -exec $(RM) {} +
+	$(RM) $(call sym-generated,$(top_builddir))
 	$(RM) $(top_builddir).config $(top_builddir).config.old $(top_builddir).config.cmd
 	$(Q)$(RM) $(top_builddir)extra/locale/*.tgz
 	@$(MAKE) -C extra/config distclean

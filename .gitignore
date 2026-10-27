@@ -13,6 +13,7 @@
 *.s
 *.o
 *.depend
+*.a.list
 lib/
 install_dir/
 .config*
