@@ -828,7 +828,6 @@ libc_hidden_data_def(__C_ctype_b)
 #ifndef __UCLIBC_HAS_XLOCALE__
 
 const __ctype_mask_t *__ctype_b = __C_ctype_b_data + __UCLIBC_CTYPE_B_TBL_OFFSET;
-libc_hidden_data_def(__ctype_b)
 
 #endif
 
@@ -945,7 +944,6 @@ libc_hidden_data_def(__C_ctype_tolower)
 
 const __ctype_touplow_t *__ctype_tolower =
 		__C_ctype_tolower_data + __UCLIBC_CTYPE_TO_TBL_OFFSET;
-libc_hidden_data_def(__ctype_tolower)
 
 #endif
 
@@ -1062,7 +1060,6 @@ libc_hidden_data_def(__C_ctype_toupper)
 
 const __ctype_touplow_t *__ctype_toupper =
 		__C_ctype_toupper_data + __UCLIBC_CTYPE_TO_TBL_OFFSET;
-libc_hidden_data_def(__ctype_toupper)
 
 #endif
 

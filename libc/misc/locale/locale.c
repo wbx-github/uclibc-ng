@@ -586,6 +586,18 @@ int attribute_hidden _locale_set_l(const unsigned char *p, __locale_t base)
 						base->encoding = __ctype_encoding_7_bit;
 						base->mb_cur_max = 1;
 					}
+#ifdef __CTYPE_HAS_8_BIT_LOCALES
+					/* Back to the C tables an 8-bit locale may have replaced.  */
+#ifdef __UCLIBC_HAS_XLOCALE__
+					base->__ctype_b = __C_ctype_b;
+					base->__ctype_tolower = __C_ctype_tolower;
+					base->__ctype_toupper = __C_ctype_toupper;
+#else
+					__ctype_b = __C_ctype_b;
+					__ctype_tolower = __C_ctype_tolower;
+					__ctype_toupper = __C_ctype_toupper;
+#endif
+#endif
 				} else {
 					const __codeset_8_bit_t *c8b;
 					r = CODESET_LIST;

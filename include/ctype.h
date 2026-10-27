@@ -190,13 +190,12 @@ libc_hidden_proto(__ctype_toupper_loc)
 
 #else  /* __UCLIBC_HAS_XLOCALE__ */
 
-/* Pointers to the current global locale data in use. */
+/* Pointers to the current global locale data in use.  No hidden aliases:
+   setlocale() changes them, and a program's copy-relocated copy is the
+   one its ctype macros read.  */
 extern const __ctype_mask_t *__ctype_b;
-libc_hidden_proto(__ctype_b)
 extern const __ctype_touplow_t *__ctype_toupper;
-libc_hidden_proto(__ctype_toupper)
 extern const __ctype_touplow_t *__ctype_tolower;
-libc_hidden_proto(__ctype_tolower)
 #define __UCLIBC_CTYPE_B	(__ctype_b)
 #define __UCLIBC_CTYPE_TOLOWER	(__ctype_tolower)
 #define __UCLIBC_CTYPE_TOUPPER	(__ctype_toupper)
