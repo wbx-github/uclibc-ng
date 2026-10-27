@@ -1230,8 +1230,9 @@ proceed_next_node (const re_match_context_t *mctx, int nregs, regmatch_t *regs,
 	      else if (naccepted)
 		{
 		  char *buf = (char *) re_string_get_buffer (&mctx->input);
-		  if (memcmp (buf + regs[subexp_idx].rm_so, buf + *pidx,
-			      naccepted) != 0)
+		  if (mctx->input.valid_len - *pidx < naccepted
+		      || memcmp (buf + regs[subexp_idx].rm_so, buf + *pidx,
+				 naccepted) != 0)
 		    return -1;
 		}
 	    }
