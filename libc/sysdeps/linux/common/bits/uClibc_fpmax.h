@@ -98,18 +98,9 @@ extern __fpmax_t __wcstofpmax_l(const wchar_t *wcs, wchar_t **endptr,
 #endif /* __UCLIBC_HAS_WCHAR__ */
 #endif /* _LIBC */
 
-/* The following checks in an __fpmax_t is either 0 or +/- infinity.
- *
- * WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!
- *
- * This only works if __fpmax_t is the actual maximal floating point type used
- * in intermediate calculations.  Otherwise, excess precision in the
- * intermediate values can cause the test to fail.
- *
- * WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!   WARNING!!!
- */
+/* Is an __fpmax_t 0 or +/- infinity?  Classified, not computed. */
 
-#define __FPMAX_ZERO_OR_INF_CHECK(x)  ((x) == ((x)/4) )
+#define __FPMAX_ZERO_OR_INF_CHECK(x)  ((x) == 0 || __builtin_isinf(x))
 
 #endif /* __UCLIBC_HAS_FLOATS__ */
 
