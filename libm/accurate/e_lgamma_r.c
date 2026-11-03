@@ -58,6 +58,7 @@ SOFTWARE.
 #endif
 #include <math.h>
 #include "math_private.h"
+#include "x87-precision.h"
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
@@ -792,7 +793,7 @@ static __attribute__((noinline)) double as_lgamma_accurate(double x){
   return fh + fl;
 }
 
-static double cm_lgamma(double x){
+X87_ROUND53_WORKER double cm_lgamma(double x){
   // piece-wise polynomial approximation in [0.5, 8.29541] range
   // range borders
   static const unsigned ubrd[20] = {
@@ -1513,5 +1514,15 @@ double __ieee754_lgamma_r (double x, int *signgamp)
 		if (fmod (fl, 2.0) != 0.0)
 			*signgamp = -1;
 	}
-	return cm_lgamma (x);
+	/* On x87 cm_lgamma needs the FPU rounding each operation to double; see
+	   x87-precision.h.  Nothing at all anywhere else.  */
+	{
+		X87_ROUND53_DECL;
+		double r;
+
+		X87_ROUND53_BEGIN ();
+		r = cm_lgamma (x);
+		X87_ROUND53_END ();
+		return r;
+	}
 }

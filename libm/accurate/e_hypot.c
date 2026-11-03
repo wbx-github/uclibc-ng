@@ -36,6 +36,8 @@ SOFTWARE.
 */
 
 #include <stdint.h>
+#include "x87-precision.h"
+
 /* Is wx = u << 1 of a double a quiet NaN?  The test is the mantissa's high bit,
    which legacy MIPS gives the opposite meaning: its quiet NaN has the bit clear
    (verified, __builtin_nan("") is 0x7ff7ffffffffffff there), so reading it the
@@ -293,7 +295,7 @@ static double __attribute__((noinline)) as_hypot_overflow (void){
   return f;
 }
 
-double __ieee754_hypot(double x, double y){
+X87_ROUND53_WORKER double cm_hypot(double x, double y){
   volatile fexcept_t flag = get_flags();
   b64u64_u xi = {.f = x}, yi = {.f = y};
   u64 emsk = 0x7ffll<<52, ex = xi.u&emsk, ey = yi.u&emsk;
@@ -358,4 +360,17 @@ double __ieee754_hypot(double x, double y){
   thd.u -= off;
   if(__builtin_expect(thd.u>=(0x7ffull<<52), 0)) return as_hypot_overflow();
   return thd.f;
+}
+
+/* On x87 the computation above needs the FPU rounding each operation to double;
+   see x87-precision.h.  Nothing at all anywhere else.  */
+double __ieee754_hypot(double x, double y)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_hypot (x, y);
+	X87_ROUND53_END ();
+	return r;
 }

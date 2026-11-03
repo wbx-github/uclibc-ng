@@ -39,6 +39,7 @@ SOFTWARE.
 */
 
 #include <stdint.h>
+#include "x87-precision.h"
 #ifdef CORE_MATH_SUPPORT_ERRNO
 #include <errno.h>
 #endif
@@ -370,7 +371,7 @@ static double __attribute__((cold,noinline)) as_exp_accurate(double x){
   return fh;
 }
 
-double __ieee754_exp(double x){
+X87_ROUND53_WORKER double cm_exp(double x){
   b64u64_u ix = {.f = x};
   u64 aix = ix.u & (~(u64)0>>1);
   // exp(x) rounds to 1 to nearest for |x| <= 0x1p-54
@@ -436,4 +437,17 @@ double __ieee754_exp(double x){
     fh = as_ldexp(lb, ie);
   }
   return fh;
+}
+
+/* On x87 the computation above needs the FPU rounding each operation to double;
+   see x87-precision.h.  Nothing at all anywhere else.  */
+double __ieee754_exp(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_exp (x);
+	X87_ROUND53_END ();
+	return r;
 }

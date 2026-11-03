@@ -24,6 +24,15 @@ subdirs += libm libm/$(TARGET_ARCH)
 
 CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
 
+# -fexcess-precision=standard for the imported implementations only: they are
+# written for a double that is a double, which on x87 the compiler otherwise
+# breaks by keeping intermediates 80 bits wide.  fdlibm must not get it -- it
+# lives off that extra width, and rounding it away costs an ulp in cos, sinh and
+# tanh on i686.  libm/accurate does not need it either, since x87-precision.h
+# puts the FPU itself at 53 bits, which is stronger.  check_gcc because gcc
+# learned the option in 4.5 and the avr32 toolchain predates that.
+CFLAGS-y-libm/optimized := $(call check_gcc,-fexcess-precision=standard,)
+
 libm_DIR:=$(top_srcdir)libm
 libm_OUT:=$(top_builddir)libm
 

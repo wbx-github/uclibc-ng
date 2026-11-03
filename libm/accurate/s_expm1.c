@@ -35,6 +35,7 @@ SOFTWARE.
 #include <math.h>
 #include <stdint.h>
 #include "math_private.h"
+#include "x87-precision.h"
 #ifdef CORE_MATH_SUPPORT_ERRNO
 #include <errno.h>
 #endif
@@ -366,7 +367,7 @@ static double __attribute__((noinline)) as_expm1_accurate(double x){
   }
 }
 
-double expm1(double x){
+X87_ROUND53_WORKER double cm_expm1(double x){
   b64u64_u ix = {.f = x};
   u64 aix = ix.u & (~(u64)0>>1);
   if(__builtin_expect(aix < 0x3fd0000000000000ull, 1)){ // |x| < 0.25
@@ -446,5 +447,18 @@ double expm1(double x){
     if(__builtin_expect( ub != lb, 0)) return as_expm1_accurate(x);
     return as_ldexp(lb, ie);
   }
+}
+
+/* On x87 the computation above needs the FPU rounding each operation to double;
+   see x87-precision.h.  Nothing at all anywhere else.  */
+double expm1(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_expm1 (x);
+	X87_ROUND53_END ();
+	return r;
 }
 libm_hidden_def(expm1)

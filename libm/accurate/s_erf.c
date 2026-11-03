@@ -27,6 +27,7 @@
 
 #include <math.h>
 #include "math_private.h"
+#include "x87-precision.h"
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
@@ -1236,8 +1237,8 @@ cr_erfc_accurate (double x)
   return erfc_asympt_accurate (x);
 }
 
-double
-erfc (double x)
+X87_ROUND53_WORKER double
+cm_erfc (double x)
 {
   b64u64_u t = {.f = x};
   uint64_t at = t.u & 0x7fffffffffffffff;
@@ -1291,13 +1292,12 @@ erfc (double x)
 
   return cr_erfc_accurate (x);
 }
-libm_hidden_def(erfc)
 
 static const double CH = 0x1.20dd750429b6dp+0;
 static const double CL = 0x1.1ae3a914fed8p-56;
 
-double
-erf (double x)
+X87_ROUND53_WORKER double
+cm_erf (double x)
 {
   double z = __builtin_fabs (x);
   b64u64_u t = {.f = z};
@@ -1360,5 +1360,30 @@ erf (double x)
   cr_erf_accurate (&h, &l, z);
 
   return (x >= 0) ? h + l : (-h) + (-l);
+}
+
+/* On x87 the computations above need the FPU rounding each operation to double;
+   see x87-precision.h.  Nothing at all anywhere else.  */
+double erfc (double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_erfc (x);
+	X87_ROUND53_END ();
+	return r;
+}
+libm_hidden_def(erfc)
+
+double erf (double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_erf (x);
+	X87_ROUND53_END ();
+	return r;
 }
 libm_hidden_def(erf)

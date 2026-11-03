@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include "math_private.h"
+#include "x87-precision.h"
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
@@ -653,7 +654,7 @@ static __attribute__((noinline)) double as_tgamma_accurate(double x){
   return res.f;
 }
 
-double __ieee754_tgamma(double x){
+X87_ROUND53_WORKER double cm_tgamma(double x){
   b64u64_u t = {.f = x};
   uint64_t ax = t.u<<1;
   if(__builtin_expect(ax>=(0x7ffull<<53), 0)){ /* x=NaN or +/-Inf */
@@ -1127,4 +1128,17 @@ static double as_lgamma_asym(double xh, double *xl){
   }
   fh = muldd(zh,zl, fh,fl, &fl);
   return fastsum(lh,ll, fh,fl, xl);
+}
+
+/* On x87 the computation above needs the FPU rounding each operation to double;
+   see x87-precision.h.  Nothing at all anywhere else.  */
+double __ieee754_tgamma(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = cm_tgamma (x);
+	X87_ROUND53_END ();
+	return r;
 }
