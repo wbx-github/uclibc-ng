@@ -32,6 +32,11 @@ CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
 # puts the FPU itself at 53 bits, which is stronger.  check_gcc because gcc
 # learned the option in 4.5 and the avr32 toolchain predates that.
 CFLAGS-y-libm/optimized := $(call check_gcc,-fexcess-precision=standard,)
+# sqrt and fma have to round in the current mode; without this gcc
+# folds the expressions that find it out as if it were to nearest (musl
+# and glibc build all of libm so).
+CFLAGS-e_sqrt.c := -frounding-math
+CFLAGS-s_fma.c := -frounding-math
 
 libm_DIR:=$(top_srcdir)libm
 libm_OUT:=$(top_builddir)libm

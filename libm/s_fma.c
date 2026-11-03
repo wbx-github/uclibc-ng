@@ -69,6 +69,21 @@ static void mul(uint64_t *hi, uint64_t *lo, uint64_t x, uint64_t y)
 	*hi = t3 + (t2>>32) + (t1 > *lo);
 }
 
+/* M (at most 63 bits) with SIGN as a double, rounded once in the
+   current mode: by an addition of the top 53 bits and the rest, both
+   exact, since the integer conversion in libgcc rounds to nearest on
+   some targets (arm) whatever the mode.  */
+static double to_double(uint64_t m, int sign)
+{
+	double a = (int64_t) (m & ~0x3ffULL), b = (int64_t) (m & 0x3ff);
+
+	if (sign) {
+		a = -a;
+		b = -b;
+	}
+	return a + b;
+}
+
 double fma(double x, double y, double z)
 {
 	#pragma STDC FENV_ACCESS ON
@@ -166,10 +181,8 @@ double fma(double x, double y, double z)
 	e -= d;
 
 	/* convert to double */
-	int64_t i = rhi; /* i is in [1<<62,(1<<63)-1] */
-	if (sign)
-		i = -i;
-	double r = i; /* |r| is in [0x1p62,0x1p63] */
+	int64_t i;
+	double r = to_double(rhi, sign); /* |r| is in [0x1p62,0x1p63] */
 
 	if (e < -1022-62) {
 		/* result is subnormal before rounding */
@@ -187,10 +200,7 @@ double fma(double x, double y, double z)
 			/* one bit is lost when scaled, add another top bit to
 			   only round once at conversion if it is inexact */
 			if (rhi << 53) {
-				i = rhi>>1 | (rhi&1) | 1ull<<62;
-				if (sign)
-					i = -i;
-				r = i;
+				r = to_double(rhi>>1 | (rhi&1) | 1ull<<62, sign);
 				r = 2*r - c; /* remove top bit */
 
 				/* raise underflow portably, such that it
