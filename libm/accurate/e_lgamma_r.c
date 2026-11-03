@@ -61,7 +61,8 @@ SOFTWARE.
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
-#else
+#endif
+#ifndef FE_UNDERFLOW
 /* The only use is reporting an underflow, which a port without fenv cannot
    observe anyway. */
 # define feraiseexcept(e) ((void) 0)

@@ -195,7 +195,7 @@ static inline double as_todenormal(double x){
     b64u64_u ix = {.f = x};
     ix.u &= ~(u64)0>>12;
     // forces the underflow exception
-#ifdef __UCLIBC_HAS_FENV__
+#ifdef FE_UNDERFLOW
     feraiseexcept (FE_UNDERFLOW);
 #endif
     return ix.f;

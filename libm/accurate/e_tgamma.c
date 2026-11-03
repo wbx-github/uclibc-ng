@@ -20,7 +20,8 @@
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
-#else
+#endif
+#ifndef FE_UNDERFLOW
 # define feraiseexcept(e) ((void) 0)
 # define FE_UNDERFLOW    0
 #endif

@@ -30,7 +30,8 @@
 
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
-#else
+#endif
+#ifndef FE_UNDERFLOW
 /* The only use is clearing a spurious FE_UNDERFLOW, invisible without fenv. */
 # define fetestexcept(e)  0
 # define feclearexcept(e) ((void) 0)
