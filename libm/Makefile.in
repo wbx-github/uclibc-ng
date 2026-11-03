@@ -35,6 +35,7 @@ libm_SUBARCH_DIR:=$(libm_DIR)/$(TARGET_ARCH)/$(TARGET_SUBARCH)
 libm_SUBARCH_OUT:=$(libm_OUT)/$(TARGET_ARCH)/$(TARGET_SUBARCH)
 endif
 
+
 ifeq ($(UCLIBC_HAS_FPU),y)
 ifeq ($(DO_C99_MATH),y)
 -include $(libm_ARCH_DIR)/Makefile.arch
@@ -297,7 +298,44 @@ endif
 endif
 endif
 
-libm_SRC := $(patsubst %.c,$(libm_DIR)/%.c,$(libm_CSRC))
+# Implementation variant from the config: a file in libm/optimized or
+# libm/accurate replaces the generic fdlibm one of the same name.  What has no
+# variant file keeps the generic version, so a switch changes only what has
+# actually been ported.  "accurate" wins over "optimized" where both exist.
+#
+# Two rules for adding one: it needs a generic file of the same name in
+# libm_CSRC above (or it would add a function this configuration does not
+# build), and a table it needs goes beside it under its own name, the way
+# exp_data.c does.  The variants also build on fma, which is why both of them
+# select DO_C99_MATH -- without that the POSIX-only list has no s_fma.c.
+libm_ACC_SRC :=
+libm_OPT_SRC :=
+ifeq ($(UCLIBC_LIBM_ACCURATE),y)
+libm_ACC_SRC := $(wildcard $(libm_DIR)/accurate/*.c)
+libm_OPT_SRC := $(wildcard $(libm_DIR)/optimized/*.c)
+endif
+ifeq ($(UCLIBC_LIBM_OPTIMIZED),y)
+libm_OPT_SRC := $(wildcard $(libm_DIR)/optimized/*.c)
+endif
+libm_OPT_SRC := $(foreach f,$(libm_OPT_SRC),\
+	$(if $(filter $(notdir $(f)),$(notdir $(libm_ACC_SRC))),,$(f)))
+# A *_data.c holds tables for its neighbours, so it is only wanted while one of
+# them is still in: with "accurate" superseding every optimized file, its tables
+# would otherwise be compiled in dead.
+ifeq ($(strip $(filter-out %_data.c,$(libm_OPT_SRC))),)
+libm_OPT_SRC :=
+endif
+libm_VARIANT_SRC := $(libm_ACC_SRC) $(libm_OPT_SRC)
+ifneq ($(strip $(libm_VARIANT_SRC)),)
+libm_CSRC := $(filter-out $(notdir $(libm_VARIANT_SRC)),$(libm_CSRC))
+subdirs += $(patsubst $(libm_DIR)/%,libm/%,$(sort $(dir $(libm_VARIANT_SRC))))
+endif
+
+# The variant files sit one directory down, so a quoted include no longer finds
+# math_private.h next to them.
+CFLAGS-libm += -I$(libm_DIR)
+
+libm_SRC := $(patsubst %.c,$(libm_DIR)/%.c,$(libm_CSRC)) $(libm_VARIANT_SRC)
 libm_OBJ := $(patsubst $(libm_DIR)/%.c,$(libm_OUT)/%.o,$(libm_SRC))
 
 ifeq ($(strip $(UCLIBC_HAS_LONG_DOUBLE_MATH)),y)

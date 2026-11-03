@@ -1056,6 +1056,8 @@ config UCLIBC_USE_TIME64
 
 endmenu
 
+source "extra/Configs/Config.in.math"
+
 menu "Advanced Library Settings"
 
 config UCLIBC_PWD_BUFFER_SIZE

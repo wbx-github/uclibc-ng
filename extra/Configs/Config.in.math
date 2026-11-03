@@ -1,0 +1,61 @@
+#
+# For a description of the syntax of this configuration file,
+# see extra/config/Kconfig-language.txt
+#
+
+menu "Math library"
+	depends on UCLIBC_HAS_FLOATS
+
+choice
+	prompt "Implementation"
+	default UCLIBC_LIBM_SMALL
+	help
+	  Where the math functions come from.  A function that has no
+	  implementation for the chosen variant falls back to the small one,
+	  so switching changes only what has actually been ported.
+
+config UCLIBC_LIBM_SMALL
+	bool "small"
+	help
+	  What uClibc-ng has always shipped: fdlibm, written at Sun in 1993 and
+	  carried here through FreeBSD and Darwin.  Smallest code, no lookup
+	  tables, at the price of accuracy -- measured on exp, the error reaches
+	  0.87 ulp where the other variants stay below 0.51.
+
+	  Without an FPU this is about as fast as the alternatives; with one it
+	  is roughly half the speed.
+
+config UCLIBC_LIBM_OPTIMIZED
+	bool "optimized"
+	select DO_C99_MATH
+	help
+	  A compromise: the routines from Arm's optimized-routines, the code
+	  musl ships and glibc uses for exp, log and pow.  Around 0.5 ulp, and
+	  with an FPU about twice as fast as the small variant; without one, a
+	  few percent faster.
+
+	  Costs lookup tables -- 2 KB for the exp, exp2 and pow family, which
+	  share one -- and some 40 bytes more code per function.
+
+	  Needs the full C99 math library, because these routines build on fma;
+	  choosing this turns it on.
+
+config UCLIBC_LIBM_ACCURATE
+	bool "accurate"
+	select DO_C99_MATH
+	help
+	  Correctly rounded wherever an implementation exists: the result is
+	  always the representable value nearest the exact one, which is the
+	  best a binary64 function can do.  Taken from the CORE-MATH project
+	  (MIT), which glibc has been adopting function by function.
+
+	  The largest of the three and not always the fastest.  Choose this
+	  when results have to match other correctly rounded libraries bit for
+	  bit.
+
+	  Needs the full C99 math library, because these routines build on fma;
+	  choosing this turns it on.
+
+endchoice
+
+endmenu
