@@ -76,6 +76,7 @@
 
 #include "math.h"
 #include "math_private.h"
+#include "x87-precision.h"
 
 static const double
 ln2_hi  =  6.93147180369123816490e-01,	/* 3fe62e42 fee00000 */
@@ -91,7 +92,7 @@ Lp7 = 1.479819860511658591e-01;  /* 3FC2F112 DF3E5244 */
 
 static const double zero = 0.0;
 
-double log1p(double x)
+X87_ROUND53_WORKER double fdlibm_log1p(double x)
 {
 	double hfsq,f=0,c=0,s,z,R,u;
 	int32_t k,hx,hu=0,ax;
@@ -153,5 +154,20 @@ double log1p(double x)
 	R = z*(Lp1+z*(Lp2+z*(Lp3+z*(Lp4+z*(Lp5+z*(Lp6+z*Lp7))))));
 	if(k==0) return f-(hfsq-s*(hfsq+R)); else
 		 return k*ln2_hi-((hfsq-(s*(hfsq+R)+(k*ln2_lo+c)))-f);
+}
+
+/* c = (1+x)-u recovers the rounding error of u = 1+x, which only works if
+   u is rounded to double; on the 68881 it stays in an extended register.
+   Measured over tst-cbrt-ulp.c's points: log1p up to 2 steps off, and acosh,
+   which goes through log1p, as well.  See x87-precision.h.  */
+double log1p(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = fdlibm_log1p (x);
+	X87_ROUND53_END ();
+	return r;
 }
 libm_hidden_def(log1p)

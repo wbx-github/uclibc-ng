@@ -18,6 +18,7 @@
 
 #include "math.h"
 #include "math_private.h"
+#include "x87-precision.h"
 #include <float.h>
 
 /* ln(10) as two doubles: LN10_HI + LN10_LO is ln(10) to 106 bits, and
@@ -28,7 +29,7 @@ static const double LN10_LO = -0x1.f48ad494ea3e9p-53;
 static const double LN10_HH = 0x1.26bb1b8p+1;
 static const double LN10_HL = 0x1.daaa8bp-26;
 
-double __ieee754_exp10 (double arg)
+X87_ROUND53_WORKER double exp10_worker (double arg)
 {
   double p, e, corr, r, t, xh, xl;
 
@@ -51,4 +52,19 @@ double __ieee754_exp10 (double arg)
   if (!isfinite (r) || r == 0)
     return r;
   return r + r * corr;
+}
+
+/* The product above is exact only if each operation rounds to double.  On
+   the 68881 nothing rounds between the extended registers: exp10 missed the
+   correctly rounded value at 687 of tst-exp2-ulp.c's 1000 points, by up to
+   446 steps.  See x87-precision.h.  */
+double __ieee754_exp10 (double arg)
+{
+  X87_ROUND53_DECL;
+  double r;
+
+  X87_ROUND53_BEGIN ();
+  r = exp10_worker (arg);
+  X87_ROUND53_END ();
+  return r;
 }

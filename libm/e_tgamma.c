@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <float.h>
 #include "math_private.h"
+#include "x87-precision.h"
 
 /* musl's kernels for sin and cos are ours under a different name, and its
    FORCE_EVAL only forces an evaluation for the exception it raises. */
@@ -142,7 +143,7 @@ static double S(double x)
 	return num/den;
 }
 
-double __ieee754_tgamma(double x)
+X87_ROUND53_WORKER double tgamma_worker(double x)
 {
 	union {double f; uint64_t i;} u = {x};
 	double absx, y;
@@ -205,6 +206,21 @@ double __ieee754_tgamma(double x)
 	z = pow(y, 0.5*z);
 	y = r * z * z;
 	return y;
+}
+
+/* dy above is the rounding error of y = absx + gmhalf, which is only what
+   it says if y is rounded to double; on the 68881 it stays in an extended
+   register, and tgamma went 7 steps out where every other target stays
+   within 6.  See x87-precision.h.  */
+double __ieee754_tgamma(double x)
+{
+	X87_ROUND53_DECL;
+	double r;
+
+	X87_ROUND53_BEGIN ();
+	r = tgamma_worker (x);
+	X87_ROUND53_END ();
+	return r;
 }
 
 #if 0
