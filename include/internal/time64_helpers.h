@@ -32,5 +32,13 @@ struct __its64_struct {
                                                      .value_tv_sec = ((struct itimerspec *)(__its))->it_value.tv_sec, \
                                                      .value_tv_nsec = ((struct itimerspec *)(__its))->it_value.tv_nsec}) : NULL)
 
+/* struct itimerval as the kernel's getitimer and setitimer use it: there
+   is no time64 variant of either call.  */
+struct __itimerval32_struct {
+    __S32_TYPE __interval_sec;
+    __S32_TYPE __interval_usec;
+    __S32_TYPE __value_sec;
+    __S32_TYPE __value_usec;
+};
 
 #endif /* _TIME64_HELPERS_H */
