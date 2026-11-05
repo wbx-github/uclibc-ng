@@ -41,4 +41,19 @@ struct __itimerval32_struct {
     __S32_TYPE __value_usec;
 };
 
+/* The other way, for what the kernel hands back.  */
+static __inline__ void __ts64_to_ts(const struct __ts64_struct *__src, struct timespec *__dst)
+{
+    __dst->tv_sec = __src->tv_sec;
+    __dst->tv_nsec = __src->tv_nsec;
+}
+
+static __inline__ void __its64_to_its(const struct __its64_struct *__src, struct itimerspec *__dst)
+{
+    __dst->it_interval.tv_sec = __src->interval_tv_sec;
+    __dst->it_interval.tv_nsec = __src->interval_tv_nsec;
+    __dst->it_value.tv_sec = __src->value_tv_sec;
+    __dst->it_value.tv_nsec = __src->value_tv_nsec;
+}
+
 #endif /* _TIME64_HELPERS_H */

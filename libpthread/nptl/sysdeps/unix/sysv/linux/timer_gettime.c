@@ -23,6 +23,10 @@
 #include <bits/kernel-features.h>
 #include "kernel-posix-timers.h"
 
+#if defined(__UCLIBC_USE_TIME64__)
+#include "internal/time64_helpers.h"
+#endif
+
 
 #if defined(__NR_timer_gettime) || defined(__NR_timer_gettime64)
 # ifndef __ASSUME_POSIX_TIMERS
@@ -49,9 +53,14 @@ timer_gettime (
     {
       struct timer *kt = (struct timer *) timerid;
 
-      /* Delete the kernel timer object.  */
+      /* Read the kernel timer.  */
 # if defined(__UCLIBC_USE_TIME64__) && defined(__NR_timer_gettime64)
-      int res = INLINE_SYSCALL (timer_gettime64, 2, kt->ktimerid, value);
+      struct __its64_struct cur64;
+      int res = INLINE_SYSCALL (timer_gettime64, 2, kt->ktimerid,
+				value ? &cur64 : NULL);
+
+      if (res == 0 && value)
+	__its64_to_its (&cur64, value);
 # else
       int res = INLINE_SYSCALL (timer_gettime, 2, kt->ktimerid, value);
 # endif

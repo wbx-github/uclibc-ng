@@ -56,10 +56,14 @@ timer_settime (
     {
       struct timer *kt = (struct timer *) timerid;
 
-      /* Delete the kernel timer object.  */
+      /* Set the kernel timer.  */
 # if defined(__UCLIBC_USE_TIME64__) && defined(__NR_timer_settime64)
+      struct __its64_struct old64;
       int res = INLINE_SYSCALL (timer_settime64, 4, kt->ktimerid, flags,
-				TO_ITS64_P(value), ovalue);
+				TO_ITS64_P(value), ovalue ? &old64 : NULL);
+
+      if (res == 0 && ovalue)
+	__its64_to_its (&old64, ovalue);
 # else
       int res = INLINE_SYSCALL (timer_settime, 4, kt->ktimerid, flags,
 				value, ovalue);

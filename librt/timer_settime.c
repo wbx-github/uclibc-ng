@@ -17,8 +17,13 @@
 int timer_settime(timer_t timerid, int flags, const struct itimerspec *value, struct itimerspec *ovalue)
 {
 	struct timer *kt = (struct timer *)timerid;
+	struct __its64_struct __old;
+	int __ret = INLINE_SYSCALL(timer_settime64, 4, kt->ktimerid, flags, TO_ITS64_P(value),
+				   ovalue ? &__old : NULL);
 
-	return INLINE_SYSCALL(timer_settime64, 4, kt->ktimerid, flags, TO_ITS64_P(value), ovalue);
+	if (__ret == 0 && ovalue)
+		__its64_to_its(&__old, ovalue);
+	return __ret;
 }
 #else
 #define __NR___syscall_timer_settime __NR_timer_settime

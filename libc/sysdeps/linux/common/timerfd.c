@@ -27,7 +27,13 @@ _syscall2(int, timerfd_create, int, clockid, int, flags)
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_timerfd_settime64)
 int timerfd_settime(int ufd, int flags, const struct itimerspec *utmr, struct itimerspec *otmr)
 {
-    return INLINE_SYSCALL(timerfd_settime64, 4, ufd, flags, TO_ITS64_P(utmr), otmr);
+    struct __its64_struct __old;
+    int __ret = INLINE_SYSCALL(timerfd_settime64, 4, ufd, flags, TO_ITS64_P(utmr),
+                               otmr ? &__old : NULL);
+
+    if (__ret == 0 && otmr)
+        __its64_to_its(&__old, otmr);
+    return __ret;
 }
 #else
 _syscall4(int, timerfd_settime, int, ufd, int, flags, const struct itimerspec *, utmr, struct itimerspec *, otmr)
@@ -39,7 +45,15 @@ _syscall4(int, timerfd_settime, int, ufd, int, flags, const struct itimerspec *,
  */
 #if defined(__NR_timerfd_gettime) || defined(__NR_timerfd_gettime64)
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_timerfd_gettime64)
-_syscall2_64(int, timerfd_gettime, int, ufd, struct itimerspec *, otmr)
+int timerfd_gettime(int ufd, struct itimerspec *otmr)
+{
+    struct __its64_struct __cur;
+    int __ret = INLINE_SYSCALL(timerfd_gettime64, 2, ufd, otmr ? &__cur : NULL);
+
+    if (__ret == 0 && otmr)
+        __its64_to_its(&__cur, otmr);
+    return __ret;
+}
 #else
 _syscall2(int, timerfd_gettime, int, ufd, struct itimerspec *, otmr)
 #endif
