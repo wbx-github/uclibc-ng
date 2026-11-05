@@ -41,13 +41,15 @@ pthread_condattr_setclock (
 
       if (avail == 0)
 	{
-	  struct timespec ts;
-
 	  INTERNAL_SYSCALL_DECL (err);
 	  int val;
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_clock_getres_time64)
-	  val = INTERNAL_SYSCALL (clock_getres_time64, err, 2, CLOCK_MONOTONIC, &ts);
+	  /* Only whether the clock exists; the kernel's timespec is not
+	     the program's, so no result is asked for.  */
+	  val = INTERNAL_SYSCALL (clock_getres_time64, err, 2, CLOCK_MONOTONIC, NULL);
 #else
+	  struct timespec ts;
+
 	  val = INTERNAL_SYSCALL (clock_getres, err, 2, CLOCK_MONOTONIC, &ts);
 #endif
 	  avail = INTERNAL_SYSCALL_ERROR_P (val, err) ? -1 : 1;

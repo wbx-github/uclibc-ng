@@ -138,12 +138,14 @@ timer_create (
 	  if (__no_posix_timers == 0)
 	    {
 	      INTERNAL_SYSCALL_DECL (err);
-	      struct timespec ts;
 	      int res;
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_clock_getres_time64)
+	      /* Only whether the clock exists; the kernel's timespec is not
+		 the program's, so no result is asked for.  */
 	      res = INTERNAL_SYSCALL (clock_getres_time64, err, 2,
-				      CLOCK_REALTIME, &ts);
+				      CLOCK_REALTIME, NULL);
 #else
+	      struct timespec ts;
 	      res = INTERNAL_SYSCALL (clock_getres, err, 2,
 				      CLOCK_REALTIME, &ts);
 #endif
