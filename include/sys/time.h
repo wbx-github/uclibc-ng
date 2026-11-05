@@ -148,10 +148,8 @@ libc_hidden_proto(utimes)
 extern int lutimes (const char *__file, const struct timeval __tvp[2])
      __THROW __nonnull ((1));
 
-#if 0
 /* Same as `utimes', but takes an open file descriptor instead of a name.  */
 extern int futimes (int __fd, const struct timeval __tvp[2]) __THROW;
-#endif
 #endif
 
 #ifdef __USE_GNU

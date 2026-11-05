@@ -133,6 +133,10 @@ make_stub(fsetxattr)
 make_stub(fstatfs)
 #endif
 
+#if !defined __NR_utimensat && !defined __NR_utimensat_time64
+make_stub(futimes)
+#endif
+
 #ifndef __NR_get_kernel_syms
 make_stub(get_kernel_syms)
 #endif
