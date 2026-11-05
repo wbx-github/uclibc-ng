@@ -10,9 +10,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#ifdef __NR_futimesat
+#if defined __NR_futimesat && !defined __UCLIBC_USE_TIME64__
 _syscall3(int, futimesat, int, fd, const char *, file, const struct timeval *, tvp)
-#elif defined __NR_utimensat
+#elif defined __NR_utimensat || defined __NR_utimensat_time64
 #include <errno.h>
 #define __need_NULL
 #include <stddef.h>

@@ -9,7 +9,7 @@
 #include <sys/syscall.h>
 #include <utime.h>
 
-#if (defined(__NR_utimensat) || defined(__NR_utimensat_time64)) && !defined __NR_utime
+#if (defined(__NR_utimensat) || defined(__NR_utimensat_time64)) && (!defined __NR_utime || defined(__UCLIBC_USE_TIME64__))
 # include <fcntl.h>
 # include <stddef.h>
 

@@ -9,9 +9,9 @@
 #include <sys/syscall.h>
 #include <time.h>
 
-#ifdef __NR_lutimes
+#if defined __NR_lutimes && !defined __UCLIBC_USE_TIME64__
 _syscall2(int, lutimes, const char *, file, const struct timeval *, tvp)
-#elif defined __NR_utimensat
+#elif defined __NR_utimensat || defined __NR_utimensat_time64
 #include <sys/time.h>
 #include <fcntl.h>
 
