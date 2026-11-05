@@ -6,6 +6,8 @@
  * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  */
 
+#include <errno.h>
+#include <stdint.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
 
@@ -15,6 +17,13 @@
 
 int setitimer(__itimer_which_t which, const struct itimerval *restrict new, struct itimerval *restrict old)
 {
+	/* The kernel takes 32-bit seconds; do not let a larger value wrap.  */
+	if (new->it_interval.tv_sec < INT32_MIN || new->it_interval.tv_sec > INT32_MAX
+	    || new->it_value.tv_sec < INT32_MIN || new->it_value.tv_sec > INT32_MAX) {
+		__set_errno(EOVERFLOW);
+		return -1;
+	}
+
 	struct __itimerval32_struct __itv32 = {
 		.__interval_sec = new->it_interval.tv_sec,
 		.__interval_usec = new->it_interval.tv_usec,
