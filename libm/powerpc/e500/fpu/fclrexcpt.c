@@ -18,7 +18,7 @@
 #include "fenv_libc.h"
 #undef feclearexcept
 int
-__feclearexcept (int excepts)
+feclearexcept (int excepts)
 {
   unsigned int fpescr;
 
