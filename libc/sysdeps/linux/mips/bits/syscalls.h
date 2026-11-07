@@ -85,7 +85,7 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1;		\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1);		\
 	register ARG_TYPE __a3 __asm__("$7");				\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
@@ -107,8 +107,8 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1;		\
-	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) arg2;		\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1);		\
+	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) (arg2);		\
 	register ARG_TYPE __a3 __asm__("$7");				\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
@@ -130,9 +130,9 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1;		\
-	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) arg2;		\
-	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) arg3;		\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1);		\
+	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) (arg2);		\
+	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) (arg3);		\
 	register ARG_TYPE __a3 __asm__("$7");				\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
@@ -154,10 +154,10 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1;		\
-	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) arg2;		\
-	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) arg3;		\
-	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) arg4;		\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1);		\
+	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) (arg2);		\
+	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) (arg3);		\
+	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) (arg4);		\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
 	cs_init								\
@@ -187,10 +187,10 @@
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
 	register long __v0 __asm__("$2") ncs_init;			\
-	register long __a0 __asm__("$4") = (long) arg1;			\
-	register long __a1 __asm__("$5") = (long) arg2;			\
-	register long __a2 __asm__("$6") = (long) arg3;			\
-	register long __a3 __asm__("$7") = (long) arg4;			\
+	register long __a0 __asm__("$4") = (long) (arg1);			\
+	register long __a1 __asm__("$5") = (long) (arg2);			\
+	register long __a2 __asm__("$6") = (long) (arg3);			\
+	register long __a3 __asm__("$7") = (long) (arg4);			\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
 	"subu\t$29, 32\n\t"                                             \
@@ -202,7 +202,7 @@
 	".set\treorder"						        \
 	: "=r" (__v0), "+r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2),			\
-	  "r" ((long)arg5), "r" (array)					\
+	  "r" ((long) (arg5)), "r" (array)					\
 	: __SYSCALL_CLOBBERS);						\
 	err = __a3;							\
 	_sys_result = __v0;						\
@@ -217,10 +217,10 @@
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
 	register long __v0 __asm__("$2") ncs_init;			\
-	register long __a0 __asm__("$4") = (long) arg1;			\
-	register long __a1 __asm__("$5") = (long) arg2;			\
-	register long __a2 __asm__("$6") = (long) arg3;			\
-	register long __a3 __asm__("$7") = (long) arg4;			\
+	register long __a0 __asm__("$4") = (long) (arg1);			\
+	register long __a1 __asm__("$5") = (long) (arg2);			\
+	register long __a2 __asm__("$6") = (long) (arg3);			\
+	register long __a3 __asm__("$7") = (long) (arg4);			\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"                                           \
 	"subu\t$29, 32\n\t"                                             \
@@ -233,7 +233,7 @@
 	".set\treorder"						        \
 	: "=r" (__v0), "+r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2),			\
-	  "r" ((long)arg5), "r" ((long)arg6), "r" (array)		\
+	  "r" ((long) (arg5)), "r" ((long) (arg6)), "r" (array)		\
 	: __SYSCALL_CLOBBERS);						\
 	err = __a3;							\
 	_sys_result = __v0;						\
@@ -248,10 +248,10 @@
 	int* array = FORCE_FRAME_POINTER;				\
 	{								\
 	register long __v0 __asm__("$2") ncs_init;			\
-	register long __a0 __asm__("$4") = (long) arg1;			\
-	register long __a1 __asm__("$5") = (long) arg2;			\
-	register long __a2 __asm__("$6") = (long) arg3;			\
-	register long __a3 __asm__("$7") = (long) arg4;			\
+	register long __a0 __asm__("$4") = (long) (arg1);			\
+	register long __a1 __asm__("$5") = (long) (arg2);			\
+	register long __a2 __asm__("$6") = (long) (arg3);			\
+	register long __a3 __asm__("$7") = (long) (arg4);			\
 	__asm__ __volatile__ (						\
 	".set\tnoreorder\n\t"						\
 	"subu\t$29, 32\n\t"                                             \
@@ -265,7 +265,7 @@
 	".set\treorder"							\
 	: "=r" (__v0), "+r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2),			\
-	  "r" ((long)arg5), "r" ((long)arg6), "r" ((long)arg7),		\
+	  "r" ((long) (arg5)), "r" ((long) (arg6)), "r" ((long) (arg7)),		\
 	  "r" (array)							\
 	: __SYSCALL_CLOBBERS);						\
 	err = __a3;							\
@@ -290,11 +290,11 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1; 	\
-	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) arg2; 	\
-	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) arg3; 	\
-	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) arg4; 	\
-	register ARG_TYPE __a4 __asm__("$8") = (ARG_TYPE) arg5; 	\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1); 	\
+	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) (arg2); 	\
+	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) (arg3); 	\
+	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) (arg4); 	\
+	register ARG_TYPE __a4 __asm__("$8") = (ARG_TYPE) (arg5); 	\
 	__asm__ __volatile__ ( 						\
 	".set\tnoreorder\n\t" 						\
 	cs_init								\
@@ -315,12 +315,12 @@
 									\
 	{								\
 	register ARG_TYPE __v0 __asm__("$2") ncs_init;			\
-	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) arg1; 	\
-	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) arg2; 	\
-	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) arg3; 	\
-	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) arg4; 	\
-	register ARG_TYPE __a4 __asm__("$8") = (ARG_TYPE) arg5; 	\
-	register ARG_TYPE __a5 __asm__("$9") = (ARG_TYPE) arg6; 	\
+	register ARG_TYPE __a0 __asm__("$4") = (ARG_TYPE) (arg1); 	\
+	register ARG_TYPE __a1 __asm__("$5") = (ARG_TYPE) (arg2); 	\
+	register ARG_TYPE __a2 __asm__("$6") = (ARG_TYPE) (arg3); 	\
+	register ARG_TYPE __a3 __asm__("$7") = (ARG_TYPE) (arg4); 	\
+	register ARG_TYPE __a4 __asm__("$8") = (ARG_TYPE) (arg5); 	\
+	register ARG_TYPE __a5 __asm__("$9") = (ARG_TYPE) (arg6); 	\
 	__asm__ __volatile__ ( 						\
 	".set\tnoreorder\n\t" 						\
 	cs_init								\
