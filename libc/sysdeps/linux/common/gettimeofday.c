@@ -21,6 +21,9 @@ int gettimeofday(struct timeval * tv, __timezone_ptr_t tz) {
         return 0;
 #if defined(__VDSO_SUPPORT__) && defined(ARCH_VDSO_GETTIMEOFDAY)
     return ARCH_VDSO_GETTIMEOFDAY(tv, tz);
+#elif !defined(__NR_clock_gettime) && !defined(__NR_clock_gettime64) \
+      && defined(__NR_gettimeofday)
+    return INLINE_SYSCALL(gettimeofday, 2, tv, tz);
 #else
     struct timespec __ts;
     int __ret = clock_gettime(CLOCK_REALTIME, &__ts);
@@ -29,6 +32,5 @@ int gettimeofday(struct timeval * tv, __timezone_ptr_t tz) {
     return __ret;
 #endif
 }
-
 
 libc_hidden_def(gettimeofday)
