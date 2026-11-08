@@ -10,7 +10,12 @@
 #include <time.h>
 #include <cancel.h>
 
-
+#if !defined(__NR_clock_nanosleep) && !defined(__NR_clock_nanosleep_time64) && defined(__NR_nanosleep)
+/* No clock_nanosleep: use the nanosleep syscall directly. */
+#define __NR___nanosleep_nocancel __NR_nanosleep
+_syscall2(int, __nanosleep_nocancel, const struct timespec *, req,
+	  struct timespec *, rem)
+#else
 int _NC(nanosleep)(const struct timespec *req, struct timespec *rem)
 {
 	int __ret = clock_nanosleep(CLOCK_REALTIME, 0, req, rem);
@@ -22,6 +27,7 @@ int _NC(nanosleep)(const struct timespec *req, struct timespec *rem)
 
 	return __ret;
 };
+#endif
 
 CANCELLABLE_SYSCALL(int, nanosleep,
 		    (const struct timespec *req, struct timespec *rem),
