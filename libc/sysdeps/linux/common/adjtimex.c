@@ -9,6 +9,7 @@
 #include <sys/syscall.h>
 #include <sys/timex.h>
 #include <time.h>
+#include <unistd.h>
 
 int adjtimex(struct timex *buf)
 {
