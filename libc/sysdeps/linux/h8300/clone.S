@@ -42,6 +42,8 @@ clone:
 	mov.l	er2,@sp			/* flags */
 	mov.l	er1,@(4,sp)		/* new sp */
 	mov.l	sp,er1
+	adds	#4,er1
+	adds	#4,er1
 	mov.l	@(20+8,sp),er0
 	mov.l	er0,@er1		/* parent tid */
 	adds	#4,er1
@@ -54,10 +56,11 @@ clone:
 	mov.l	sp,er1
 	mov.l	#__NR_clone,er0
 	trapa	#0
+	mov.l	er0,er0
+	beq	thread_start		/* child: sp is the new stack */
 	add.l	#20,sp
 	mov.l	er0,er0
 	bmi	__syscall_error
-	beq	thread_start
 
 	rts
 
