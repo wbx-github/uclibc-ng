@@ -43,12 +43,14 @@ struct kernel_stat64
   __kernel_loff_t	st_size;
   unsigned long		st_blksize;
 
-  unsigned long		__uclibc_unused4; /* future possible st_blocks high bits */
   unsigned long		st_blocks; /* Number 512-byte blocks allocated. */
+  unsigned long		__uclibc_unused4; /* future possible st_blocks high bits */
 
   struct timespec	st_atim;
   struct timespec	st_mtim;
   struct timespec	st_ctim;
+
+  unsigned long		__uclibc_unused5;
 };
 
 #endif	/*  _BITS_STAT_STRUCT_H */
