@@ -8,7 +8,15 @@
 
 #include <sys/syscall.h>
 
-#ifdef __USE_BSD
+#if defined(__NR_settimeofday) && \
+    !defined(__NR_clock_settime) && !defined(__NR_clock_settime64)
+# include <sys/time.h>
+_syscall2(int, settimeofday, const struct timeval *, tv,
+	  const struct timezone *, tz)
+libc_hidden_def(settimeofday)
+
+#elif defined(__USE_BSD)
+
 # include <sys/time.h>
 # include <time.h>
 
