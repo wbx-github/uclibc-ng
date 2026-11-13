@@ -270,7 +270,7 @@ struct elf_resolve *_dl_load_shared_library(unsigned int rflags, struct dyn_elf 
 	if (pnt) {
 		pnt += (unsigned long) tpnt->dynamic_info[DT_STRTAB];
 		_dl_if_debug_dprint("\tsearching RUNPATH='%s'\n", pnt);
-		if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt, NULL)) != NULL)
+		if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt, tpnt->libname)) != NULL)
 			return tpnt1;
 	}
 #ifdef __LDSO_RUNPATH_OF_EXECUTABLE__
