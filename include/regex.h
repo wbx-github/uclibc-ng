@@ -555,6 +555,7 @@ extern int re_exec (const char *);
 extern int regcomp (regex_t *__restrict __preg,
 		    const char *__restrict __pattern,
 		    int __cflags);
+libc_hidden_proto(regcomp)
 
 extern int regexec (const regex_t *__restrict __preg,
 		    const char *__restrict __string, size_t __nmatch,

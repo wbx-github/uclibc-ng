@@ -485,6 +485,7 @@ regcomp (regex_t *__restrict preg,
 
   return (int) ret;
 }
+libc_hidden_def(regcomp)
 
 /* Returns a message corresponding to an error code, ERRCODE, returned
    from either regcomp or regexec.   We don't use PREG here.  */

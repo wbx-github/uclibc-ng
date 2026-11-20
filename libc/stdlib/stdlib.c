@@ -245,8 +245,39 @@ long long atoll(const char *nptr)
 #endif
 /**********************************************************************/
 #ifdef L_rpmatch
+#if defined __UCLIBC_HAS_LOCALE__ && defined __UCLIBC_HAS_REGEX__
+#include <langinfo.h>
+#include <regex.h>
+
+/* 1 if the response matches the locale's pattern, 0 if not, -1 if there
+   is no usable pattern.  */
+static int rpmatch_try(const char *response, nl_item item)
+{
+	const char *pattern = nl_langinfo(item);
+	regex_t re;
+	int r;
+
+	if (!*pattern || regcomp(&re, pattern, REG_EXTENDED | REG_NOSUB))
+		return -1;
+	r = !regexec(&re, response, 0, NULL, 0);
+	regfree(&re);
+	return r;
+}
+#endif
+
 int rpmatch (const char *__response)
 {
+#if defined __UCLIBC_HAS_LOCALE__ && defined __UCLIBC_HAS_REGEX__
+	int r = rpmatch_try(__response, YESEXPR);
+
+	if (r > 0)
+		return 1;
+	if (r == 0) {
+		r = rpmatch_try(__response, NOEXPR);
+		if (r >= 0)
+			return r ? 0 : -1;
+	}
+#endif
 	return (__response[0] == 'y' || __response[0] == 'Y') ? 1 :
 		(__response[0] == 'n' || __response[0] == 'N') ? 0 : -1;
 }
