@@ -82,22 +82,14 @@ libc_hidden_proto(munmap)
    (and sets errno).  */
 extern int mprotect (void *__addr, size_t __len, int __prot) __THROW;
 
-#ifdef __ARCH_USE_MMU__
-
 /* Synchronize the region starting at ADDR and extending LEN bytes with the
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  Flags are from the MS_* set.
+   Without an MMU there is nothing to write back and it returns 0.
 
    This function is a cancellation point and therefore not marked with
    __THROW.  */
 extern int msync (void *__addr, size_t __len, int __flags);
-
-#else
-
-/* On no-mmu systems you can't have real private mappings.  */
-static __inline__ int msync (void *__addr, size_t __len, int __flags) { return 0; }
-
-#endif
 
 #ifdef __ARCH_USE_MMU__
 #if defined __USE_BSD && (defined __UCLIBC_LINUX_SPECIFIC__ || defined __UCLIBC_HAS_THREADS_NATIVE__)

@@ -93,8 +93,7 @@ endif
 CFLAGS-__socketcall.c = -fasynchronous-unwind-tables
 
 # xstatconv.c always built (old kernels need it even without ARCH_HAS_DEPRECATED_SYSCALLS)
-# stubbed out in mman.h
-CSRC-$(ARCH_USE_MMU) += msync.c
+
 # we need these internally: getdomainname.c
 CSRC-$(UCLIBC_BSD_SPECIFIC) += mincore.c setdomainname.c
 CSRC-$(UCLIBC_NTP_LEGACY) += ntp_gettime.c
