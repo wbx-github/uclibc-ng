@@ -480,6 +480,8 @@ unsigned long attribute_hidden __XL_NPP(_stdlib_strto_l)(register const Wchar * 
 				number = number * base + digit;
 			}
 		} while (1);
+	} else {
+		SET_ERRNO(EINVAL);
 	}
 
 #if _STRTO_ENDPTR
@@ -635,6 +637,8 @@ unsigned long long attribute_hidden __XL_NPP(_stdlib_strto_ll)(register const Wc
 			}
 
 		} while (1);
+	} else {
+		SET_ERRNO(EINVAL);
 	}
 
 #if _STRTO_ENDPTR
