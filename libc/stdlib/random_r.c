@@ -282,6 +282,16 @@ int initstate_r (unsigned int seed, char *arg_state, size_t n, struct random_dat
     degree = random_poly_info.degrees[type];
     separation = random_poly_info.seps[type];
 
+    /* Save where the old generator stands, as setstate_r does, so that a
+       later setstate() of the old array continues from there.  */
+    state = buf->state;
+    if (state != NULL) {
+	if (buf->rand_type == TYPE_0)
+	    state[-1] = TYPE_0;
+	else
+	    state[-1] = (MAX_TYPES * (buf->rptr - state)) + buf->rand_type;
+    }
+
     buf->rand_type = type;
     buf->rand_sep = separation;
     buf->rand_deg = degree;
