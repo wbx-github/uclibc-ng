@@ -51,7 +51,7 @@ static int isprime (unsigned int number)
   /* no even number will be passed */
   unsigned int divisor = 3;
 
-  while (divisor * divisor < number && number % divisor != 0)
+  while (divisor <= number / divisor && number % divisor != 0)
     divisor += 2;
 
   return number % divisor != 0;
