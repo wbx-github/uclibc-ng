@@ -17,6 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -76,10 +77,19 @@ int hcreate_r (size_t nel, struct hsearch_data *htab)
   if (htab->table != NULL)
     return 0;
 
-  /* Change nel to the first prime number not smaller as nel. */
-  nel |= 1;      /* make odd */
-  while (!isprime (nel))
-    nel += 2;
+  /* Change nel to the first prime number in the range [nel, UINT_MAX - 2].
+     The size field is an unsigned int, and the '- 2' keeps 'nel += 2'
+     from wrapping around to a tiny table.  */
+  for (nel |= 1; ; nel += 2)
+    {
+      if (UINT_MAX - 2 < nel)
+	{
+	  __set_errno (ENOMEM);
+	  return 0;
+	}
+      if (isprime (nel))
+	break;
+    }
 
   htab->size = nel;
   htab->filled = 0;
