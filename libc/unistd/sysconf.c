@@ -995,9 +995,17 @@ long int sysconf(int name)
 #endif
 
     case _SC_MONOTONIC_CLOCK:
-#if defined __UCLIBC_HAS_REALTIME__ && defined __NR_clock_getres
-      if (clock_getres(CLOCK_MONOTONIC, NULL) >= 0)
-        return _POSIX_VERSION;
+#ifdef __UCLIBC_HAS_REALTIME__
+      {
+	/* POSIX leaves errno alone where an option is not supported, and
+	   the probe may set it.  */
+	int save_errno = errno;
+	int supported = clock_getres(CLOCK_MONOTONIC, NULL) >= 0;
+
+	__set_errno(save_errno);
+	if (supported)
+	  return _POSIX_VERSION;
+      }
 #endif
       RETURN_NEG_1;
 
