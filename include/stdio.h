@@ -157,6 +157,22 @@ extern int renameat (int __oldfd, const char *__old, int __newfd,
 libc_hidden_proto(renameat)
 #endif
 
+#ifdef __USE_GNU
+/* Flags for renameat2.  */
+# define RENAME_NOREPLACE (1 << 0)
+# define AT_RENAME_NOREPLACE 0x0001
+# define RENAME_EXCHANGE (1 << 1)
+# define AT_RENAME_EXCHANGE 0x0002
+# define RENAME_WHITEOUT (1 << 2)
+# define AT_RENAME_WHITEOUT 0x0004
+
+/* Rename file OLD relative to OLDFD to NEW relative to NEWFD, with
+   additional flags.  */
+extern int renameat2 (int __oldfd, const char *__old, int __newfd,
+		      const char *__new, unsigned int __flags) __THROW;
+libc_hidden_proto(renameat2)
+#endif
+
 __BEGIN_NAMESPACE_STD
 /* Create a temporary file and open it read/write.
 
