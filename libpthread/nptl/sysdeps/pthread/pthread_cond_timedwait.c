@@ -104,7 +104,8 @@ __pthread_cond_timedwait (
       struct __ts64_struct __rt64;
 #endif
       {
-#ifdef __NR_clock_gettime
+#if defined __NR_clock_gettime \
+    || (defined __UCLIBC_USE_TIME64__ && defined __NR_clock_gettime64)
 	INTERNAL_SYSCALL_DECL (err);
 # if !defined(__ASSUME_POSIX_TIMERS) || defined(__UCLIBC_USE_TIME64__)
 	int ret =
