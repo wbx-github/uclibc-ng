@@ -6,7 +6,8 @@
 #
 
 libpthread_linux_arch_CSRC = pthread_once.c lowlevellock.c \
-	pthread_barrier_init.c pthread_barrier_wait.c pthread_barrier_destroy.c
+	pthread_barrier_init.c pthread_barrier_wait.c pthread_barrier_destroy.c \
+	sem_init.c sem_post.c sem_timedwait.c sem_trywait.c sem_wait.c
 
 libc_linux_arch_CSRC = fork.c libc-lowlevellock.c
 

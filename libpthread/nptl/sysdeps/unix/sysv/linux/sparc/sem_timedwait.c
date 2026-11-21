@@ -35,6 +35,10 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
   struct sparc_new_sem *isem = (struct sparc_new_sem *) sem;
   int err;
   int val;
+  int cancelhandling;
+
+  /* A cancellation point even when it does not block, as POSIX requires.  */
+  CANCELLATION_P (THREAD_SELF);
 
   if (__atomic_is_v9)
     val = atomic_decrement_if_positive (&isem->value);

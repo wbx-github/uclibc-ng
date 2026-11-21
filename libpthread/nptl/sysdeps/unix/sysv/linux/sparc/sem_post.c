@@ -27,15 +27,36 @@ int
 sem_post (sem_t *sem)
 {
   struct sparc_new_sem *isem = (struct sparc_new_sem *) sem;
-  int nr;
+  int full = 0;
 
   if (__atomic_is_v9)
-    nr = atomic_increment_val (&isem->value);
+    {
+      __typeof (isem->value) cur;
+      do
+	{
+	  cur = isem->value;
+	  if (cur == SEM_VALUE_MAX)
+	    {
+	      full = 1;
+	      break;
+	    }
+	}
+      while (atomic_compare_and_exchange_bool_acq (&isem->value, cur + 1,
+						    cur));
+    }
   else
     {
       __sparc32_atomic_do_lock24 (&isem->lock);
-      nr = ++(isem->value);
+      if (isem->value == SEM_VALUE_MAX)
+	full = 1;
+      else
+	isem->value++;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+    }
+  if (full)
+    {
+      __set_errno (EOVERFLOW);
+      return -1;
     }
   atomic_full_barrier ();
   if (isem->nwaiters > 0)
