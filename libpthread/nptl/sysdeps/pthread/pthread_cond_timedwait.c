@@ -47,6 +47,10 @@ __pthread_cond_timedwait (
   struct _pthread_cleanup_buffer buffer;
   struct _condvar_cleanup_buffer cbuffer;
   int result = 0;
+  int cancelhandling;
+
+  /* An expired timeout never reaches the futex wait.  */
+  CANCELLATION_P (THREAD_SELF);
 
   /* Catch invalid parameters.  */
   if (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000)
