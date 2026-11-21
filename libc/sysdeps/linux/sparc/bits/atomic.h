@@ -80,9 +80,9 @@ volatile unsigned char __sparc32_atomic_locks[64]
 #define __sparc32_atomic_do_unlock(addr) \
   do								      \
     {								      \
+      __asm__ __volatile__ ("" ::: "memory");			      \
       __sparc32_atomic_locks[(((long) addr >> 2)		      \
 			      ^ ((long) addr >> 12)) & 63] = 0;	      \
-      __asm__ __volatile__ ("" ::: "memory");			      \
     }								      \
   while (0)
 
@@ -99,11 +99,13 @@ volatile unsigned char __sparc32_atomic_locks[64]
     }								      \
   while (0)
 
+/* The barrier comes first: it keeps the stores of the critical section
+   from being moved past the store that releases the lock.  */
 #define __sparc32_atomic_do_unlock24(addr) \
   do								      \
     {								      \
-      *(char *) (addr) = 0;					      \
       __asm__ __volatile__ ("" ::: "memory");			      \
+      *(volatile char *) (addr) = 0;				      \
     }								      \
   while (0)
 
