@@ -16,7 +16,7 @@
 
 	.text
 C_ENTRY(__longjmp):
-	/* Save registers */
+	/* Restore registers */
 	mov	r6, ep
 	sld.w	0[ep], sp
 	sld.w	4[ep], lp
@@ -31,7 +31,7 @@ C_ENTRY(__longjmp):
 	sld.w	40[ep], r27
 	sld.w	44[ep], r28
 	sld.w	48[ep], r29
-	mov	1, r10			/* return val */
+	mov	r7, r10			/* return val (longjmp passes val ?: 1) */
 	jmp	[lp]
 C_END(__longjmp)
 libc_hidden_def(__longjmp)
