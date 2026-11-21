@@ -5,6 +5,6 @@
 #
 # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
 
-CSRC-y := syscall.c clone.c
+CSRC-y := syscall.c
 
-SSRC-y := setjmp.S __longjmp.S vfork.S
+SSRC-y := setjmp.S __longjmp.S vfork.S clone.S
