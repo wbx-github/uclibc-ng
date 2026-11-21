@@ -23,8 +23,20 @@
 #include <unistd.h>
 #if defined __ASSUME_NETLINK_SUPPORT || defined __UCLIBC_USE_NETLINK__
 #include <asm/types.h>
+/* Older kernel headers (e.g. Linux 2.6.26) only hide the userspace copies
+   of struct sockaddr, struct iovec, struct ucred, the CMSG macros etc. in
+   <linux/socket.h> if __GLIBC__ >= 2.  features.h does not define __GLIBC__
+   while building libc itself, so pretend to be glibc for these includes.  */
+#ifndef __GLIBC__
+# define __GLIBC__ 2
+# define __UCLIBC_NETLINK_FAKE_GLIBC
+#endif
 #include <linux/rtnetlink.h>
 #include <linux/netlink.h>
+#ifdef __UCLIBC_NETLINK_FAKE_GLIBC
+# undef __GLIBC__
+# undef __UCLIBC_NETLINK_FAKE_GLIBC
+#endif
 
 struct netlink_res
 {
