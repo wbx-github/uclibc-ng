@@ -17,6 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <tcb-offsets.h>
 #include <lowlevellock.h>
 #include <pthread-errnos.h>
 #include <structsem.h>
@@ -38,7 +39,28 @@ sem_wait:
 	cfi_personality(DW_EH_PE_udata4, __gcc_personality_v0)
 	cfi_lsda(DW_EH_PE_udata4, .LexceptSTART)
 #endif
-
+	/* Cancellation point even without blocking, as POSIX requires.
+	   Enabling asynchronous cancellation acts on a pending request.  */
+	movl	%fs:CANCELHANDLING, %eax
+	andl	$(TCB_CANCELSTATE_BITMASK|TCB_CANCELED_BITMASK|TCB_EXITING_BITMASK|TCB_CANCEL_RESTMASK|TCB_TERMINATED_BITMASK), %eax
+	cmpl	$TCB_CANCELED_BITMASK, %eax
+	jne	20f
+	pushq	%rdi
+	cfi_adjust_cfa_offset(8)
+	pushq	%rsi
+	cfi_adjust_cfa_offset(8)
+	subq	$8, %rsp
+	cfi_adjust_cfa_offset(8)
+	call	__pthread_enable_asynccancel
+	movl	%eax, %edi
+	call	__pthread_disable_asynccancel
+	addq	$8, %rsp
+	cfi_adjust_cfa_offset(-8)
+	popq	%rsi
+	cfi_adjust_cfa_offset(-8)
+	popq	%rdi
+	cfi_adjust_cfa_offset(-8)
+20:
 #if VALUE == 0
 	movl	(%rdi), %eax
 #else
