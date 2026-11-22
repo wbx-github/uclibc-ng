@@ -1,0 +1,21 @@
+# Makefile for uClibc-ng
+#
+# Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+#
+
+subdirs += libc/misc/stdbit
+
+CSRC-y := $(notdir $(wildcard $(top_srcdir)libc/misc/stdbit/*.c))
+
+MISC_STDBIT_DIR := $(top_srcdir)libc/misc/stdbit
+MISC_STDBIT_OUT := $(top_builddir)libc/misc/stdbit
+
+MISC_STDBIT_SRC := $(patsubst %.c,$(MISC_STDBIT_DIR)/%.c,$(CSRC-y))
+MISC_STDBIT_OBJ := $(patsubst %.c,$(MISC_STDBIT_OUT)/%.o,$(CSRC-y))
+
+libc-y += $(MISC_STDBIT_OBJ)
+
+objclean-y += CLEAN_libc/misc/stdbit
+
+CLEAN_libc/misc/stdbit:
+	$(do_rm) $(addprefix $(MISC_STDBIT_OUT)/*., o os)
