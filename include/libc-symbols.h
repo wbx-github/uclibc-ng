@@ -51,6 +51,16 @@
 /* Enable declarations of GNU extensions, since we are compiling them.  */
 #define _GNU_SOURCE	1
 
+/* _Static_assert wants gcc 4.6 or C11; avr32 (gcc 4.4) and metag (gcc 4.2)
+   are older.  The fallback is the one glibc's sys/cdefs.h has.  */
+#if !((defined __GNUC__							\
+       && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)))	\
+      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L))
+# define _Static_assert(expr, diagnostic)				\
+  extern int (*__Static_assert_function (void))				\
+    [!!sizeof (struct { int __error_if_negative: (expr) ? 2 : -1; })]
+#endif
+
 /* Prepare for the case that `__builtin_expect' is not available.  */
 #if defined __GNUC__ && __GNUC__ == 2 && __GNUC_MINOR__ < 96
 # define __builtin_expect(x, expected_value) (x)
