@@ -5,7 +5,7 @@
 
 subdirs += libc/misc/uchar
 
-CSRC-y := mbrtoc16.c mbrtoc32.c c16rtomb.c c32rtomb.c
+CSRC-y := mbrtoc16.c mbrtoc32.c c16rtomb.c c32rtomb.c mbrtoc8.c c8rtomb.c
 
 MISC_UCHAR_DIR := $(top_srcdir)libc/misc/uchar
 MISC_UCHAR_OUT := $(top_builddir)libc/misc/uchar

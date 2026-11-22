@@ -43,6 +43,14 @@ size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t 
 size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
 size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
 
+#if defined __USE_ISOC23 || defined __cpp_char8_t
+# ifndef __cpp_char8_t
+typedef unsigned char char8_t;
+# endif
+size_t c8rtomb(char *__restrict, char8_t, mbstate_t *__restrict);
+size_t mbrtoc8(char8_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
