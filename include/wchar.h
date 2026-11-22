@@ -41,6 +41,19 @@
 /* Get va_list definition.  */
 # define __need___va_list
 # include <stdarg.h>
+# ifdef __USE_XOPEN2K8
+#  ifdef __GNUC__
+#   ifndef _VA_LIST_DEFINED
+typedef __gnuc_va_list va_list;
+#    define _VA_LIST_DEFINED
+#   endif
+#  else
+#   include <stdarg.h>
+#  endif
+#  ifdef __UCLIBC_HAS_XLOCALE__
+#   include <xlocale.h>
+#  endif
+# endif
 
 /* Get size_t, wchar_t, wint_t and NULL from <stddef.h>.  */
 # define __need_size_t
@@ -156,7 +169,7 @@ extern int wcsncmp (const wchar_t *__s1, const wchar_t *__s2, size_t __n)
      __THROW __attribute_pure__;
 __END_NAMESPACE_C99
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K8
 /* Compare S1 and S2, ignoring case.  */
 extern int wcscasecmp (const wchar_t *__s1, const wchar_t *__s2) __THROW;
 
@@ -191,7 +204,7 @@ extern size_t wcsxfrm (wchar_t *__restrict __s1,
 		       const wchar_t *__restrict __s2, size_t __n) __THROW;
 __END_NAMESPACE_C99
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K8
 #ifdef __UCLIBC_HAS_XLOCALE__
 /* Similar to the two functions above but take the information from
    the provided locale and not the global locale.  */
@@ -270,7 +283,7 @@ extern wchar_t *wcswcs (const wchar_t *__restrict __haystack, const wchar_t *__r
      __THROW __attribute_pure__;
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K8
 /* Return the number of wide characters in S, but at most MAXLEN.  */
 extern size_t wcsnlen (const wchar_t *__s, size_t __maxlen)
      __THROW __attribute_pure__;
@@ -366,7 +379,7 @@ libc_hidden_proto(wcsrtombs)
 __END_NAMESPACE_C99
 
 
-#ifdef	__USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K8
 /* Write wide character representation of at most NMC bytes of the
    multibyte character string SRC to DST.  */
 extern size_t mbsnrtowcs (wchar_t *__restrict __dst,
@@ -512,7 +525,7 @@ extern long double wcstold_l (const wchar_t *__restrict __nptr,
 #endif /* GNU */
 
 
-#ifdef	__USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K8
 /* Copy SRC to DEST, returning the address of the terminating L'\0' in
    DEST.  */
 extern wchar_t *wcpcpy (wchar_t *__dest, const wchar_t *__src) __THROW;

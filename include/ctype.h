@@ -290,7 +290,8 @@ __NTH (toupper (int __c))
 #endif /* not __NO_CTYPE */
 
 
-#if defined __USE_GNU && defined __UCLIBC_HAS_XLOCALE__
+#if (defined __USE_GNU || defined __USE_XOPEN2K8) \
+    && defined __UCLIBC_HAS_XLOCALE__
 /* The concept of one static locale per category is not very well
    thought out.  Many applications will need to process its data using
    information from several different locales.  Another application is
@@ -333,7 +334,7 @@ libc_hidden_proto(isxdigit_l)
 extern int isblank_l(int, __locale_t) __THROW;
 libc_hidden_proto(isblank_l)
 
-# if (defined __USE_SVID || defined __USE_MISC || defined __USE_XOPEN) \
+# if (defined __USE_SVID || defined __USE_MISC) \
 	&& defined __UCLIBC_SUSV4_LEGACY__
 /* Return nonzero iff C is in the ASCII set
    (i.e., is no more than 7 bits wide).  */
@@ -351,13 +352,13 @@ extern int toupper_l (int __c, __locale_t __l) __THROW;
 
 # define __isctype_l(c, type, locale) ((locale)->__ctype_b[(int) (c)] & (__ctype_mask_t) type)
 # ifndef __NO_CTYPE
-#  if (defined __USE_SVID || defined __USE_MISC || defined __USE_XOPEN) \
+#  if (defined __USE_SVID || defined __USE_MISC) \
 	&& defined __UCLIBC_SUSV4_LEGACY__
 #   define __isascii_l(c,l)	((l), __isascii (c))
 #   define __toascii_l(c,l)	((l), __toascii (c))
 #  endif
 
-#  if (defined __USE_SVID || defined __USE_MISC || defined __USE_XOPEN) \
+#  if (defined __USE_SVID || defined __USE_MISC) \
 	&& defined __UCLIBC_SUSV4_LEGACY__
 #   define isascii_l(c,l)	__isascii_l ((c), (l))
 #   define toascii_l(c,l)	__toascii_l ((c), (l))

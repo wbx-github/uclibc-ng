@@ -74,6 +74,35 @@ typedef struct __STDIO_FILE_STRUCT __FILE;
 # define __need___va_list
 #include <stdarg.h>
 
+#if defined __USE_XOPEN || defined __USE_XOPEN2K8
+# ifdef __GNUC__
+#  ifndef _VA_LIST_DEFINED
+typedef __gnuc_va_list va_list;
+#   define _VA_LIST_DEFINED
+#  endif
+# else
+#  include <stdarg.h>
+# endif
+#endif
+
+#if defined __USE_UNIX98 || defined __USE_XOPEN2K
+# ifndef __off_t_defined
+#  ifndef __USE_FILE_OFFSET64
+typedef __off_t off_t;
+#  else
+typedef __off64_t off_t;
+#  endif
+#  define __off_t_defined
+# endif
+#endif
+
+#ifdef __USE_XOPEN2K8
+# ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+#  define __ssize_t_defined
+# endif
+#endif
+
 /* The type of the second argument to `fgetpos' and `fsetpos'.  */
 __BEGIN_NAMESPACE_STD
 #ifndef __USE_FILE_OFFSET64

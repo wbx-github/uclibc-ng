@@ -237,7 +237,8 @@ extern wint_t towctrans (wint_t __wc, wctrans_t __desc) __THROW;
 libc_hidden_proto(towctrans)
 __END_NAMESPACE_C99
 
-#if defined(__USE_GNU) && defined(__UCLIBC_HAS_XLOCALE__)
+#if (defined __USE_GNU || defined __USE_XOPEN2K8) \
+    && defined __UCLIBC_HAS_XLOCALE__
 /* Declare the interface to extended locale model.  */
 #  include <xlocale.h>
 
