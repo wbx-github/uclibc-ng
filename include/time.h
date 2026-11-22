@@ -108,7 +108,8 @@ typedef __timer_t timer_t;
 
 #if !defined __timespec_defined &&				\
     ((defined _TIME_H &&					\
-      (defined __USE_POSIX199309 || defined __USE_MISC)) ||	\
+      (defined __USE_POSIX199309 || defined __USE_MISC	\
+       || defined __USE_ISOC11)) ||				\
       defined __need_timespec)
 # define __timespec_defined	1
 
@@ -390,6 +391,15 @@ extern int timer_gettime (timer_t __timerid, struct itimerspec *__value)
 extern int timer_getoverrun (timer_t __timerid) __THROW;
 #  endif /* __UCLIBC_HAS_REALTIME__ */
 # endif /* __USE_POSIX199309 */
+
+# ifdef __USE_ISOC11
+/* Time base for timespec_get: the calendar time, as CLOCK_REALTIME.  */
+#  define TIME_UTC	1
+
+/* Set TS to the current time of BASE; return BASE, or 0 on failure.  */
+extern int timespec_get (struct timespec *__ts, int __base)
+     __THROW __nonnull ((1));
+# endif
 
 __END_DECLS
 
