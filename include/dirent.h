@@ -28,7 +28,7 @@ __BEGIN_DECLS
 
 #include <bits/types.h>
 
-#ifdef __USE_XOPEN
+#if defined __USE_XOPEN || defined __USE_XOPEN2K24
 # ifndef __ino_t_defined
 #  ifndef __USE_FILE_OFFSET64
 typedef __ino_t ino_t;
@@ -92,7 +92,7 @@ typedef __ino64_t ino64_t;
 #endif
 
 
-#ifdef __USE_BSD
+#if defined __USE_BSD || defined __USE_XOPEN2K24
 /* File types for `d_type'.  */
 enum
   {
@@ -115,10 +115,42 @@ enum
     DT_WHT = 14
 # define DT_WHT		DT_WHT
   };
+#endif
 
+#ifdef __USE_BSD
 /* Convert between stat structure types and directory types.  */
 # define IFTODT(mode)	(((mode) & 0170000) >> 12)
 # define DTTOIF(dirtype)	((dirtype) << 12)
+#endif
+
+#ifdef __USE_XOPEN2K24
+# define __need_size_t
+# include <stddef.h>
+# ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+#  define __ssize_t_defined
+# endif
+
+typedef unsigned short int reclen_t;
+
+/* An entry as posix_getdents stores it: the kernel's dirent64.  */
+struct posix_dent
+  {
+    ino_t d_ino;
+    __off64_t d_off;
+    reclen_t d_reclen;
+    unsigned char d_type;
+    char d_name[];
+  };
+
+/* Flag for posix_getdents: find out each type rather than leave
+   DT_UNKNOWN.  */
+# define DT_FORCE_TYPE	1
+
+/* Read directory entries from FD into BUF, at most NBYTE bytes; returns
+   the bytes stored, 0 at the end, -1 on error.  */
+extern __ssize_t posix_getdents (int __fd, void *__buf, size_t __nbyte,
+				 int __flags);
 #endif
 
 

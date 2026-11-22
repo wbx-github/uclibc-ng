@@ -9,7 +9,8 @@ subdirs += libc/misc/dirent
 
 CSRC   := alphasort.c readdir.c scandir.c versionsort.c
 CSRC_R := readdir_r.c
-CSRC-y := closedir.c dirfd.c opendir.c rewinddir.c seekdir.c telldir.c $(CSRC) \
+CSRC-y := closedir.c dirfd.c opendir.c posix_getdents.c rewinddir.c seekdir.c \
+		  telldir.c $(CSRC) \
 		  $(CSRC_R)
 CSRC-y += $(patsubst %.c,%64.c,$(CSRC))
 CSRC-y += $(patsubst %_r.c,%64_r.c,$(CSRC_R))
