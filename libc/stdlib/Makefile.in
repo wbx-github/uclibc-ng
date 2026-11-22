@@ -17,7 +17,7 @@ CSRC-y := \
 	lldiv.c getpt.c drand48-iter.c jrand48.c \
 	jrand48_r.c lcong48.c lrand48.c lrand48_r.c mrand48.c mrand48_r.c nrand48.c \
 	nrand48_r.c rand_r.c srand48.c srand48_r.c seed48.c seed48_r.c \
-	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c quick_exit.c
+	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c quick_exit.c call_once.c
 CSRC-$(UCLIBC_SUSV2_LEGACY) += valloc.c
 CSRC-$(UCLIBC_HAS_ADVANCED_REALTIME) += posix_memalign.c
 CSRC-$(UCLIBC_HAS_PTY) += grantpt.c unlockpt.c ptsname.c
@@ -30,6 +30,10 @@ CSRC-$(UCLIBC_SUSV3_LEGACY) += mktemp.c
 ifneq ($(UCLIBC_HAS_BACKTRACE),)
 CFLAGS-abort.c = -fasynchronous-unwind-tables
 endif
+
+# call_once runs a callback of the caller's, so an exception has to be
+# able to pass through it; nothing here depends on backtrace support.
+CFLAGS-call_once.c = -fexceptions
 
 # multi source stdlib.c
 CSRC-y += abs.c labs.c atoi.c atol.c strtol.c strtoul.c _stdlib_strto_l.c \

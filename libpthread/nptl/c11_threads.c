@@ -23,8 +23,6 @@ _Static_assert (sizeof (thrd_t) == sizeof (pthread_t),
 		"thrd_t does not match pthread_t");
 _Static_assert (sizeof (tss_t) == sizeof (pthread_key_t),
 		"tss_t does not match pthread_key_t");
-_Static_assert (sizeof (once_flag) == sizeof (pthread_once_t),
-		"once_flag does not match pthread_once_t");
 
 static int
 thrd_err_map (int err)
@@ -193,12 +191,6 @@ void
 mtx_destroy (mtx_t *mutex)
 {
   pthread_mutex_destroy ((pthread_mutex_t *) mutex);
-}
-
-void
-call_once (once_flag *flag, void (*func) (void))
-{
-  pthread_once ((pthread_once_t *) flag, func);
 }
 
 int

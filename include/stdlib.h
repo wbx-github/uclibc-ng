@@ -1011,6 +1011,22 @@ extern int __drand48_iterate (unsigned short int xsubi[3], struct drand48_data *
 extern struct drand48_data __libc_drand48_data attribute_hidden;
 #endif
 
+#ifdef __USE_ISOC23
+/* C23 has these in <stdlib.h> as well as in <threads.h>.  */
+# ifndef __once_flag_defined
+#  define __once_flag_defined 1
+typedef struct
+{
+  int __data;
+} __attribute__ ((__aligned__ (4))) once_flag;
+#  define ONCE_FLAG_INIT { 0 }
+# endif
+
+/* Call FUNC exactly once, even if invoked from several threads.  All
+   calls must use the same FLAG.  */
+extern void call_once (once_flag *__flag, void (*__func) (void));
+#endif
+
 #endif /* don't just need malloc and calloc */
 #undef __need_malloc_and_calloc
 
