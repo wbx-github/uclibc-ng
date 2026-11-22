@@ -17,12 +17,13 @@ CSRC-y := \
 	lldiv.c getpt.c drand48-iter.c jrand48.c \
 	jrand48_r.c lcong48.c lrand48.c lrand48_r.c mrand48.c mrand48_r.c nrand48.c \
 	nrand48_r.c rand_r.c srand48.c srand48_r.c seed48.c seed48_r.c \
-	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c quick_exit.c call_once.c
+	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c quick_exit.c \
+	call_once.c memalignment.c free_sized.c
 CSRC-$(UCLIBC_SUSV2_LEGACY) += valloc.c
 CSRC-$(UCLIBC_HAS_ADVANCED_REALTIME) += posix_memalign.c
 CSRC-$(UCLIBC_HAS_PTY) += grantpt.c unlockpt.c ptsname.c
 CSRC-y += mkstemp64.c mkostemp64.c mkstemps64.c mkostemps64.c
-CSRC-$(UCLIBC_HAS_FLOATS) += drand48.c drand48_r.c erand48.c erand48_r.c
+CSRC-$(UCLIBC_HAS_FLOATS) += drand48.c drand48_r.c erand48.c erand48_r.c strfrom.c
 CSRC-$(if $(findstring yy,$(UCLIBC_HAS_FLOATS)$(UCLIBC_SUSV3_LEGACY)),y) += \
 	gcvt.c
 CSRC-$(UCLIBC_SUSV3_LEGACY) += mktemp.c

@@ -1025,6 +1025,28 @@ typedef struct
 /* Call FUNC exactly once, even if invoked from several threads.  All
    calls must use the same FLAG.  */
 extern void call_once (once_flag *__flag, void (*__func) (void));
+
+/* Free memory obtained with the given SIZE (and ALIGNMENT).  */
+extern void free_sized (void *__ptr, size_t __size) __THROW;
+extern void free_aligned_sized (void *__ptr, size_t __alignment,
+				size_t __size) __THROW;
+
+/* The alignment of P: the largest power of two dividing its address.  */
+extern size_t memalignment (const void *__p) __THROW;
+
+# ifdef __UCLIBC_HAS_FLOATS__
+/* Write FP to S like snprintf with FORMAT, which may only be
+   "%[.precision]" followed by one of aAeEfFgG.  */
+extern int strfromd (char *__restrict __s, size_t __n,
+		     const char *__restrict __format, double __fp)
+     __THROW __nonnull ((3));
+extern int strfromf (char *__restrict __s, size_t __n,
+		     const char *__restrict __format, float __fp)
+     __THROW __nonnull ((3));
+extern int strfroml (char *__restrict __s, size_t __n,
+		     const char *__restrict __format, long double __fp)
+     __THROW __nonnull ((3));
+# endif
 #endif
 
 #endif /* don't just need malloc and calloc */
