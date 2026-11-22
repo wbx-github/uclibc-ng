@@ -37,12 +37,9 @@ struct _condvar_cleanup_buffer
   unsigned int bc_seq;
 };
 
-int
-attribute_protected
-__pthread_cond_timedwait (
-     pthread_cond_t *cond,
-     pthread_mutex_t *mutex,
-     const struct timespec *abstime)
+static int
+__pthread_cond_wait_clock (pthread_cond_t *cond, pthread_mutex_t *mutex,
+			   clockid_t clockid, const struct timespec *abstime)
 {
   struct _pthread_cleanup_buffer buffer;
   struct _condvar_cleanup_buffer cbuffer;
@@ -112,8 +109,7 @@ __pthread_cond_timedwait (
 # endif
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_clock_gettime64)
 	INTERNAL_SYSCALL (clock_gettime64, err, 2,
-				(cond->__data.__nwaiters
-				 & ((1 << COND_NWAITERS_SHIFT) - 1)),
+				clockid,
 				&__rt64);
 
   if (ret == 0) {
@@ -123,8 +119,7 @@ __pthread_cond_timedwait (
 
 #else
 	INTERNAL_SYSCALL (clock_gettime, err, 2,
-				(cond->__data.__nwaiters
-				 & ((1 << COND_NWAITERS_SHIFT) - 1)),
+				clockid,
 				&rt);
 #endif
 
@@ -236,4 +231,26 @@ __pthread_cond_timedwait (
   return err ?: result;
 }
 
+int
+attribute_protected
+__pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
+			  const struct timespec *abstime)
+{
+  /* The clock of the condattr sits in the low bits of __nwaiters.  */
+  return __pthread_cond_wait_clock (cond, mutex,
+				    cond->__data.__nwaiters
+				    & ((1 << COND_NWAITERS_SHIFT) - 1),
+				    abstime);
+}
+
 weak_alias(__pthread_cond_timedwait, pthread_cond_timedwait)
+
+int
+pthread_cond_clockwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
+			clockid_t clockid, const struct timespec *abstime)
+{
+  if (clockid != CLOCK_REALTIME && clockid != CLOCK_MONOTONIC)
+    return EINVAL;
+
+  return __pthread_cond_wait_clock (cond, mutex, clockid, abstime);
+}
