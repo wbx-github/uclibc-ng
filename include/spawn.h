@@ -262,13 +262,8 @@ int posix_spawn_file_actions_init (posix_spawn_file_actions_t *
 }
 
 /* Free resources associated with FILE-ACTIONS.  */
-static inline
-int posix_spawn_file_actions_destroy (posix_spawn_file_actions_t *
-					     __file_actions)
-{
-  free (__file_actions->__actions);
-  return 0;
-}
+extern int posix_spawn_file_actions_destroy (posix_spawn_file_actions_t *
+					     __file_actions) __THROW;
 
 /* Add an action to FILE-ACTIONS which tells the implementation to call
    `open' for the given file during the `spawn' call.  */

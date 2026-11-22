@@ -17,6 +17,8 @@
 
 #include <errno.h>
 #include <spawn.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "spawn_int.h"
@@ -30,6 +32,7 @@ posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *file_actions,
 {
 	int maxfd = sysconf(_SC_OPEN_MAX);
 	struct __spawn_action *rec;
+	char *copy;
 
 	/* Test for the validity of the file descriptor.  */
 	if (fd < 0 || fd >= maxfd)
@@ -41,11 +44,16 @@ posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *file_actions,
 		/* This can only mean we ran out of memory.  */
 		return ENOMEM;
 
+	/* POSIX has the path copied; destroy frees it.  */
+	copy = strdup(path);
+	if (copy == NULL)
+		return ENOMEM;
+
 	/* Add the new value.  */
 	rec = &file_actions->__actions[file_actions->__used];
 	rec->tag = spawn_do_open;
 	rec->action.open_action.fd = fd;
-	rec->action.open_action.path = path;
+	rec->action.open_action.path = copy;
 	rec->action.open_action.oflag = oflag;
 	rec->action.open_action.mode = mode;
 

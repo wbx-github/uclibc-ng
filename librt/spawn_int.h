@@ -16,7 +16,7 @@ struct __spawn_action {
 		} dup2_action;
 		struct {
 			int fd;
-			const char *path;
+			char *path;
 			int oflag;
 			mode_t mode;
 		} open_action;
