@@ -23,6 +23,9 @@
 
    __STRICT_ANSI__	ISO Standard C.
    _ISOC99_SOURCE	Extensions to ISO C89 from ISO C99.
+   _ISOC11_SOURCE	Extensions to ISO C99 from ISO C11.
+   _ISOC23_SOURCE	Extensions to ISO C11 from ISO C23.
+   _ISOC2X_SOURCE	Old name for _ISOC23_SOURCE.
    _POSIX_SOURCE	IEEE Std 1003.1.
    _POSIX_C_SOURCE	If ==1, like _POSIX_SOURCE; if >=2 add IEEE Std 1003.2;
 			if >=199309L, add IEEE Std 1003.1b-1993;
@@ -59,6 +62,7 @@
    These are defined by this file and are used by the
    header files to decide what to declare or define:
 
+   __USE_ISOC23		Define ISO C23 things.
    __USE_ISOC11		Define ISO C11 things.
    __USE_ISOC99		Define ISO C99 things.
    __USE_ISOC95		Define ISO C90 AMD1 (C95) things.
@@ -96,6 +100,7 @@
 
 
 /* Undefine everything, so we get a clean slate.  */
+#undef	__USE_ISOC23
 #undef	__USE_ISOC11
 #undef	__USE_ISOC99
 #undef	__USE_ISOC95
@@ -174,8 +179,17 @@
 # endif
 #endif
 
+/* Remap the old name _ISOC2X_SOURCE to _ISOC23_SOURCE.  */
+#ifdef _ISOC2X_SOURCE
+# undef  _ISOC2X_SOURCE
+# undef  _ISOC23_SOURCE
+# define _ISOC23_SOURCE	1
+#endif
+
 /* If _GNU_SOURCE was defined by the user, turn on all the other features.  */
 #ifdef _GNU_SOURCE
+# undef  _ISOC23_SOURCE
+# define _ISOC23_SOURCE	1
 # undef  _ISOC99_SOURCE
 # define _ISOC99_SOURCE	1
 # undef  _ISOC11_SOURCE
@@ -251,10 +265,16 @@
 # define _SVID_SOURCE	1
 #endif
 
+/* This is to enable the ISO C23 extension.  */
+#if (defined _ISOC23_SOURCE \
+     || (defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L))
+# define __USE_ISOC23	1
+#endif
+
 /* This is to enable the ISO C11 extension. ISO C++17 incorporates the
    ISO C11 library, so enable it for C++17 as well: __STDC_VERSION__ is
    not defined when compiling C++.  */
-#if (defined _ISOC11_SOURCE \
+#if (defined _ISOC11_SOURCE || defined _ISOC23_SOURCE \
      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L) \
      || (defined __cplusplus && __cplusplus >= 201703L))
 # define __USE_ISOC11	1
@@ -262,6 +282,7 @@
 
 /* This is to enable the ISO C99 extension.  */
 #if (defined _ISOC99_SOURCE || defined _ISOC11_SOURCE \
+     || defined _ISOC23_SOURCE \
      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L))
 # define __USE_ISOC99	1
 #endif
