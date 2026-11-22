@@ -1816,6 +1816,12 @@ int attribute_hidden __psfs_do_numeric(psfs_t *psfs, struct scan_cookie *sc)
 				*b++ = '0';
 				*b++ = 'x';
 #endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
+			} else if (((sc->cc|0x20) == 'b') /* C23: %i takes 0b too. */
+					   && (psfs->conv_num == CONV_i)) {
+				if (__scan_getc(sc) < 0) {
+					goto DONE_DO_UNGET;	/* matching failure (we read 0b) */
+				}
+				base = 2;
 			} else { /* oops... back up */
 				__scan_ungetc(sc);
 				sc->cc = '0';	/* NASTY HACK! */

@@ -468,19 +468,22 @@ unsigned long attribute_hidden __XL_NPP(_stdlib_strto_l)(register const Wchar * 
 		case '+': ++str;
 	}
 
-	if (!(base & ~0x10)) {		/* Either dynamic (base = 0) or base 16. */
-		base += 10;				/* Default is 10 (26). */
+	/* Prefixes: 0x for base 0 and 16, 0b (C23) for base 0 and 2. */
+	if ((base == 0) || (base == 2) || (base == 16)) {
 		if (*str == '0') {
 			SET_FAIL(++str);
-			base -= 2;			/* Now base is 8 or 16 (24). */
-			if ((0x20|(*str)) == 'x') { /* WARNING: assumes ascii. */
+			/* WARNING: assumes ascii. */
+			if (((0x20|(*str)) == 'x') && (base != 2)) {
 				++str;
-				base += base;	/* Base is 16 (16 or 48). */
+				base = 16;
+			} else if (((0x20|(*str)) == 'b') && (base != 16)) {
+				++str;
+				base = 2;
+			} else if (base == 0) {
+				base = 8;
 			}
-		}
-
-		if (base > 16) {		/* Adjust in case base wasn't dynamic. */
-			base = 16;
+		} else if (base == 0) {
+			base = 10;
 		}
 	}
 
@@ -616,19 +619,22 @@ unsigned long long attribute_hidden __XL_NPP(_stdlib_strto_ll)(register const Wc
 		case '+': ++str;
 	}
 
-	if (!(base & ~0x10)) {		/* Either dynamic (base = 0) or base 16. */
-		base += 10;				/* Default is 10 (26). */
+	/* Prefixes: 0x for base 0 and 16, 0b (C23) for base 0 and 2. */
+	if ((base == 0) || (base == 2) || (base == 16)) {
 		if (*str == '0') {
 			SET_FAIL(++str);
-			base -= 2;			/* Now base is 8 or 16 (24). */
-			if ((0x20|(*str)) == 'x') { /* WARNING: assumes ascii. */
+			/* WARNING: assumes ascii. */
+			if (((0x20|(*str)) == 'x') && (base != 2)) {
 				++str;
-				base += base;	/* Base is 16 (16 or 48). */
+				base = 16;
+			} else if (((0x20|(*str)) == 'b') && (base != 16)) {
+				++str;
+				base = 2;
+			} else if (base == 0) {
+				base = 8;
 			}
-		}
-
-		if (base > 16) {		/* Adjust in case base wasn't dynamic. */
-			base = 16;
+		} else if (base == 0) {
+			base = 10;
 		}
 	}
 
