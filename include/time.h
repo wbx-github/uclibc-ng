@@ -26,6 +26,10 @@
 # define _TIME_H	1
 # include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_TIME_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 #endif
@@ -251,7 +255,7 @@ extern struct tm *localtime (const time_t *__timer) __THROW;
 libc_hidden_proto(localtime)
 __END_NAMESPACE_STD
 
-# if defined __USE_POSIX || defined __USE_MISC
+# if defined __USE_POSIX || defined __USE_MISC || defined __USE_ISOC23
 /* Return the `struct tm' representation of *TIMER in UTC,
    using *TP to store the result.  */
 extern struct tm *gmtime_r (const time_t *__restrict __timer,
@@ -318,7 +322,7 @@ libc_hidden_proto(stime)
   ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
 
 
-# ifdef __USE_MISC
+# if defined __USE_MISC || defined __USE_ISOC23
 /* Miscellaneous functions many Unices inherited from the public domain
    localtime package.  These are included only for compatibility.  */
 

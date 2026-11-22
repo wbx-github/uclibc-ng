@@ -27,6 +27,10 @@
 #include <math.h>
 #include <complex.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_TGMATH_H__	202311L
+#endif
+
 
 /* Since `complex' is currently not really implemented in most C compilers
    and if it is implemented, the implementations differ.  This makes it

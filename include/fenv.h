@@ -78,6 +78,13 @@ extern int fesetexceptflag (const fexcept_t *__flagp, int __excepts) __THROW;
    currently set.  */
 extern int fetestexcept (int __excepts) __THROW;
 
+#ifdef __USE_ISOC23
+/* Which of the exceptions in EXCEPTS are set in the representation
+   pointed to by FLAGP, as fegetexceptflag stored it (ISO C23).  */
+extern int fetestexceptflag (const fexcept_t *__flagp, int __excepts)
+     __THROW;
+#endif
+
 
 /* Rounding control.  */
 

@@ -139,6 +139,56 @@
 # endif
 #endif
 
+/* The width macros of ISO C23.  gcc's <limits.h> above has them only
+   from gcc 7 and only when __STDC_VERSION__ says C23, the _Bool ones
+   only from gcc 11 and the version macro only from gcc 13, so fill in
+   what is missing.  */
+#ifdef __USE_ISOC23
+# include <bits/wordsize.h>
+# ifndef CHAR_WIDTH
+#  define CHAR_WIDTH	8
+# endif
+# ifndef SCHAR_WIDTH
+#  define SCHAR_WIDTH	8
+# endif
+# ifndef UCHAR_WIDTH
+#  define UCHAR_WIDTH	8
+# endif
+# ifndef SHRT_WIDTH
+#  define SHRT_WIDTH	16
+# endif
+# ifndef USHRT_WIDTH
+#  define USHRT_WIDTH	16
+# endif
+# ifndef INT_WIDTH
+#  define INT_WIDTH	32
+# endif
+# ifndef UINT_WIDTH
+#  define UINT_WIDTH	32
+# endif
+# ifndef LONG_WIDTH
+#  define LONG_WIDTH	__WORDSIZE
+# endif
+# ifndef ULONG_WIDTH
+#  define ULONG_WIDTH	__WORDSIZE
+# endif
+# ifndef LLONG_WIDTH
+#  define LLONG_WIDTH	64
+# endif
+# ifndef ULLONG_WIDTH
+#  define ULLONG_WIDTH	64
+# endif
+# ifndef BOOL_MAX
+#  define BOOL_MAX	1
+# endif
+# ifndef BOOL_WIDTH
+#  define BOOL_WIDTH	1
+# endif
+# ifndef __STDC_VERSION_LIMITS_H__
+#  define __STDC_VERSION_LIMITS_H__	202311L
+# endif
+#endif
+
 #ifdef	__USE_POSIX
 /* POSIX adds things to <limits.h>.  */
 # include <bits/posix1_lim.h>

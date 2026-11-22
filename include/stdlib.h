@@ -23,6 +23,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_STDLIB_H__	202311L
+#endif
+
 /* Get size_t, wchar_t and NULL from <stddef.h>.  */
 #define		__need_size_t
 #ifndef __need_malloc_and_calloc

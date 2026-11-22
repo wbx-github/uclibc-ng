@@ -26,6 +26,10 @@
 # define _STDIO_H	1
 # include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_STDIO_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 # define __need_size_t

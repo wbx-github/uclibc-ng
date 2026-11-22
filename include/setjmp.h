@@ -24,6 +24,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_SETJMP_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 #include <bits/setjmp.h>		/* Get `__jmp_buf'.  */

@@ -24,6 +24,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_COMPLEX_H__	202311L
+#endif
+
 /* Get general and ISO C99 specific information.  */
 #include <bits/mathdef.h>
 

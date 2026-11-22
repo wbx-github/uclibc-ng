@@ -110,7 +110,7 @@ libm_CSRC := \
 	w_scalb.c w_scalbf.c w_scalbl.c 
 
 ifeq ($(UCLIBC_HAS_FENV),y)
-	libm_CSRC += k_standard.c k_standardf.c k_standardl.c
+	libm_CSRC += k_standard.c k_standardf.c k_standardl.c ftestexceptflag.c
 endif
 
 FL_MOBJ := \

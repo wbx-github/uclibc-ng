@@ -37,6 +37,10 @@ typedef unsigned char32_t;
 
 #include <wchar.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_UCHAR_H__	202311L
+#endif
+
 size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
 size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
 
