@@ -22,15 +22,27 @@
 #include <lowlevellock.h>
 #include <internaltypes.h>
 #include <semaphore.h>
+#include <time.h>
 
 #include <pthreadP.h>
 
 
+#ifdef SEM_CLOCKWAIT_ONLY
+/* sem_wait is in assembly and has no C cleanup handler.  */
+static void
+__sem_wait_cleanup (void *arg)
+{
+  struct new_sem *isem = (struct new_sem *) arg;
+
+  atomic_decrement (&isem->nwaiters);
+}
+#else
 extern void __sem_wait_cleanup (void *arg) attribute_hidden;
+#endif
 
 
-int
-sem_timedwait (sem_t *sem, const struct timespec *abstime)
+static int
+__sem_clockwait (sem_t *sem, clockid_t clockid, const struct timespec *abstime)
 {
   struct new_sem *isem = (struct new_sem *) sem;
   int err;
@@ -54,16 +66,16 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
 
   while (1)
     {
-      struct timeval tv;
+      struct timespec now;
       struct timespec rt;
       int sec, nsec;
 
       /* Get the current time.  */
-      __gettimeofday (&tv, NULL);
+      clock_gettime (clockid, &now);
 
       /* Compute relative timeout.  */
-      sec = abstime->tv_sec - tv.tv_sec;
-      nsec = abstime->tv_nsec - tv.tv_usec * 1000;
+      sec = abstime->tv_sec - now.tv_sec;
+      nsec = abstime->tv_nsec - now.tv_nsec;
       if (nsec < 0)
 	{
 	  nsec += 1000000000;
@@ -111,4 +123,24 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
   atomic_decrement (&isem->nwaiters);
 
   return err;
+}
+
+#ifndef SEM_CLOCKWAIT_ONLY
+int
+sem_timedwait (sem_t *sem, const struct timespec *abstime)
+{
+  return __sem_clockwait (sem, CLOCK_REALTIME, abstime);
+}
+#endif
+
+int
+sem_clockwait (sem_t *sem, clockid_t clockid, const struct timespec *abstime)
+{
+  if (clockid != CLOCK_REALTIME && clockid != CLOCK_MONOTONIC)
+    {
+      __set_errno (EINVAL);
+      return -1;
+    }
+
+  return __sem_clockwait (sem, clockid, abstime);
 }

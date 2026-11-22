@@ -62,6 +62,16 @@ extern int sem_timedwait (sem_t *__restrict __sem,
 			  const struct timespec *__restrict __abstime);
 #endif
 
+#ifdef __USE_GNU
+/* Like sem_timedwait, but ABSTIME is measured against CLOCK_ID
+   (CLOCK_REALTIME or CLOCK_MONOTONIC).
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+extern int sem_clockwait (sem_t *__restrict __sem, __clockid_t __clock_id,
+			  const struct timespec *__restrict __abstime);
+#endif
+
 /* Test whether SEM is posted.  */
 extern int sem_trywait (sem_t *__sem) __THROWNL;
 

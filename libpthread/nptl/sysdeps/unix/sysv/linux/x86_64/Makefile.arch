@@ -11,7 +11,7 @@ libpthread_linux_arch_SSRC = pthread_once.S \
 	sem_trywait.S sem_wait.S pthread_rwlock_rdlock.S pthread_rwlock_wrlock.S \
 	pthread_rwlock_timedrdlock.S pthread_rwlock_timedwrlock.S pthread_rwlock_unlock.S \
 	pthread_spin_unlock.S cancellation.S
-libpthread_linux_arch_CSRC = pthread_spin_init.c
+libpthread_linux_arch_CSRC = pthread_spin_init.c sem_clockwait.c
 
 libc_linux_arch_CSRC = fork.c
 libc_linux_arch_SSRC = libc-cancellation.S libc-lowlevellock.S
