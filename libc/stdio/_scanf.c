@@ -390,9 +390,7 @@ libc_hidden_def(vswscanf)
 
 
 
-/* float layout          0123456789012345678901  repeat n for "l[" */
-#define SPEC_CHARS		"npxXoudifFeEgGaACSnmcs["
-/*                       npxXoudif eEgG  CS  cs[ */
+#define SPEC_CHARS		"npxXboudifFeEgGaACSnmcs["
 /* NOTE: the 'm' flag must come before any convs that support it */
 
 /* NOTE: Ordering is important!  The CONV_{C,S,LEFTBRACKET} must map
@@ -401,7 +399,7 @@ libc_hidden_def(vswscanf)
 enum {
 	CONV_n = 0,
 	CONV_p,
-	CONV_x, CONV_X,	CONV_o,	CONV_u,	CONV_d,	CONV_i,
+	CONV_x, CONV_X,	CONV_b,	CONV_o,	CONV_u,	CONV_d,	CONV_i,
 	CONV_f, CONV_F, CONV_e, CONV_E, CONV_g, CONV_G, CONV_a, CONV_A,
 	CONV_C, CONV_S, CONV_LEFTBRACKET, CONV_m, CONV_c, CONV_s, CONV_leftbracket,
 	CONV_percent, CONV_whitespace /* not in SPEC_* and no flags */
@@ -409,15 +407,15 @@ enum {
 
 #ifdef __UCLIBC_HAS_FLOATS__
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
-/*                         p   x   X  o   u   d   i   f   F   e   E   g   G   a   A */
-#define SPEC_BASE		{ 16, 16, 16, 8, 10, 10,  0,  0,  0,  0,  0,  0,  0,  0,  0 }
+/*                         p   x   X  b  o   u   d   i   f   F   e   E   g   G   a   A */
+#define SPEC_BASE		{ 16, 16, 16, 2, 8, 10, 10,  0,  0,  0,  0,  0,  0,  0,  0,  0 }
 #else
-/*                         p   x   X  o   u   d   i   f   F   e   E   g   G   a   A */
-#define SPEC_BASE		{ 16, 16, 16, 8, 10, 10,  0, 10, 10, 10, 10, 10, 10, 10, 10 }
+/*                         p   x   X  b  o   u   d   i   f   F   e   E   g   G   a   A */
+#define SPEC_BASE		{ 16, 16, 16, 2, 8, 10, 10,  0, 10, 10, 10, 10, 10, 10, 10, 10 }
 #endif
 #else  /* __UCLIBC_HAS_FLOATS__ */
-/*                         p   x   X  o   u   d   i   f   F   e   E   g   G   a   A */
-#define SPEC_BASE		{ 16, 16, 16, 8, 10, 10,  0 }
+/*                         p   x   X  b  o   u   d   i   f   F   e   E   g   G   a   A */
+#define SPEC_BASE		{ 16, 16, 16, 2, 8, 10, 10,  0 }
 #endif /* __UCLIBC_HAS_FLOATS__ */
 
 #define SPEC_FLAGS		"*'I"
@@ -439,7 +437,7 @@ enum {
 #define SPEC_ALLOWED_FLAGS		{ \
 	/* n */			(0x0f|FLAG_SURPRESS), \
 	/* p */			(   0|FLAG_SURPRESS), \
-	/* oxXudi */	(0x0f|FLAG_SURPRESS|FLAG_THOUSANDS|FLAG_I18N), \
+	/* xXboudi */	(0x0f|FLAG_SURPRESS|FLAG_THOUSANDS|FLAG_I18N), \
 	/* fFeEgGaA */	(0x0c|FLAG_SURPRESS|FLAG_THOUSANDS|FLAG_I18N), \
 	/* C */			(   0|FLAG_SURPRESS), \
 	/* S and l[ */	(   0|FLAG_SURPRESS|FLAG_MALLOC), \
@@ -503,6 +501,10 @@ enum {
 #else
 #error fix QUAL_CHARS intmax_t entry 'j'!
 #endif
+
+/* The QUAL_CHARS size code for an unsigned type with maximum M.  */
+#define WN_QUAL(M)	((M) == UCHAR_MAX ? 1 : (M) == USHRT_MAX ? 2 \
+			 : (M) == UINT_MAX ? 0 : (M) == ULONG_MAX ? 4 : 8)
 
 #define QUAL_CHARS		{ \
 	/* j:(u)intmax_t z:(s)size_t  t:ptrdiff_t  \0:int  q:long_long */ \
@@ -829,18 +831,47 @@ int attribute_hidden __psfs_parse_spec(register psfs_t *psfs)
 #if defined(NL_ARGMAX) && (NL_ARGMAX > 0)
  DO_QUALIFIER:
 #endif /* defined(NL_ARGMAX) && (NL_ARGMAX > 0) */
-	p = qual_chars;
-	do {
-		if (*psfs->fmt == *p) {
+	if (*psfs->fmt == 'w') {		/* C23 wN and wfN */
+		int fast = 0;
+
+		if (*++psfs->fmt == 'f') {
+			fast = 1;
 			++psfs->fmt;
-			break;
 		}
-	} while (*++p);
-	if ((p - qual_chars < 2) && (*psfs->fmt == *p)) {
-		p += ((sizeof(qual_chars)-2) / 2);
-		++psfs->fmt;
+		for (i = 0; __isdigit_char(*psfs->fmt) && (i < 100); ++psfs->fmt) {
+			i = i * 10 + (*psfs->fmt - '0');
+		}
+		switch (i) {
+		case 8:
+			i = WN_QUAL(fast ? UINT_FAST8_MAX : UINT8_MAX);
+			break;
+		case 16:
+			i = WN_QUAL(fast ? UINT_FAST16_MAX : UINT16_MAX);
+			break;
+		case 32:
+			i = WN_QUAL(fast ? UINT_FAST32_MAX : UINT32_MAX);
+			break;
+		case 64:
+			i = WN_QUAL(fast ? UINT_FAST64_MAX : UINT64_MAX);
+			break;
+		default:
+			goto ERROR_EINVAL;
+		}
+		psfs->dataargtype = i << 8;
+	} else {
+		p = qual_chars;
+		do {
+			if (*psfs->fmt == *p) {
+				++psfs->fmt;
+				break;
+			}
+		} while (*++p);
+		if ((p - qual_chars < 2) && (*psfs->fmt == *p)) {
+			p += ((sizeof(qual_chars)-2) / 2);
+			++psfs->fmt;
+		}
+		psfs->dataargtype = ((int)(p[(sizeof(qual_chars)-2) / 2])) << 8;
 	}
-	psfs->dataargtype = ((int)(p[(sizeof(qual_chars)-2) / 2])) << 8;
 
 	p = spec_chars;
 	do {
@@ -1712,7 +1743,11 @@ int attribute_hidden __psfs_do_numeric(psfs_t *psfs, struct scan_cookie *sc)
 #ifdef __UCLIBC_HAS_FLOATS__
 	int exp_adjust = 0;
 #endif
-#define MAX_DIGITS 65			/* Allow one leading 0. */
+/* The limit below counts everything in buf, and a sign and one leading
+   0 may sit there before the digits.  %b needs 64 binary digits plus
+   one more, so that a 65-bit value still reaches strtoul and overflows
+   there instead of being silently cut.  */
+#define MAX_DIGITS 67
 	unsigned char buf[MAX_DIGITS+2+ 100];
 	unsigned char usflag, base;
 	unsigned char nonzero __attribute__((unused)) = 0;
@@ -1794,6 +1829,16 @@ int attribute_hidden __psfs_do_numeric(psfs_t *psfs, struct scan_cookie *sc)
 			}
 		} else if (!base) {
 			base = 10;
+		}
+	} else if ((base == 2) && (sc->cc == '0')) { /* Optional 0b or 0B. */
+		__scan_getc(sc);
+		if ((sc->cc|0x20) == 'b') { /* Assumes ascii.. b or B. */
+			if (__scan_getc(sc) < 0) {
+				goto DONE_DO_UNGET;	/* matching failure (we read 0b) */
+			}
+		} else { /* oops... back up */
+			__scan_ungetc(sc);
+			sc->cc = '0';	/* NASTY HACK! */
 		}
 	}
 

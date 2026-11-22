@@ -182,12 +182,11 @@ enum {
 
 /**********************************************************************/
 
-/* float layout          01234567890123456789   TODO: B?*/
-#define SPEC_CHARS		"npxXoudifFeEgGaACScs"
+#define SPEC_CHARS		"npxXbBoudifFeEgGaACScs"
 enum {
 	CONV_n = 0,
 	CONV_p,
-	CONV_x, CONV_X,	CONV_o,	CONV_u,	CONV_d,	CONV_i,
+	CONV_x, CONV_X,	CONV_b,	CONV_B,	CONV_o,	CONV_u,	CONV_d,	CONV_i,
 	CONV_f, CONV_F, CONV_e, CONV_E, CONV_g, CONV_G, CONV_a, CONV_A,
 	CONV_C, CONV_S, CONV_c, CONV_s,
 #ifdef __UCLIBC_HAS_PRINTF_M_SPEC__
@@ -196,8 +195,8 @@ enum {
 	CONV_custom0				/* must be last */
 };
 
-/*                         p   x   X  o   u   d   i */
-#define SPEC_BASE       { 16, 16, 16, 8, 10, 10, 10 }
+/*                         p   x   X  b  B  o   u   d   i */
+#define SPEC_BASE       { 16, 16, 16, 2, 2, 8, 10, 10, 10 }
 
 #define SPEC_RANGES     { CONV_n, CONV_p, CONV_i, CONV_A, \
                           CONV_C, CONV_S, CONV_c, CONV_s, CONV_custom0 }
@@ -205,7 +204,7 @@ enum {
 #define SPEC_OR_MASK		 { \
 	/* n */			(PA_FLAG_PTR|PA_INT), \
 	/* p */			PA_POINTER, \
-	/* oxXudi */	PA_INT, \
+	/* xXbBoudi */	PA_INT, \
 	/* fFeEgGaA */	PA_DOUBLE, \
 	/* C */			PA_WCHAR, \
 	/* S */			PA_WSTRING, \
@@ -216,7 +215,7 @@ enum {
 #define SPEC_AND_MASK		{ \
 	/* n */			(PA_FLAG_PTR|__PA_INTMASK), \
 	/* p */			PA_POINTER, \
-	/* oxXudi */	(__PA_INTMASK), \
+	/* xXbBoudi */	(__PA_INTMASK), \
 	/* fFeEgGaA */	(PA_FLAG_LONG_DOUBLE|PA_DOUBLE), \
 	/* C */			(PA_WCHAR), \
 	/* S */			(PA_WSTRING), \
@@ -279,6 +278,10 @@ enum {
 #else
 # error fix QUAL_CHARS intmax_t entry 'j'!
 #endif
+
+/* The QUAL_CHARS size code for an unsigned type with maximum M.  */
+#define WN_QUAL(M)	((M) == UCHAR_MAX ? 1 : (M) == USHRT_MAX ? 2 \
+			 : (M) == UINT_MAX ? 0 : (M) == ULONG_MAX ? 4 : 8)
 
 #define QUAL_CHARS		{ \
 	/* j:(u)intmax_t z:(s)size_t  t:ptrdiff_t  \0:int */ \
@@ -782,7 +785,7 @@ int attribute_hidden _ppfs_parsespec(ppfs_t *ppfs)
 	int argtype[MAX_ARGS_PER_SPEC+2];
 	int argnumber[3];			/* width, precision, 1st data arg */
 	static const char spec_flags[] = SPEC_FLAGS;
-	static const char spec_chars[] = SPEC_CHARS;/* TODO: b? */
+	static const char spec_chars[] = SPEC_CHARS;
 	static const char spec_ranges[] = SPEC_RANGES;
 	static const short spec_or_mask[] = SPEC_OR_MASK;
 	static const short spec_and_mask[] = SPEC_AND_MASK;
@@ -949,18 +952,47 @@ int attribute_hidden _ppfs_parsespec(ppfs_t *ppfs)
 	}
 
 	/* Process qualifier. */
-	p = qual_chars;
-	do {
-		if (*fmt == *p) {
+	if (*fmt == 'w') {			/* C23 wN and wfN */
+		int fast = 0;
+
+		if (*++fmt == 'f') {
+			fast = 1;
 			++fmt;
-			break;
 		}
-	} while (*++p);
-	if ((p - qual_chars < 2) && (*fmt == *p)) {
-		p += ((sizeof(qual_chars)-2) / 2);
-		++fmt;
+		for (i = 0; (*fmt >= '0') && (*fmt <= '9') && (i < 100); ++fmt) {
+			i = i * 10 + (*fmt - '0');
+		}
+		switch (i) {
+		case 8:
+			i = WN_QUAL(fast ? UINT_FAST8_MAX : UINT8_MAX);
+			break;
+		case 16:
+			i = WN_QUAL(fast ? UINT_FAST16_MAX : UINT16_MAX);
+			break;
+		case 32:
+			i = WN_QUAL(fast ? UINT_FAST32_MAX : UINT32_MAX);
+			break;
+		case 64:
+			i = WN_QUAL(fast ? UINT_FAST64_MAX : UINT64_MAX);
+			break;
+		default:
+			return -1;
+		}
+		dataargtype = i << 8;
+	} else {
+		p = qual_chars;
+		do {
+			if (*fmt == *p) {
+				++fmt;
+				break;
+			}
+		} while (*++p);
+		if ((p - qual_chars < 2) && (*fmt == *p)) {
+			p += ((sizeof(qual_chars)-2) / 2);
+			++fmt;
+		}
+		dataargtype = ((int)(p[(sizeof(qual_chars)-2) / 2])) << 8;
 	}
-	dataargtype = ((int)(p[(sizeof(qual_chars)-2) / 2])) << 8;
 
 	/* Process conversion specifier. */
 	if (!*fmt) {
@@ -1361,10 +1393,10 @@ static int _do_one_spec(FILE * __restrict stream,
 {
 	static const char spec_base[] = SPEC_BASE;
 #ifdef L__vfprintf_internal
-	static const char prefix[] = "+\0-\0 \0000x\0000X";
-	/*                            0  2  4    6     9 11*/
+	static const char prefix[] = "+\0-\0 \0000x\0000X\0000b\0000B";
+	/*                            0  2  4    6     9    12    15 17*/
 #else
-	static const wchar_t prefix[] = L"+\0-\0 \0000x\0000X";
+	static const wchar_t prefix[] = L"+\0-\0 \0000x\0000X\0000b\0000B";
 #endif
 	enum {
 		PREFIX_PLUS = 0,
@@ -1372,7 +1404,9 @@ static int _do_one_spec(FILE * __restrict stream,
 		PREFIX_SPACE = 4,
 		PREFIX_LWR_X = 6,
 		PREFIX_UPR_X = 9,
-		PREFIX_NONE = 11
+		PREFIX_LWR_B = 12,
+		PREFIX_UPR_B = 15,
+		PREFIX_NONE = 17
 	};
 
 #ifdef __va_arg_ptr
@@ -1503,6 +1537,12 @@ static int _do_one_spec(FILE * __restrict stream,
 				}
 				if (ppfs->conv_num == CONV_X) {
 					prefix_num = PREFIX_UPR_X;
+				}
+				if (ppfs->conv_num == CONV_b) {
+					prefix_num = PREFIX_LWR_B;
+				}
+				if (ppfs->conv_num == CONV_B) {
+					prefix_num = PREFIX_UPR_B;
 				}
 				if ((ppfs->conv_num == CONV_o) && (numfill <= SLEN)) {
 					numfill = ((*s == '0') ? 1 : SLEN + 1);
