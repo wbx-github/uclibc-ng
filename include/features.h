@@ -29,9 +29,11 @@
 			if >=199506L, add IEEE Std 1003.1c-1995;
 			if >=200112L, all of IEEE 1003.1-2004
 			if >=200809L, all of IEEE 1003.1-2008
+			if >=202405L, all of IEEE 1003.1-2024
    _XOPEN_SOURCE	Includes POSIX and XPG things.  Set to 500 if
 			Single Unix conformance is wanted, to 600 for the
-			sixth revision, to 700 for the seventh revision.
+			sixth revision, to 700 for the seventh revision,
+			to 800 for the eighth revision.
    _XOPEN_SOURCE_EXTENDED XPG things and X/Open Unix extensions.
    _LARGEFILE_SOURCE	Some more functions for correct standard I/O.
    _LARGEFILE64_SOURCE	Additional functionality from LFS for large files.
@@ -41,7 +43,7 @@
    _ATFILE_SOURCE	Additional *at interfaces.
    _GNU_SOURCE		All of the above, plus GNU extensions.
    _DEFAULT_SOURCE	Equivalent to defining _BSD_SOURCE and _SVID_SOURCE,
-			as well as _POSIX_C_SOURCE=200809L.
+			as well as _POSIX_C_SOURCE=202405L.
    _REENTRANT		Select additionally reentrant object.
    _THREAD_SAFE		Same as _REENTRANT, often used by other systems.
    _FORTIFY_SOURCE	If set to numeric value > 0 additional security
@@ -69,6 +71,7 @@
    __USE_UNIX98		Define Single Unix V2 things.
    __USE_XOPEN2K        Define XPG6 things.
    __USE_XOPEN2K8       Define XPG7 things.
+   __USE_XOPEN2K24      Define XPG8 things.
    __USE_LARGEFILE	Define correct standard I/O things.
    __USE_LARGEFILE64	Define LFS things with separate names.
    __USE_FILE_OFFSET64	Define 64bit interface as default.
@@ -105,6 +108,7 @@
 #undef	__USE_UNIX98
 #undef	__USE_XOPEN2K
 #undef	__USE_XOPEN2K8
+#undef	__USE_XOPEN2K24
 #undef	__USE_LARGEFILE
 #undef	__USE_LARGEFILE64
 #undef	__USE_FILE_OFFSET64
@@ -156,7 +160,7 @@
 #define __GLIBC_USE(F)  __GLIBC_USE_ ## F
 
 /* _DEFAULT_SOURCE is equivalent to defining _BSD_SOURCE, _SVID_SOURCE
- * and _POSIX_C_SOURCE=200809L and vice versa. */
+ * and _POSIX_C_SOURCE=202405L and vice versa. */
 #if defined _DEFAULT_SOURCE || defined _BSD_SOURCE || defined _SVID_SOURCE
 # undef _DEFAULT_SOURCE
 # define _DEFAULT_SOURCE 1
@@ -164,9 +168,9 @@
 # define _BSD_SOURCE	1
 # undef  _SVID_SOURCE
 # define _SVID_SOURCE	1
-# if _POSIX_C_SOURCE < 200809L
+# if _POSIX_C_SOURCE < 202405L
 #  undef _POSIX_C_SOURCE
-#  define _POSIX_C_SOURCE 200809L
+#  define _POSIX_C_SOURCE 202405L
 # endif
 #endif
 
@@ -179,9 +183,9 @@
 # undef  _POSIX_SOURCE
 # define _POSIX_SOURCE	1
 # undef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE	200809L
+# define _POSIX_C_SOURCE	202405L
 # undef  _XOPEN_SOURCE
-# define _XOPEN_SOURCE	700
+# define _XOPEN_SOURCE	800
 # undef  _XOPEN_SOURCE_EXTENDED
 # define _XOPEN_SOURCE_EXTENDED	1
 # undef	 _LARGEFILE64_SOURCE
@@ -279,8 +283,10 @@
 #  define _POSIX_C_SOURCE	199506L
 # elif defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) < 700
 #  define _POSIX_C_SOURCE	200112L
-# else
+# elif defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) < 800
 #  define _POSIX_C_SOURCE	200809L
+# else
+#  define _POSIX_C_SOURCE	202405L
 # endif
 # define __USE_POSIX_IMPLICITLY	1
 #endif
@@ -313,6 +319,10 @@
 # define _ATFILE_SOURCE	1
 #endif
 
+#if (_POSIX_C_SOURCE - 0) >= 202405L
+# define __USE_XOPEN2K24	1
+#endif
+
 #ifdef	_XOPEN_SOURCE
 # define __USE_XOPEN	1
 # if (_XOPEN_SOURCE - 0) >= 500
@@ -323,6 +333,9 @@
 #  if (_XOPEN_SOURCE - 0) >= 600
 #   if (_XOPEN_SOURCE - 0) >= 700
 #    define __USE_XOPEN2K8	1
+#    if (_XOPEN_SOURCE - 0) >= 800
+#     define __USE_XOPEN2K24	1
+#    endif
 #   endif
 #   define __USE_XOPEN2K	1
 #   undef __USE_ISOC99
