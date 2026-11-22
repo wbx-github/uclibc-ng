@@ -145,9 +145,11 @@ __MATHCALLI (log10,, (_Mdouble_ __x))
 __MATHCALLI (modf,, (_Mdouble_ __x, _Mdouble_ *__iptr))
 _Mdouble_END_NAMESPACE
 
-#if defined __USE_GNU
-/* A function missing in all standards: compute exponent to base ten.  */
+#if defined __USE_GNU || defined __USE_ISOC23
+/* Compute exponent to base ten (ISO C23, a GNU extension before).  */
 __MATHCALLI (exp10,, (_Mdouble_ __x))
+#endif
+#if defined __USE_GNU
 /* Another name occasionally used.  */
 __MATHCALLI (pow10,, (_Mdouble_ __x))
 #endif
@@ -395,6 +397,80 @@ __MATHDECL_PRIV (int, signbit,, (_Mdouble_ __value), (__const__))
 /* Multiply-add function computed as a ternary operation.  */
 __MATHCALLI (fma,, (_Mdouble_ __x, _Mdouble_ __y, _Mdouble_ __z))
 #endif /* Use ISO C99.  */
+
+#ifdef __USE_ISOC23
+/* ISO C23.  */
+/* Trigonometric functions in half-revolutions: f(pi x), f(x) / pi.  */
+__MATHCALL (acospi,, (_Mdouble_ __x));
+__MATHCALL (asinpi,, (_Mdouble_ __x));
+__MATHCALL (atanpi,, (_Mdouble_ __x));
+__MATHCALL (atan2pi,, (_Mdouble_ __y, _Mdouble_ __x));
+__MATHCALL (cospi,, (_Mdouble_ __x));
+__MATHCALL (sinpi,, (_Mdouble_ __x));
+__MATHCALL (tanpi,, (_Mdouble_ __x));
+
+/* 10^x - 1, 2^x - 1, and the logarithms of 1 + x.  */
+__MATHCALL (exp10m1,, (_Mdouble_ __x));
+__MATHCALL (exp2m1,, (_Mdouble_ __x));
+__MATHCALL (log10p1,, (_Mdouble_ __x));
+__MATHCALL (log2p1,, (_Mdouble_ __x));
+__MATHCALL (logp1,, (_Mdouble_ __x));
+
+/* (1 + x)^n, x^n, x^y as exp(y log x), the n-th root, 1 / sqrt(x).  */
+__MATHCALL (compoundn,, (_Mdouble_ __x, long long int __n));
+__MATHCALL (pown,, (_Mdouble_ __x, long long int __n));
+__MATHCALL (powr,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (rootn,, (_Mdouble_ __x, long long int __n));
+__MATHCALL (rsqrt,, (_Mdouble_ __x));
+
+/* Round to nearest, ties to even, in any rounding mode.  */
+__MATHCALL (roundeven,, (_Mdouble_ __x));
+
+/* The next value up and down, without overflow or underflow.  */
+__MATHCALL (nextup,, (_Mdouble_ __x));
+__MATHCALL (nextdown,, (_Mdouble_ __x));
+
+/* The exponent of X as a long.  */
+__MATHDECL (long int, llogb,, (_Mdouble_ __x));
+
+/* Round X in direction ROUND to an integer that must fit in WIDTH
+   bits (signed or unsigned); the x forms raise inexact if it changed.  */
+__MATHCALL (fromfp,, (_Mdouble_ __x, int __round, unsigned int __width));
+__MATHCALL (ufromfp,, (_Mdouble_ __x, int __round, unsigned int __width));
+__MATHCALL (fromfpx,, (_Mdouble_ __x, int __round, unsigned int __width));
+__MATHCALL (ufromfpx,, (_Mdouble_ __x, int __round, unsigned int __width));
+
+/* Maximum and minimum: NaN if either is one, -0 below +0; _num prefers
+   a number to a NaN; _mag compares magnitudes first.  */
+__MATHCALL (fmaximum,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fminimum,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fmaximum_num,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fminimum_num,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fmaximum_mag,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fminimum_mag,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fmaximum_mag_num,, (_Mdouble_ __x, _Mdouble_ __y));
+__MATHCALL (fminimum_mag_num,, (_Mdouble_ __x, _Mdouble_ __y));
+
+/* The IEEE 754 total order, of values and of magnitudes.  */
+__MATHDECL_1 (int, totalorder,, (const _Mdouble_ *__x,
+				  const _Mdouble_ *__y))
+     __attribute__ ((__pure__));
+__MATHDECL_1 (int, totalordermag,, (const _Mdouble_ *__x,
+				     const _Mdouble_ *__y))
+     __attribute__ ((__pure__));
+
+/* Store the canonical encoding of *X in *CX.  */
+__MATHDECL_1 (int, canonicalize,, (_Mdouble_ *__cx, const _Mdouble_ *__x));
+
+/* The payload of a NaN, and NaNs with a given payload.  */
+__MATHCALL (getpayload,, (const _Mdouble_ *__x));
+__MATHDECL_1 (int, setpayload,, (_Mdouble_ *__x, _Mdouble_ __payload));
+__MATHDECL_1 (int, setpayloadsig,, (_Mdouble_ *__x, _Mdouble_ __payload));
+
+/* Behind the issignaling and iseqsig macros.  */
+__MATHDECL_PRIV (int, issignaling,, (_Mdouble_ __value), (__const__))
+__MATHDECL_PRIV (int, iseqsig,, (_Mdouble_ __x, _Mdouble_ __y), ())
+#endif /* Use ISO C23.  */
 
 #if defined __USE_MISC || defined __USE_XOPEN_EXTENDED || defined __USE_ISOC99
 __END_NAMESPACE_C99

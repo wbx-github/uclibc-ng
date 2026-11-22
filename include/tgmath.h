@@ -79,6 +79,18 @@
 		     ? (__tgmath_real_type (Val)) Fct##f (Val)		      \
 		     : (__tgmath_real_type (Val)) __tgml(Fct) (Val)))
 
+# define __TGMATH_TERNARY_FIRST_REAL_ONLY(Val1, Val2, Val3, Fct) \
+     (__extension__ ((sizeof (Val1) == sizeof (double)			      \
+		      || __builtin_classify_type (Val1) != 8)		      \
+		     ? (__tgmath_real_type (Val1)) Fct (Val1, Val2, Val3)     \
+		     : (sizeof (Val1) == sizeof (float))		      \
+		     ? (__tgmath_real_type (Val1)) Fct##f (Val1, Val2, Val3)  \
+		     : (__tgmath_real_type (Val1)) __tgml(Fct) (Val1, Val2, Val3)))
+
+/* Nonzero if VAL is of a floating type wider than double.  */
+# define __tgmath_is_ldouble(Val) \
+     (sizeof (Val) > sizeof (double) && __builtin_classify_type (Val) == 8)
+
 # define __TGMATH_UNARY_REAL_RET_ONLY(Val, RetType, Fct) \
      (__extension__ ((sizeof (Val) == sizeof (double)			      \
 		      || __builtin_classify_type (Val) != 8)		      \
@@ -432,6 +444,88 @@
 /* Multiply-add function computed as a ternary operation.  */
 #define fma(Val1, Val2, Val3) \
      __TGMATH_TERNARY_REAL_ONLY (Val1, Val2, Val3, fma)
+
+
+#ifdef __USE_ISOC23
+/* ISO C23.  */
+#define acospi(Val) __TGMATH_UNARY_REAL_ONLY (Val, acospi)
+#define asinpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, asinpi)
+#define atanpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, atanpi)
+#define atan2pi(Val1, Val2) __TGMATH_BINARY_REAL_ONLY (Val1, Val2, atan2pi)
+#define cospi(Val) __TGMATH_UNARY_REAL_ONLY (Val, cospi)
+#define sinpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, sinpi)
+#define tanpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, tanpi)
+#define exp10(Val) __TGMATH_UNARY_REAL_ONLY (Val, exp10)
+#define exp10m1(Val) __TGMATH_UNARY_REAL_ONLY (Val, exp10m1)
+#define exp2m1(Val) __TGMATH_UNARY_REAL_ONLY (Val, exp2m1)
+#define log10p1(Val) __TGMATH_UNARY_REAL_ONLY (Val, log10p1)
+#define log2p1(Val) __TGMATH_UNARY_REAL_ONLY (Val, log2p1)
+#define logp1(Val) __TGMATH_UNARY_REAL_ONLY (Val, logp1)
+#define rsqrt(Val) __TGMATH_UNARY_REAL_ONLY (Val, rsqrt)
+#define compoundn(Val1, Val2) \
+     __TGMATH_BINARY_FIRST_REAL_ONLY (Val1, Val2, compoundn)
+#define pown(Val1, Val2) __TGMATH_BINARY_FIRST_REAL_ONLY (Val1, Val2, pown)
+#define rootn(Val1, Val2) __TGMATH_BINARY_FIRST_REAL_ONLY (Val1, Val2, rootn)
+#define powr(Val1, Val2) __TGMATH_BINARY_REAL_ONLY (Val1, Val2, powr)
+#define roundeven(Val) __TGMATH_UNARY_REAL_ONLY (Val, roundeven)
+#define nextup(Val) __TGMATH_UNARY_REAL_ONLY (Val, nextup)
+#define nextdown(Val) __TGMATH_UNARY_REAL_ONLY (Val, nextdown)
+#define llogb(Val) __TGMATH_UNARY_REAL_RET_ONLY (Val, long int, llogb)
+#define fromfp(Val1, Val2, Val3) \
+     __TGMATH_TERNARY_FIRST_REAL_ONLY (Val1, Val2, Val3, fromfp)
+#define ufromfp(Val1, Val2, Val3) \
+     __TGMATH_TERNARY_FIRST_REAL_ONLY (Val1, Val2, Val3, ufromfp)
+#define fromfpx(Val1, Val2, Val3) \
+     __TGMATH_TERNARY_FIRST_REAL_ONLY (Val1, Val2, Val3, fromfpx)
+#define ufromfpx(Val1, Val2, Val3) \
+     __TGMATH_TERNARY_FIRST_REAL_ONLY (Val1, Val2, Val3, ufromfpx)
+#define fmaximum(Val1, Val2) __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fmaximum)
+#define fminimum(Val1, Val2) __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fminimum)
+#define fmaximum_num(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fmaximum_num)
+#define fminimum_num(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fminimum_num)
+#define fmaximum_mag(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fmaximum_mag)
+#define fminimum_mag(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fminimum_mag)
+#define fmaximum_mag_num(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fmaximum_mag_num)
+#define fminimum_mag_num(Val1, Val2) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fminimum_mag_num)
+
+/* Rounded once to float or double: the f macros take faddl and
+   friends when an argument is long double, the d macros always the l
+   functions.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define fadd(Val1, Val2) fadd (Val1, Val2)
+#  define fsub(Val1, Val2) fsub (Val1, Val2)
+#  define fmul(Val1, Val2) fmul (Val1, Val2)
+#  define fdiv(Val1, Val2) fdiv (Val1, Val2)
+#  define ffma(Val1, Val2, Val3) ffma (Val1, Val2, Val3)
+#  define fsqrt(Val) fsqrt (Val)
+# else
+#  define __TGMATH_NARROW2(Val1, Val2, Fct) \
+     (__tgmath_is_ldouble (Val1) || __tgmath_is_ldouble (Val2)		      \
+      ? Fct##l (Val1, Val2) : Fct (Val1, Val2))
+#  define fadd(Val1, Val2) __TGMATH_NARROW2 (Val1, Val2, fadd)
+#  define fsub(Val1, Val2) __TGMATH_NARROW2 (Val1, Val2, fsub)
+#  define fmul(Val1, Val2) __TGMATH_NARROW2 (Val1, Val2, fmul)
+#  define fdiv(Val1, Val2) __TGMATH_NARROW2 (Val1, Val2, fdiv)
+#  define ffma(Val1, Val2, Val3) \
+     (__tgmath_is_ldouble (Val1) || __tgmath_is_ldouble (Val2)		      \
+      || __tgmath_is_ldouble (Val3)					      \
+      ? ffmal (Val1, Val2, Val3) : ffma (Val1, Val2, Val3))
+#  define fsqrt(Val) \
+     (__tgmath_is_ldouble (Val) ? fsqrtl (Val) : fsqrt (Val))
+#  define dadd(Val1, Val2) daddl (Val1, Val2)
+#  define dsub(Val1, Val2) dsubl (Val1, Val2)
+#  define dmul(Val1, Val2) dmull (Val1, Val2)
+#  define ddiv(Val1, Val2) ddivl (Val1, Val2)
+#  define dfma(Val1, Val2, Val3) dfmal (Val1, Val2, Val3)
+#  define dsqrt(Val) dsqrtl (Val)
+# endif
+#endif /* ISO C23 */
 
 
 /* Absolute value, conjugates, and projection.  */

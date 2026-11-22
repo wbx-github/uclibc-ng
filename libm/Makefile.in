@@ -265,6 +265,12 @@ LD_MOBJ += \
 	ynl.o
 endif
 
+# ISO C23; each file has the double, float and long double forms.
+libm_CSRC += $(addprefix c23/,roundeven.c nextup.c llogb.c fromfp.c \
+	fmaximum.c totalorder.c payload.c canonicalize.c sinpi.c asinpi.c \
+	exp10m1.c log2p1.c rootn.c fadd.c faddl.c)
+subdirs += libm/c23
+
 else
 
 # This list of math functions was taken from POSIX/IEEE 1003.1b-1993

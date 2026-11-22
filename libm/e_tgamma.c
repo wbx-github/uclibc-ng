@@ -65,7 +65,7 @@ most ideas and constants are from boost and python
 static const double pi = 3.141592653589793238462643383279502884;
 
 /* sin(pi x) with x > 0x1p-100, if sin(pi*x)==0 the sign is arbitrary */
-static double sinpi(double x)
+static double tgamma_sinpi(double x)
 {
 	int n;
 
@@ -198,7 +198,7 @@ X87_ROUND53_WORKER double tgamma_worker(double x)
 	if (x < 0) {
 		/* reflection formula for negative x */
 		/* sinpi(absx) is not 0, integers are already handled */
-		r = -pi / (sinpi(absx) * absx * r);
+		r = -pi / (tgamma_sinpi(absx) * absx * r);
 		dy = -dy;
 		z = -z;
 	}
@@ -264,7 +264,7 @@ double __lgamma_r(double x, int *sign)
 	r = (absx-0.5)*(log(absx+gmhalf)-1) + (log(S(absx)) - (gmhalf+0.5));
 	if (x < 0) {
 		/* reflection formula for negative x */
-		x = sinpi(absx);
+		x = tgamma_sinpi(absx);
 		*sign = 2*!!signbit(x) - 1;
 		r = log(pi/(fabs(x)*absx)) - r;
 	}

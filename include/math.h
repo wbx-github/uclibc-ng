@@ -340,6 +340,106 @@ enum
 
 #endif /* Use ISO C99.  */
 
+#ifdef __USE_ISOC23
+/* Rounding directions for fromfp and its relatives.  */
+# define FP_INT_UPWARD			0
+# define FP_INT_DOWNWARD		1
+# define FP_INT_TOWARDZERO		2
+# define FP_INT_TONEARESTFROMZERO	3
+# define FP_INT_TONEAREST		4
+
+/* llogb of 0 and of NaN, the long counterparts of FP_ILOGB0 and
+   FP_ILOGBNAN.  */
+# if FP_ILOGB0 == (-2147483647 - 1)
+#  define FP_LLOGB0	(-__LONG_MAX__ - 1L)
+# else
+#  define FP_LLOGB0	(-__LONG_MAX__)
+# endif
+# if FP_ILOGBNAN == (-2147483647 - 1)
+#  define FP_LLOGBNAN	(-__LONG_MAX__ - 1L)
+# else
+#  define FP_LLOGBNAN	__LONG_MAX__
+# endif
+
+/* Nonzero if X is a signaling NaN.  */
+# if __GNUC_PREREQ (13, 0)
+#  define issignaling(x) __builtin_issignaling (x)
+# elif defined __NO_LONG_DOUBLE_MATH
+#  define issignaling(x) \
+     (sizeof (x) == sizeof (float) ? __issignalingf (x) : __issignaling (x))
+# else
+#  define issignaling(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __issignalingf (x)						      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __issignaling (x) : __issignalingl (x))
+# endif
+
+/* Nonzero if X is canonically encoded; only x87's long double has
+   encodings that are not.  */
+# if (defined __i386__ || defined __x86_64__) && !defined __NO_LONG_DOUBLE_MATH
+extern int __iscanonicall (long double __x) __THROW __attribute__ ((__const__));
+#  define iscanonical(x) \
+     (sizeof (x) == sizeof (long double)				      \
+      ? __iscanonicall (x) : ((void) (__typeof__ (x)) (x), 1))
+# else
+#  define iscanonical(x) ((void) (__typeof__ (x)) (x), 1)
+# endif
+
+/* Nonzero if X is zero, or subnormal.  Classification is quiet, so
+   not "== 0", which raises invalid for a signaling NaN; and not
+   fpclassify either, whose long double form narrows to double.  */
+# ifdef __GNUC__
+#  define iszero(x)	__builtin_fpclassify (0, 0, 0, 0, 1, (x))
+#  define issubnormal(x) __builtin_fpclassify (0, 0, 0, 1, 0, (x))
+# else
+#  define iszero(x)	(fpclassify (x) == FP_ZERO)
+#  define issubnormal(x) (fpclassify (x) == FP_SUBNORMAL)
+# endif
+
+/* X == Y, raising invalid (and setting errno to EDOM) for any NaN.
+   Integer arguments count as double, so the size alone would send two
+   ints to the float form.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define iseqsig(x, y) \
+     (__builtin_classify_type ((x) + (y)) == 8				      \
+      && sizeof ((x) + (y)) == sizeof (float)				      \
+      ? __iseqsigf (x, y) : __iseqsig (x, y))
+# else
+#  define iseqsig(x, y) \
+     (__builtin_classify_type ((x) + (y)) != 8				      \
+      ? __iseqsig (x, y)						      \
+      : sizeof ((x) + (y)) == sizeof (float)				      \
+      ? __iseqsigf (x, y)						      \
+      : sizeof ((x) + (y)) == sizeof (double)				      \
+      ? __iseqsig (x, y) : __iseqsigl (x, y))
+# endif
+
+/* Operations rounded once to a narrower type.  */
+extern float fadd (double __x, double __y) __THROW;
+extern float fsub (double __x, double __y) __THROW;
+extern float fmul (double __x, double __y) __THROW;
+extern float fdiv (double __x, double __y) __THROW;
+extern float ffma (double __x, double __y, double __z) __THROW;
+extern float fsqrt (double __x) __THROW;
+# ifndef __NO_LONG_DOUBLE_MATH
+extern float faddl (long double __x, long double __y) __THROW;
+extern float fsubl (long double __x, long double __y) __THROW;
+extern float fmull (long double __x, long double __y) __THROW;
+extern float fdivl (long double __x, long double __y) __THROW;
+extern float ffmal (long double __x, long double __y, long double __z)
+     __THROW;
+extern float fsqrtl (long double __x) __THROW;
+extern double daddl (long double __x, long double __y) __THROW;
+extern double dsubl (long double __x, long double __y) __THROW;
+extern double dmull (long double __x, long double __y) __THROW;
+extern double ddivl (long double __x, long double __y) __THROW;
+extern double dfmal (long double __x, long double __y, long double __z)
+     __THROW;
+extern double dsqrtl (long double __x) __THROW;
+# endif
+#endif /* Use ISO C23.  */
+
 /* BSD compat */
 #define finite(x) __finite(x)
 #define finitef(x) __finitef(x)
