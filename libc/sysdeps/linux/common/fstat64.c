@@ -31,7 +31,8 @@ int fstat64(int fd, struct stat64 *buf)
 	return result;
 
 #else
-	return __syscall_fstat64(fd, buf);
+	/* struct stat64 and struct kernel_stat64 share the same layout here */
+	return __syscall_fstat64(fd, (struct kernel_stat64 *)buf);
 #endif
 }
 libc_hidden_def(fstat64)
