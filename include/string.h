@@ -249,13 +249,16 @@ extern char *strcasestr (const char *__haystack, const char *__needle)
 libc_hidden_proto(strcasestr)
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Find the first occurrence of NEEDLE in HAYSTACK.
    NEEDLE is NEEDLELEN bytes long;
    HAYSTACK is HAYSTACKLEN bytes long.  */
 extern void *memmem (const void *__haystack, size_t __haystacklen,
 		     const void *__needle, size_t __needlelen)
      __THROW __attribute_pure__ __nonnull ((1, 3));
+#endif
+
+#ifdef __USE_GNU
 
 /* Copy N bytes of SRC to DEST, return pointer to bytes after the
    last written byte.  */
@@ -407,7 +410,7 @@ libc_hidden_proto(ffs)
 
 /* The following two functions are non-standard but necessary for non-32 bit
    platforms.  */
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 extern int ffsl (long int __l) __THROW __attribute__ ((__const__));
 #  ifdef __GNUC__
 __extension__ extern int ffsll (long long int __ll)
@@ -499,7 +502,7 @@ extern char *basename (const char *__filename) __THROW __nonnull ((1));
 #endif /* __USE_GNU */
 
 
-#ifdef	__USE_BSD
+#if defined __USE_BSD || defined __USE_XOPEN2K24
 /* Two OpenBSD extension functions. */
 extern size_t strlcat(char *__restrict dst, const char *__restrict src,
                       size_t n) __THROW __nonnull ((1, 2));

@@ -62,7 +62,7 @@ extern int sem_timedwait (sem_t *__restrict __sem,
 			  const struct timespec *__restrict __abstime);
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Like sem_timedwait, but ABSTIME is measured against CLOCK_ID
    (CLOCK_REALTIME or CLOCK_MONOTONIC).
 

@@ -262,7 +262,8 @@ extern int accept (int __fd, __SOCKADDR_ARG __addr,
 		   socklen_t *__restrict __addr_len);
 libc_hidden_proto(accept)
 
-#if defined __UCLIBC_LINUX_SPECIFIC__ && defined __USE_GNU
+#if defined __UCLIBC_LINUX_SPECIFIC__ \
+    && (defined __USE_GNU || defined __USE_XOPEN2K24)
 /* Similar to 'accept' but takes an additional parameter to specify flags.
 
    This function is a cancellation point and therefore not marked with

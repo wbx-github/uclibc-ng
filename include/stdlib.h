@@ -688,7 +688,7 @@ extern int mkstemps64 (char *__template, int __suffixlen) __nonnull ((1)) __wur;
 extern char *mkdtemp (char *__template) __THROW __nonnull ((1)) __wur;
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Generate a unique temporary file name from TEMPLATE similar to
    mkstemp.  But allow the caller to pass additional flags which are
    used in the open call to create the file..
@@ -769,7 +769,7 @@ typedef int (*__compar_fn_t) (const void *, const void *);
 typedef __compar_fn_t comparison_fn_t;
 # endif
 #endif
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 typedef int (*__compar_d_fn_t) (const void *, const void *, void *);
 #endif
 
@@ -785,7 +785,7 @@ extern void *bsearch (const void *__key, const void *__base,
 extern void qsort (void *__base, size_t __nmemb, size_t __size,
 		   __compar_fn_t __compar) __nonnull ((1, 4));
 libc_hidden_proto(qsort)
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 extern void qsort_r (void *__base, size_t __nmemb, size_t __size,
 		   __compar_d_fn_t __compar, void *__arg)
   __nonnull ((1, 4));
@@ -964,7 +964,7 @@ extern char *ptsname (int __fd) __THROW __wur;
 #endif /* __UCLIBC_HAS_PTY__ */
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 # if defined __UCLIBC_HAS_PTY__
 /* Store at most BUFLEN characters of the pathname of the slave pseudo
    terminal associated with the master FD is open on in BUF.
@@ -973,6 +973,8 @@ extern int ptsname_r (int __fd, char *__buf, size_t __buflen)
      __THROW __nonnull ((2));
 libc_hidden_proto(ptsname_r)
 # endif
+#endif
+#ifdef __USE_GNU
 # if defined __UCLIBC_HAS_GETPT__
 /* Open a master pseudo terminal and return its file descriptor.  */
 extern int getpt (void);
@@ -985,12 +987,12 @@ extern int getpt (void);
    three, but may be less than NELEM), or -1 if an error occurred.  */
 extern int getloadavg (double __loadavg[], int __nelem)
      __THROW __nonnull ((1));
-
-/* reallocarray() only provided by the malloc-standard implementation */
-#if defined(__MALLOC_STANDARD__)
-extern void *reallocarray (void *__ptr, size_t __m, size_t __n);
 #endif
 
+#if defined __USE_MISC || defined __USE_XOPEN2K24
+/* Resize the block at PTR to M elements of N bytes, failing on overflow.  */
+extern void *reallocarray (void *__ptr, size_t __m, size_t __n)
+     __THROW __wur;
 #endif
 
 #ifdef _LIBC

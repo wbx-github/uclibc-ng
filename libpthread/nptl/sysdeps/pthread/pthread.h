@@ -989,7 +989,7 @@ extern int pthread_cond_timedwait (pthread_cond_t *__restrict __cond,
 				   const struct timespec *__restrict __abstime)
      __nonnull ((1, 2, 3));
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Like pthread_cond_timedwait, but ABSTIME is measured against CLOCK_ID
    (CLOCK_REALTIME or CLOCK_MONOTONIC) instead of the condvar's clock.
 

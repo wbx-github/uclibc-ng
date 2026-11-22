@@ -443,7 +443,8 @@ extern ssize_t pwrite64 (int __fd, const void *__buf, size_t __n,
 extern int pipe (int __pipedes[2]) __THROW __wur;
 libc_hidden_proto(pipe)
 
-#if defined __UCLIBC_LINUX_SPECIFIC__ && defined __USE_GNU
+#if defined __UCLIBC_LINUX_SPECIFIC__ \
+    && (defined __USE_GNU || defined __USE_XOPEN2K24)
 /* Same as pipe but apply flags passed in FLAGS to the new file
    descriptors.  */
 extern int pipe2 (int __pipedes[2], int __flags) __THROW __wur;
@@ -569,7 +570,7 @@ extern int dup (int __fd) __THROW __wur;
 extern int dup2 (int __fd, int __fd2) __THROW;
 libc_hidden_proto(dup2)
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Duplicate FD to FD2, closing FD2 and making it open on the same
    file while setting flags according to FLAGS.  */
 extern int dup3 (int __fd, int __fd2, int __flags) __THROW;
@@ -783,7 +784,7 @@ libc_hidden_proto(setregid)
 extern int setegid (__gid_t __gid) __THROW __wur;
 #endif /* Use BSD.  */
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Fetch the real user ID, effective user ID, and saved-set user ID,
    of the calling process.  */
 extern int getresuid (__uid_t *__ruid, __uid_t *__euid, __uid_t *__suid)
@@ -1252,7 +1253,7 @@ extern char *ctermid (char *__s) __THROW;
 
 /* OpenBSD-compatible access to random bytes.
    May be a cancellation point here, unlike in glibc/musl.  */
-#ifdef _DEFAULT_SOURCE
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 # ifndef __getentropy_defined
 extern int getentropy(void *__buf, size_t __len) __nonnull ((1)) __wur;
 #  define __getentropy_defined
