@@ -286,6 +286,29 @@ extern int posix_spawn_file_actions_adddup2 (posix_spawn_file_actions_t *
 					     __file_actions,
 					     int __fd, int __newfd) __THROW;
 
+#if defined __USE_XOPEN2K24 || defined __USE_MISC
+/* Add an action to FILE-ACTIONS which tells the implementation to
+   change the working directory to PATH, or to the directory open on FD,
+   during the `spawn' call.  */
+extern int posix_spawn_file_actions_addchdir (posix_spawn_file_actions_t *
+					      __restrict __file_actions,
+					      const char *__restrict __path)
+     __THROW;
+extern int posix_spawn_file_actions_addfchdir (posix_spawn_file_actions_t *
+					       __file_actions, int __fd)
+     __THROW;
+#endif
+#ifdef __USE_MISC
+/* The names glibc gave them before POSIX.1-2024.  */
+extern int posix_spawn_file_actions_addchdir_np (posix_spawn_file_actions_t *
+						 __restrict __file_actions,
+						 const char *__restrict __path)
+     __THROW;
+extern int posix_spawn_file_actions_addfchdir_np (posix_spawn_file_actions_t *
+						  __file_actions, int __fd)
+     __THROW;
+#endif
+
 __END_DECLS
 
 #endif /* spawn.h */

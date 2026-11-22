@@ -3,7 +3,9 @@ struct __spawn_action {
 	enum {
 		spawn_do_close,
 		spawn_do_dup2,
-		spawn_do_open
+		spawn_do_open,
+		spawn_do_chdir,
+		spawn_do_fchdir
 	} tag;
 
 	union {
@@ -20,6 +22,12 @@ struct __spawn_action {
 			int oflag;
 			mode_t mode;
 		} open_action;
+		struct {
+			char *path;
+		} chdir_action;
+		struct {
+			int fd;
+		} fchdir_action;
 	} action;
 };
 

@@ -50,6 +50,8 @@ posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *file_actions)
 	for (i = 0; i < file_actions->__used; i++)
 		if (file_actions->__actions[i].tag == spawn_do_open)
 			free(file_actions->__actions[i].action.open_action.path);
+		else if (file_actions->__actions[i].tag == spawn_do_chdir)
+			free(file_actions->__actions[i].action.chdir_action.path);
 	free(file_actions->__actions);
 	return 0;
 }

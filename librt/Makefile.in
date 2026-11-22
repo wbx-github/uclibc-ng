@@ -21,6 +21,7 @@ endif
 
 librt_filter_SRC += $(if $(UCLIBC_HAS_ADVANCED_REALTIME),, \
 	spawn.c \
+	spawn_faction_addchdir.c \
 	spawn_faction_addclose.c \
 	spawn_faction_adddup2.c \
 	spawn_faction_addopen.c \

@@ -91,6 +91,16 @@ inline static bool execute_file_actions(const posix_spawn_file_actions_t *fa)
 			    != action->action.dup2_action.newfd)
 				return true;
 			break;
+
+		case spawn_do_chdir:
+			if (chdir(action->action.chdir_action.path) != 0)
+				return true;
+			break;
+
+		case spawn_do_fchdir:
+			if (fchdir(action->action.fchdir_action.fd) != 0)
+				return true;
+			break;
 		}
 	}
 
