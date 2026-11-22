@@ -44,6 +44,52 @@ char *dcngettext(const char *domainname, const char *msgid1, const char *msgid2,
 	return (char *) ((n == 1) ? msgid1 : msgid2);
 }
 
+#ifdef __UCLIBC_HAS_XLOCALE__
+#include <xlocale.h>
+
+char *gettext_l(const char *msgid, __locale_t locale)
+{
+	(void) locale;
+	return (char *) msgid;
+}
+
+char *dgettext_l(const char *domainname, const char *msgid, __locale_t locale)
+{
+	(void) domainname;
+	(void) locale;
+	return (char *) msgid;
+}
+
+char *dcgettext_l(const char *domainname, const char *msgid, int category, __locale_t locale)
+{
+	(void) domainname;
+	(void) category;
+	(void) locale;
+	return (char *) msgid;
+}
+
+char *ngettext_l(const char *msgid1, const char *msgid2, unsigned long n, __locale_t locale)
+{
+	(void) locale;
+	return (char *) ((n == 1) ? msgid1 : msgid2);
+}
+
+char *dngettext_l(const char *domainname, const char *msgid1, const char *msgid2, unsigned long n, __locale_t locale)
+{
+	(void) domainname;
+	(void) locale;
+	return (char *) ((n == 1) ? msgid1 : msgid2);
+}
+
+char *dcngettext_l(const char *domainname, const char *msgid1, const char *msgid2, unsigned long n, int category, __locale_t locale)
+{
+	(void) domainname;
+	(void) category;
+	(void) locale;
+	return (char *) ((n == 1) ? msgid1 : msgid2);
+}
+#endif
+
 char *textdomain(const char *domainname)
 {
 	static const char default_str[] = "messages";

@@ -27,6 +27,26 @@ char *dngettext(const char *domainname, const char *msgid1, const char *msgid2, 
 char *dcngettext(const char *domainname, const char *msgid1, const char *msgid2, unsigned long n, int category)
 	__libintl_format_arg(2) __libintl_format_arg(3);
 
+#include <features.h>
+#ifdef __UCLIBC_HAS_XLOCALE__
+# include <xlocale.h>
+__BEGIN_DECLS
+/* POSIX.1-2024 forms with a locale; stubs like the above.  */
+char *gettext_l(const char *msgid, __locale_t locale)
+	__libintl_format_arg(1);
+char *dgettext_l(const char *domainname, const char *msgid, __locale_t locale)
+	__libintl_format_arg(2);
+char *dcgettext_l(const char *domainname, const char *msgid, int category, __locale_t locale)
+	__libintl_format_arg(2);
+char *ngettext_l(const char *msgid1, const char *msgid2, unsigned long n, __locale_t locale)
+	__libintl_format_arg(1) __libintl_format_arg(2);
+char *dngettext_l(const char *domainname, const char *msgid1, const char *msgid2, unsigned long n, __locale_t locale)
+	__libintl_format_arg(2) __libintl_format_arg(3);
+char *dcngettext_l(const char *domainname, const char *msgid1, const char *msgid2, unsigned long n, int category, __locale_t locale)
+	__libintl_format_arg(2) __libintl_format_arg(3);
+__END_DECLS
+#endif
+
 char *textdomain(const char *domainname);
 char *bind_textdomain_codeset(const char *domainname, const char *codeset);
 char *bindtextdomain(const char *domainname, const char *dirname);
