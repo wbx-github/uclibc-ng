@@ -136,6 +136,9 @@ CFLAGS-pthread_timedjoin.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pthread_once.c = $(uses-callbacks) -fexceptions \
 			-fasynchronous-unwind-tables
 CFLAGS-pthread_cond_wait.c = -fexceptions -fasynchronous-unwind-tables
+# cnd_wait, cnd_timedwait, thrd_join and thrd_sleep are cancellation
+# points, and thrd_exit unwinds like pthread_exit.
+CFLAGS-c11_threads.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pthread_cond_timedwait.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-sem_wait.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-sem_timedwait.c = -fexceptions -fasynchronous-unwind-tables
