@@ -399,6 +399,12 @@ extern int timer_getoverrun (timer_t __timerid) __THROW;
 /* Set TS to the current time of BASE; return BASE, or 0 on failure.  */
 extern int timespec_get (struct timespec *__ts, int __base)
      __THROW __nonnull ((1));
+
+#  ifdef __USE_ISOC23
+/* Set TS, if not null, to the resolution of BASE; return BASE, or 0 if
+   BASE is not supported.  */
+extern int timespec_getres (struct timespec *__ts, int __base) __THROW;
+#  endif
 # endif
 
 __END_DECLS
