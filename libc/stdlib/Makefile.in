@@ -17,7 +17,7 @@ CSRC-y := \
 	lldiv.c getpt.c drand48-iter.c jrand48.c \
 	jrand48_r.c lcong48.c lrand48.c lrand48_r.c mrand48.c mrand48_r.c nrand48.c \
 	nrand48_r.c rand_r.c srand48.c srand48_r.c seed48.c seed48_r.c \
-	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c
+	a64l.c l64a.c __uc_malloc.c secure_getenv.c reallocarray.c quick_exit.c
 CSRC-$(UCLIBC_SUSV2_LEGACY) += valloc.c
 CSRC-$(UCLIBC_HAS_ADVANCED_REALTIME) += posix_memalign.c
 CSRC-$(UCLIBC_HAS_PTY) += grantpt.c unlockpt.c ptsname.c
