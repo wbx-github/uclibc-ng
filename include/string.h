@@ -346,6 +346,12 @@ extern char *strerror_l (int __errnum, __locale_t __l) __THROW;
 extern void __bzero (void *__s, size_t __n) __THROW __nonnull ((1));
 #endif
 
+#ifdef __USE_ISOC23
+/* Like memset, but the stores are never optimized away.  */
+extern void *memset_explicit (void *__s, int __c, size_t __n)
+     __THROW __nonnull ((1));
+#endif
+
 #ifdef __USE_BSD
 extern void explicit_bzero (void *__d, size_t __n);
 # ifdef __UCLIBC_SUSV3_LEGACY__
