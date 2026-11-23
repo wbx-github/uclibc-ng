@@ -45,6 +45,10 @@
    raise it, so note the flag and put it back.  */
 #ifdef __UCLIBC_HAS_FENV__
 # include <fenv.h>
+#endif
+/* A target without the hardware flags has fenv but no FE_INEXACT: its
+   bits/fenv.h sets FE_ALL_EXCEPT to 0 and names nothing.  */
+#ifdef FE_INEXACT
 # define C23_KEEP_INEXACT	int __c23_inex = fetestexcept (FE_INEXACT)
 # define C23_PUT_INEXACT_BACK						\
 	do {								\
