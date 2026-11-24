@@ -78,7 +78,6 @@
 #undef _POSIX_TRACE_INHERIT
 #undef _POSIX_TRACE_LOG
 #undef _POSIX_TYPED_MEMORY_OBJECTS
-#undef _POSIX_SPAWN
 
 #if 0 /* does uClibc support these? */
 # undef _POSIX_ASYNCHRONOUS_IO
@@ -124,6 +123,11 @@
 
 #ifndef __UCLIBC_HAS_SOCKET__
 # undef _POSIX_RAW_SOCKETS
+#endif
+
+/* posix_spawn is in librt with UCLIBC_HAS_ADVANCED_REALTIME.  */
+#ifndef __UCLIBC_HAS_ADVANCED_REALTIME__
+# undef _POSIX_SPAWN
 #endif
 
 #endif /* bits/uClibc_posix_opt.h */

@@ -61,13 +61,13 @@
 
 #else /* __WORDSIZE == 32 */
 
-/* By default we have 32-bit wide `int', `long int', pointers and `off_t'
-   and all platforms support LFS.  */
-# define _POSIX_V7_ILP32_OFF32	1
+/* 32-bit `int', `long int' and pointers; off_t is always 64 bits wide,
+   uClibc-ng has no environment with a 32-bit off_t.  */
+# define _POSIX_V7_ILP32_OFF32	-1
 # define _POSIX_V7_ILP32_OFFBIG	1
-# define _POSIX_V6_ILP32_OFF32	1
+# define _POSIX_V6_ILP32_OFF32	-1
 # define _POSIX_V6_ILP32_OFFBIG	1
-# define _XBS5_ILP32_OFF32	1
+# define _XBS5_ILP32_OFF32	-1
 # define _XBS5_ILP32_OFFBIG	1
 
 /* We optionally provide an environment with the above size but an 64-bit

@@ -994,6 +994,184 @@ long int sysconf(int name)
       RETURN_NEG_1;
 #endif
 
+    /* POSIX options without a case before: their value, or -1.  */
+    case _SC_ADVISORY_INFO:
+#ifdef _POSIX_ADVISORY_INFO
+      return _POSIX_ADVISORY_INFO;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_BARRIERS:
+#ifdef _POSIX_BARRIERS
+      return _POSIX_BARRIERS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_CLOCK_SELECTION:
+#ifdef _POSIX_CLOCK_SELECTION
+      return _POSIX_CLOCK_SELECTION;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_IPV6:
+#ifdef _POSIX_IPV6
+      return _POSIX_IPV6;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_RAW_SOCKETS:
+#ifdef _POSIX_RAW_SOCKETS
+      return _POSIX_RAW_SOCKETS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_READER_WRITER_LOCKS:
+#ifdef _POSIX_READER_WRITER_LOCKS
+      return _POSIX_READER_WRITER_LOCKS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_REGEXP:
+#ifdef _POSIX_REGEXP
+      return _POSIX_REGEXP;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_SHELL:
+#ifdef _POSIX_SHELL
+      return _POSIX_SHELL;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_SPAWN:
+#ifdef _POSIX_SPAWN
+      return _POSIX_SPAWN;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_SPIN_LOCKS:
+#ifdef _POSIX_SPIN_LOCKS
+      return _POSIX_SPIN_LOCKS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_SPORADIC_SERVER:
+#ifdef _POSIX_SPORADIC_SERVER
+      return _POSIX_SPORADIC_SERVER;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_THREAD_SPORADIC_SERVER:
+#ifdef _POSIX_THREAD_SPORADIC_SERVER
+      return _POSIX_THREAD_SPORADIC_SERVER;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TIMEOUTS:
+#ifdef _POSIX_TIMEOUTS
+      return _POSIX_TIMEOUTS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TRACE:
+#ifdef _POSIX_TRACE
+      return _POSIX_TRACE;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TRACE_EVENT_FILTER:
+#ifdef _POSIX_TRACE_EVENT_FILTER
+      return _POSIX_TRACE_EVENT_FILTER;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TRACE_INHERIT:
+#ifdef _POSIX_TRACE_INHERIT
+      return _POSIX_TRACE_INHERIT;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TRACE_LOG:
+#ifdef _POSIX_TRACE_LOG
+      return _POSIX_TRACE_LOG;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_TYPED_MEMORY_OBJECTS:
+#ifdef _POSIX_TYPED_MEMORY_OBJECTS
+      return _POSIX_TYPED_MEMORY_OBJECTS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_THREAD_ROBUST_PRIO_INHERIT:
+#ifdef _POSIX_THREAD_ROBUST_PRIO_INHERIT
+      return _POSIX_THREAD_ROBUST_PRIO_INHERIT;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_THREAD_ROBUST_PRIO_PROTECT:
+#ifdef _POSIX_THREAD_ROBUST_PRIO_PROTECT
+      return _POSIX_THREAD_ROBUST_PRIO_PROTECT;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_V6_ILP32_OFF32:
+#ifdef _POSIX_V6_ILP32_OFF32
+      return _POSIX_V6_ILP32_OFF32;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_V6_ILP32_OFFBIG:
+#ifdef _POSIX_V6_ILP32_OFFBIG
+      return _POSIX_V6_ILP32_OFFBIG;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_V6_LP64_OFF64:
+#ifdef _POSIX_V6_LP64_OFF64
+      return _POSIX_V6_LP64_OFF64;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_V6_LPBIG_OFFBIG:
+#ifdef _POSIX_V6_LPBIG_OFFBIG
+      return _POSIX_V6_LPBIG_OFFBIG;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_CPUTIME:
+#if defined _POSIX_CPUTIME && _POSIX_CPUTIME == 0
+      /* Linux gives every process a CPU-time clock.  */
+      return _POSIX_VERSION;
+#elif defined _POSIX_CPUTIME
+      return _POSIX_CPUTIME;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_XOPEN_STREAMS:
+#ifdef _XOPEN_STREAMS
+      return _XOPEN_STREAMS;
+#else
+      RETURN_NEG_1;
+#endif
+    case _SC_XOPEN_UUCP:
+      RETURN_NEG_1;
+
+    case _SC_HOST_NAME_MAX:
+#ifdef HOST_NAME_MAX
+      return HOST_NAME_MAX;
+#else
+      return _POSIX_HOST_NAME_MAX;
+#endif
+    /* No fixed limit.  */
+    case _SC_SYMLOOP_MAX:
+    case _SC_SS_REPL_MAX:
+    case _SC_TRACE_EVENT_NAME_MAX:
+    case _SC_TRACE_NAME_MAX:
+    case _SC_TRACE_SYS_MAX:
+    case _SC_TRACE_USER_EVENT_MAX:
+      RETURN_NEG_1;
+
     case _SC_MONOTONIC_CLOCK:
 #ifdef __UCLIBC_HAS_REALTIME__
       {
@@ -1009,14 +1187,26 @@ long int sysconf(int name)
 #endif
       RETURN_NEG_1;
 
-#ifdef __UCLIBC_HAS_THREADS_NATIVE__
     case _SC_THREAD_CPUTIME:
-# if _POSIX_THREAD_CPUTIME > 0
+#if defined __UCLIBC_HAS_THREADS_NATIVE__ && _POSIX_THREAD_CPUTIME > 0
       return _POSIX_THREAD_CPUTIME;
-# else
+#elif defined __UCLIBC_HAS_THREADS_NATIVE__ && defined _POSIX_THREAD_CPUTIME
+      /* Linux gives every thread a CPU-time clock, and NPTL has
+	 pthread_getcpuclockid to name it.  linuxthreads has not, so
+	 there the option is absent rather than up to the run.  */
+      return _POSIX_VERSION;
+#else
       RETURN_NEG_1;
-# endif
 #endif
+
+    /* Batch services, never offered here.  */
+    case _SC_2_PBS:
+    case _SC_2_PBS_ACCOUNTING:
+    case _SC_2_PBS_CHECKPOINT:
+    case _SC_2_PBS_LOCATE:
+    case _SC_2_PBS_MESSAGE:
+    case _SC_2_PBS_TRACK:
+      RETURN_NEG_1;
     }
 }
 libc_hidden_def(sysconf)

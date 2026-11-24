@@ -247,6 +247,9 @@ long int fpathconf(int fd, int name)
 	case _PC_REC_XFER_ALIGN:
 	case _PC_ALLOC_SIZE_MIN:
 	case _PC_SYMLINK_MAX:
+	case _PC_2_SYMLINKS:
+	/* Depends on the file system.  */
+	case _PC_TIMESTAMP_RESOLUTION:
 	    return -1;
     }
 
