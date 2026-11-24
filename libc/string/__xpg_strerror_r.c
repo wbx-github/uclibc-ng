@@ -167,51 +167,15 @@ int __xpg_strerror_r(int errnum, char *strerrbuf, size_t buflen)
 		'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'e', 'r', 'r', 'o', 'r', ' '
     };
 
-    retval = EINVAL;
-
-
-#ifdef __UCLIBC_HAS_ERRNO_MESSAGES__
-
-#if defined(__alpha__) || defined(__mips__) || defined(__sparc__)
-	/* Need to translate errno to string index. */
-	for (i = 0 ; i < sizeof(estridx)/sizeof(estridx[0]) ; i++) {
-		if (estridx[i] == errnum) {
-			goto GOT_ESTRIDX;
-		}
-	}
-	i = INT_MAX;	/* Failed, but may need to check mips special case. */
-#if EDQUOT > 200	/* Deal with large EDQUOT value on mips */
-	if (errnum == EDQUOT)
-		i = 122;
-#endif
- GOT_ESTRIDX:
-#else
-	/* No errno to string index translation needed. */
-	i = errnum;
-#endif
-
-    if (((unsigned int) i) < _SYS_NERR) {
-		/* Trade time for space.  This function should rarely be called
-		 * so rather than keeping an array of pointers for the different
-		 * messages, just run through the buffer until we find the
-		 * correct string. */
-		for (s = (char *) _string_syserrmsgs ; i ; ++s) {
-			if (!*s) {
-				--i;
-			}
-		}
-		if (*s) {		/* Make sure we have an actual message. */
-			retval = 0;
-			goto GOT_MESG;
-		}
+    s = (char *) __strerror_const(errnum);
+    if (s) {
+		retval = 0;
+    } else {
+		retval = EINVAL;
+		s = _int10tostr(buf+sizeof(buf)-1, errnum) - sizeof(unknown);
+		memcpy(s, unknown, sizeof(unknown));
     }
 
-#endif /* __UCLIBC_HAS_ERRNO_MESSAGES__ */
-
-    s = _int10tostr(buf+sizeof(buf)-1, errnum) - sizeof(unknown);
-    memcpy(s, unknown, sizeof(unknown));
-
- GOT_MESG:
     if (!strerrbuf) {		/* SUSv3  */
 		buflen = 0;
     }
@@ -275,3 +239,48 @@ libc_hidden_def(__xpg_strerror_r)
 #if defined __USE_XOPEN2K && !defined __USE_GNU
 strong_alias(__xpg_strerror_r,strerror_r)
 #endif
+
+/* The constant message for ERRNUM, or NULL where there is none.  The
+   messages are constants, so a caller that only reads one needs no buffer
+   of its own -- that is what lets strerror_l be thread-safe.  */
+const char *__strerror_const(int errnum)
+{
+#ifdef __UCLIBC_HAS_ERRNO_MESSAGES__
+	const char *s;
+	int i;
+
+#if defined(__alpha__) || defined(__mips__) || defined(__sparc__)
+	/* Need to translate errno to string index. */
+	for (i = 0 ; i < sizeof(estridx)/sizeof(estridx[0]) ; i++) {
+		if (estridx[i] == errnum) {
+			goto GOT_ESTRIDX;
+		}
+	}
+	i = INT_MAX;	/* Failed, but may need to check mips special case. */
+#if EDQUOT > 200	/* Deal with large EDQUOT value on mips */
+	if (errnum == EDQUOT)
+		i = 122;
+#endif
+ GOT_ESTRIDX:
+#else
+	/* No errno to string index translation needed. */
+	i = errnum;
+#endif
+
+	if (((unsigned int) i) < _SYS_NERR) {
+		/* Trade time for space: run through the packed messages
+		   instead of keeping an array of pointers.  */
+		for (s = _string_syserrmsgs ; i ; ++s) {
+			if (!*s) {
+				--i;
+			}
+		}
+		if (*s) {	/* Make sure we have an actual message. */
+			return s;
+		}
+	}
+#else
+	(void) errnum;	/* No messages built in: everything is unknown.  */
+#endif
+	return NULL;
+}

@@ -340,7 +340,7 @@ extern char * __REDIRECT_NTH (strerror_r,
 # endif
 #endif
 
-#if 0 /*defined __USE_XOPEN2K8 && defined __UCLIBC_HAS_XLOCALE__*/
+#if defined __USE_XOPEN2K8 && defined __UCLIBC_HAS_XLOCALE__
 /* Translate error number to string according to the locale L.  */
 extern char *strerror_l (int __errnum, __locale_t __l) __THROW;
 #endif

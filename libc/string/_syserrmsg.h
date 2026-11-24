@@ -34,4 +34,10 @@
 # define _STRERROR_BUFSIZE _SYS_ERRMSG_MAXLEN
 #endif
 
+/* The constant message for ERRNUM, or NULL where there is none and the
+   caller has to build "Unknown error N" itself.  The messages are
+   constants, so whoever only needs to read one needs no buffer -- that is
+   what lets strerror_l be thread-safe.  */
+extern const char *__strerror_const(int errnum) attribute_hidden;
+
 #endif
