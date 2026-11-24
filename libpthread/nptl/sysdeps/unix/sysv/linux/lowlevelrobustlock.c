@@ -78,6 +78,14 @@ __lll_robust_timedlock_wait (int *futex, const struct timespec *abstime,
       /* Get the current time.  */
       (void) __gettimeofday (&tv, NULL);
 
+      /* Did we already time out?  Ask before subtracting: a deadline
+	 far in the past makes the difference overflow and come back as
+	 a long wait.  */
+      if (abstime->tv_sec < tv.tv_sec
+	  || (abstime->tv_sec == tv.tv_sec
+	      && abstime->tv_nsec <= tv.tv_usec * 1000))
+	return ETIMEDOUT;
+
       /* Compute relative timeout.  */
       rt.tv_sec = abstime->tv_sec - tv.tv_sec;
       rt.tv_nsec = abstime->tv_nsec - tv.tv_usec * 1000;
