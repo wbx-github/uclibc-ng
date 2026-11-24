@@ -23,7 +23,7 @@ CSRC-$(UCLIBC_SUSV2_LEGACY) += valloc.c
 CSRC-$(UCLIBC_HAS_ADVANCED_REALTIME) += posix_memalign.c
 CSRC-$(UCLIBC_HAS_PTY) += grantpt.c unlockpt.c ptsname.c
 CSRC-y += mkstemp64.c mkostemp64.c mkstemps64.c mkostemps64.c
-CSRC-$(UCLIBC_HAS_FLOATS) += drand48.c drand48_r.c erand48.c erand48_r.c strfrom.c
+CSRC-$(UCLIBC_HAS_FLOATS) += drand48.c drand48_r.c erand48.c erand48_r.c strfrom.c strfmon.c
 CSRC-$(if $(findstring yy,$(UCLIBC_HAS_FLOATS)$(UCLIBC_SUSV3_LEGACY)),y) += \
 	gcvt.c
 CSRC-$(UCLIBC_SUSV3_LEGACY) += mktemp.c
