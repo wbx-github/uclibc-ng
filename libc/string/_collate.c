@@ -517,7 +517,7 @@ size_t __XL_NPP(wcsxfrm)(wchar_t *__restrict ws1, const wchar_t *__restrict ws2,
 	int pass;
 
 	if (!CUR_COLLATE->num_weights) { /* C locale */
-		return __wcslcpy(ws1, ws2, n);
+		return wcslcpy(ws1, ws2, n);
 	}
 
 	count = pass = 0;

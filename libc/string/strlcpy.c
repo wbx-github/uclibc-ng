@@ -8,7 +8,7 @@
 #include "_string.h"
 
 #ifdef WANT_WIDE
-# define Wstrlcpy __wcslcpy
+# define Wstrlcpy wcslcpy
 # define Wstrxfrm wcsxfrm
 #else
 # define Wstrlcpy strlcpy
@@ -42,7 +42,9 @@ size_t Wstrlcpy(register Wchar *__restrict dst,
 
 	return src - src0;
 }
-#ifndef WANT_WIDE
+#ifdef WANT_WIDE
+libc_hidden_def(wcslcpy)
+#else
 libc_hidden_def(strlcpy)
 #endif
 

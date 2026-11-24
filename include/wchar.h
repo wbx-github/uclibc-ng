@@ -794,9 +794,13 @@ libc_hidden_proto(wcsftime_l)
 # include <wctype.h>
 #endif
 
-#ifdef _LIBC
-extern size_t __wcslcpy(wchar_t *__restrict dst,
-			const wchar_t *__restrict src, size_t n) attribute_hidden;
+#if defined __USE_MISC || defined __USE_XOPEN2K24
+/* Copy and append like strlcpy and strlcat, in wide characters.  */
+extern size_t wcslcpy (wchar_t *__restrict __dst,
+		       const wchar_t *__restrict __src, size_t __n) __THROW;
+libc_hidden_proto(wcslcpy)
+extern size_t wcslcat (wchar_t *__restrict __dst,
+		       const wchar_t *__restrict __src, size_t __n) __THROW;
 #endif
 
 __END_DECLS

@@ -14,12 +14,18 @@
 
 #include "_string.h"
 
-size_t strlcat(register char *__restrict dst,
-			   register const char *__restrict src,
+#ifdef WANT_WIDE
+# define Wstrlcat wcslcat
+#else
+# define Wstrlcat strlcat
+#endif
+
+size_t Wstrlcat(register Wchar *__restrict dst,
+			   register const Wchar *__restrict src,
 			   size_t n)
 {
 	size_t len;
-	char dummy[1];
+	Wchar dummy[1];
 
 	len = 0;
 
@@ -44,4 +50,6 @@ size_t strlcat(register char *__restrict dst,
 
 	return len;
 }
+#ifndef WANT_WIDE
 libc_hidden_def(strlcat)
+#endif
