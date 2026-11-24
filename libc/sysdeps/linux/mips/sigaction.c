@@ -99,7 +99,9 @@ int __libc_sigaction(int sig, const struct sigaction *act, struct sigaction *oac
 # ifndef __UCLIBC_HAS_THREADS__
 strong_alias(__libc_sigaction,sigaction)
 libc_hidden_def(sigaction)
-# else
+# elif !defined __UCLIBC_HAS_THREADS_NATIVE__
+/* With NPTL, sigaction is the wrapper in sigaction-nptl.c, which refuses
+   SIGCANCEL and SIGSETXID; a weak one here would win in static programs.  */
 weak_alias(__libc_sigaction,sigaction)
 libc_hidden_weak(sigaction)
 # endif

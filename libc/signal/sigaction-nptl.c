@@ -20,9 +20,9 @@
 #include <signal.h>
 
 /* We use the libc implementation but we tell it to not allow
-   SIGCANCEL or SIGTIMER to be handled.  */
+   SIGCANCEL or SIGSETXID to be handled.  Built into libc rather than
+   libpthread, so that it also gives libc's own calls their sigaction.  */
 
-libc_hidden_proto(sigaction)
 extern __typeof(sigaction) __libc_sigaction;
 int
 sigaction (int sig, const struct sigaction *act, struct sigaction *oact)

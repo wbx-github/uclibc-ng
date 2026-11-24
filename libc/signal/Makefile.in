@@ -15,6 +15,8 @@ CSRC-$(UCLIBC_HAS_OBSOLETE_BSD_SIGNAL) += \
 	sighold.c sigignore.c sigrelse.c sigset.c
 CSRC-$(UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL) += sysv_signal.c
 CSRC-$(UCLIBC_SUSV4_LEGACY) += sigintr.c sigpause.c
+# sigaction for programs, refusing the signals NPTL keeps for itself
+CSRC-$(UCLIBC_HAS_THREADS_NATIVE) += sigaction-nptl.c
 
 # only use simple raise.c when threads are disabled
 ifeq ($(UCLIBC_HAS_THREADS),)

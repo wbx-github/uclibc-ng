@@ -32,7 +32,6 @@ libpthread_pthread_CSRC = \
 	pthread_spin_destroy.c \
 	pthread_spin_init.c \
 	pthread_spin_unlock.c \
-	pt-sigaction.c \
 	tpp.c
 
 CFLAGS-pthread_barrier_wait.c = -D_GNU_SOURCE
