@@ -40,13 +40,15 @@
 #define O_NDELAY	(0x0004 | O_NONBLOCK)
 #define O_NOCTTY	0x8000	/* not fcntl */
 
+#define __O_PATH	0x1000000
+
 #ifdef __USE_GNU
 # define O_DIRECTORY	0x10000 /* must be a directory */
 # define O_NOFOLLOW	0x20000 /* don't follow links */
 # define O_DIRECT      0x100000 /* direct disk access hint */
 # define O_NOATIME     0x200000 /* Do not set atime.  */
 # define O_CLOEXEC     0x400000 /* Set close_on_exit.  */
-# define O_PATH       0x1000000 /* Resolve pathname but do not open file.  */
+# define O_PATH       __O_PATH /* Resolve pathname but do not open file.  */
 # define O_TMPFILE    0x2010000 /* Atomically create nameless file.  */
 #endif
 

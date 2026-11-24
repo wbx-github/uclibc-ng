@@ -1899,7 +1899,7 @@ int getnameinfo(const struct sockaddr *sa,
 	struct hostent *hoste = NULL;
 	char domain[256];
 
-	if (flags & ~(NI_NUMERICHOST|NI_NUMERICSERV|NI_NOFQDN|NI_NAMEREQD|NI_DGRAM))
+	if (flags & ~(NI_NUMERICHOST|NI_NUMERICSERV|NI_NOFQDN|NI_NAMEREQD|NI_DGRAM|NI_NUMERICSCOPE))
 		return EAI_BADFLAGS;
 
 	if (sa == NULL || addrlen < sizeof(sa_family_t))

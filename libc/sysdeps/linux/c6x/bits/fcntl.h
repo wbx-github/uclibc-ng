@@ -49,11 +49,13 @@
 # define O_CLOEXEC	02000000/* set close on exec */
 #endif
 
+#define __O_PATH	010000000
+
 #ifdef __USE_GNU
 # define O_DIRECT	 040000
 # define O_LARGEFILE	0100000
 # define O_NOATIME      01000000
-# define O_PATH        010000000/* Resolve pathname but do not open file.  */
+# define O_PATH        __O_PATH /* Resolve pathname but do not open file.  */
 # define O_TMPFILE     020200000/* Atomically create nameless file.  */
 #endif
 

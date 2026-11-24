@@ -64,6 +64,10 @@
    for use with `readv' or writev'.  */
 #define	_XOPEN_IOV_MAX	_POSIX_UIO_MAXIOV
 
+/* Minimum values for NAME_MAX and PATH_MAX on XSI systems.  */
+#define	_XOPEN_NAME_MAX	255
+#define	_XOPEN_PATH_MAX	1024
+
 
 /* Maximum value of `digit' in calls to the `printf' and `scanf'
    functions.  Posix dictates this should be a minimum of 9 */

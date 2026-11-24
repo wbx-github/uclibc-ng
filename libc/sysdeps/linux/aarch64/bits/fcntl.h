@@ -48,10 +48,12 @@
 # define O_CLOEXEC     02000000
 #endif
 
+#define __O_PATH	010000000
+
 #ifdef __USE_GNU
 # define O_DIRECT	0200000
 # define O_NOATIME     01000000
-# define O_PATH       010000000
+# define O_PATH       __O_PATH
 # define O_TMPFILE    020040000
 #endif
 

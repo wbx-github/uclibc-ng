@@ -32,6 +32,25 @@ __BEGIN_DECLS
    numbers and flag bits for `open', `fcntl', et al.  */
 #include <bits/fcntl.h>
 
+/* POSIX access modes for executing and searching, as in musl: Linux has
+   O_PATH, which leaves the file unopened for reading and writing but
+   good for fexecve and the *at functions.  For programs O_ACCMODE covers
+   them; the library itself only deals in the three classic modes.  */
+#ifdef __O_PATH
+# ifdef __USE_XOPEN2K8
+#  define O_EXEC	__O_PATH
+#  define O_SEARCH	__O_PATH
+# endif
+# ifndef _LIBC
+#  undef O_ACCMODE
+#  define O_ACCMODE	(03 | __O_PATH)
+# endif
+#endif
+#ifdef __USE_XOPEN2K8
+/* Opening a terminal already sets it up as POSIX wants.  */
+# define O_TTY_INIT	0
+#endif
+
 /* For XPG all symbols from <sys/stat.h> should also be available.  */
 #ifdef __USE_XOPEN
 # include <sys/stat.h>
