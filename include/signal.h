@@ -182,7 +182,7 @@ extern int gsignal (int __sig) __THROW;
 extern void psignal (int __sig, const char *__s);
 #endif /* Use misc or POSIX 2008.  */
 
-#if 0 /*def __USE_XOPEN2K8*/
+#ifdef __USE_XOPEN2K8
 /* Print a message describing the meaning of the given signal information.  */
 extern void psiginfo (const siginfo_t *__pinfo, const char *__s);
 #endif /* POSIX 2008.  */
