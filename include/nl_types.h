@@ -20,26 +20,21 @@
 
 #include <features.h>
 
-#ifndef __UCLIBC_STRICT_HEADERS__
 /* The default message set used by the gencat program.  */
 #define NL_SETD 1
 
 /* Value for FLAG parameter of `catgets' to say we want XPG4 compliance.  */
 #define NL_CAT_LOCALE 1
-#endif
 
 
 __BEGIN_DECLS
 
-#ifndef __UCLIBC_STRICT_HEADERS__
 /* Message catalog descriptor type.  */
 typedef void *nl_catd;
-#endif
 
 /* Type used by `nl_langinfo'.  */
 typedef int nl_item;
 
-#if 0
 /* Open message catalog for later use, returning descriptor.
 
    This function is a possible cancellation point and therefore not
@@ -53,7 +48,6 @@ extern char *catgets (nl_catd __catalog, int __set, int __number,
 
 /* Close message CATALOG.  */
 extern int catclose (nl_catd __catalog) __THROW __nonnull ((1));
-#endif
 
 __END_DECLS
 

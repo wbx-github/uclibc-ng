@@ -8,7 +8,7 @@
 subdirs += libc/misc/locale
 
 # multi source locale.c
-CSRC-y := setlocale.c localeconv.c _locale_init.c nl_langinfo.c
+CSRC-y := setlocale.c localeconv.c _locale_init.c nl_langinfo.c catgets.c
 CSRC-$(UCLIBC_HAS_LOCALE) += newlocale.c __locale_mbrtowc_l.c
 CSRC-$(UCLIBC_HAS_XLOCALE) += nl_langinfo_l.c duplocale.c freelocale.c \
 	uselocale.c __curlocale.c
