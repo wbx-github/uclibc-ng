@@ -34,7 +34,13 @@ pid_t fork(void)
 # ifdef __UCLIBC_HAS_THREADS__
 strong_alias(fork,__libc_fork)
 libc_hidden_weak(fork)
+/* With linuxthreads _Fork is in ptfork.c alone, where the child's
+   thread descriptor can be put right.  Not even a weak alias here: it
+   would satisfy the reference from this file, which comes first in
+   libc.a, and a static link would never pull ptfork.o in.  */
 # else
+/* No threads: no descriptor to put right and no handler to skip.  */
+strong_alias(fork,_Fork)
 libc_hidden_def(fork)
 # endif
 

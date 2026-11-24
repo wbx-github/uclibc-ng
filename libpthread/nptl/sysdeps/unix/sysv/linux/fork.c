@@ -208,4 +208,20 @@ fork (void)
 }
 libc_hidden_def(fork)
 
+/* fork without the atfork handlers and the stdio locks.  */
+pid_t
+_Fork (void)
+{
+  pid_t pid = ARCH_FORK ();
+
+  if (pid == 0)
+    {
+      if (__fork_generation_pointer != NULL)
+	*__fork_generation_pointer += 4;
+      __fork_lock = LLL_LOCK_INITIALIZER;
+    }
+
+  return pid;
+}
+
 #endif /* __ARCH_USE_MMU__ */

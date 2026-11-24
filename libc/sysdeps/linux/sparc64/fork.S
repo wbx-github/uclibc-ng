@@ -29,4 +29,12 @@ fork:
 
 .size fork, . - fork
 
+#ifndef __UCLIBC_HAS_THREADS__
+/* No threads: no descriptor to put right and no handler to skip.  */
+strong_alias(fork,_Fork)
+#endif
+/* With linuxthreads _Fork is in ptfork.c alone, where the child's
+   thread descriptor can be put right.  Not even a weak alias here: it
+   would satisfy the reference from this file, which comes first in
+   libc.a, and a static link would never pull ptfork.o in.  */
 libc_hidden_def(fork)

@@ -118,6 +118,7 @@ make_stub(flistxattr)
 
 #if !defined __ARCH_USE_MMU__ || (!defined __NR_fork && !defined __NR_clone)
 make_stub(fork)
+make_stub(_Fork)
 #endif
 
 #ifndef __NR_fremovexattr

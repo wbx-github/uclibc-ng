@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include "pthread.h"
 #include "internals.h"
+#include <not-cancel.h>
+
+extern int _errno;
+extern int _h_errno;
 
 struct handler_list {
   void (*handler)(void);
@@ -148,6 +152,57 @@ static pid_t __fork(void)
   return pid;
 }
 strong_alias(__fork,fork)
+
+/* POSIX.1-2024 _Fork: fork without the atfork handlers.  The child still
+   needs its thread descriptor to describe the child: p_pid would stay the
+   parent's, and pthread_kill (pthread_self (), sig) in the child would
+   then signal the parent.
+
+   Only what costs nothing is done here.  __pthread_reset_main_thread
+   would free the manager's stack and close its pipe, and _Fork has to
+   stay async-signal-safe: with the allocator locked by another thread at
+   the time of the fork, free would never return.  The child is left as
+   POSIX leaves it after a fork in a threaded process -- async-signal-safe
+   functions and exec.  */
+pid_t _Fork(void)
+{
+  pid_t pid = __libc_fork();
+
+  if (pid == 0)
+    {
+      pthread_descr self = thread_self();
+
+      /* The manager belongs to the parent, and so does its pipe.  Left
+	 open, the child's exit would send REQ_PROCESS_EXIT down it and
+	 take the parent's threads with it, and an exec would hand the
+	 descriptors to the new program.  Closed with the raw system
+	 call: _Fork has to stay async-signal-safe and close() is a
+	 cancellation point here.  The manager's stack is dropped, not
+	 freed -- free() wants the allocator lock, which another thread
+	 may have held when the fork happened.  */
+      if (__pthread_manager_request != -1)
+	{
+	  close_not_cancel_no_status(__pthread_manager_request);
+	  close_not_cancel_no_status(__pthread_manager_reader);
+	  __pthread_manager_request = __pthread_manager_reader = -1;
+	  __pthread_manager_thread_bos = __pthread_manager_thread_tos = NULL;
+	}
+
+      /* Carry the values over before the descriptor stops pointing at
+	 the per-thread ones.  */
+      _errno = *THREAD_GETMEM(self, p_errnop);
+      _h_errno = *THREAD_GETMEM(self, p_h_errnop);
+
+      THREAD_SETMEM(self, p_pid, getpid());
+      THREAD_SETMEM(self, p_errnop, &_errno);
+      THREAD_SETMEM(self, p_h_errnop, &_h_errno);
+      __pthread_main_thread = self;
+      THREAD_SETMEM(self, p_nextlive, self);
+      THREAD_SETMEM(self, p_prevlive, self);
+    }
+
+  return pid;
+}
 strong_alias(__fork,vfork)
 
 #endif
