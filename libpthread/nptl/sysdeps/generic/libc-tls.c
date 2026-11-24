@@ -27,6 +27,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <signal.h>
+#include <sys/syscall.h>
+#if !defined __NR_getpid && defined __NR_getxpid
+# define __NR_getpid __NR_getxpid	/* alpha */
+#endif
 
 #ifdef SHARED
  #error makefile bug, this file is for static only
@@ -235,7 +240,16 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 #  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
 # endif
   if (__builtin_expect (lossage != NULL, 0))
-    abort();
+    {
+      /* Not abort(): without a thread pointer nothing that uses TLS can
+	 run, and abort brings sigaction and sigprocmask along.  The pid
+	 goes in a variable of its own: a system call in the argument of
+	 another overwrites the number register.  */
+      INTERNAL_SYSCALL_DECL (err);
+      int pid = INTERNAL_SYSCALL (getpid, err, 0);
+      INTERNAL_SYSCALL (kill, err, 2, pid, SIGKILL);
+      INTERNAL_SYSCALL (exit_group, err, 1, 127);
+    }
 
   /* We have to create a fake link map which normally would be created
      by the dynamic linker.  It just has to have enough information to

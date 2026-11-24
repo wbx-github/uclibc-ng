@@ -27,6 +27,11 @@
 #include <stdio.h>
 #ifndef __ARCH_HAS_NO_LDSO__
 #include <fcntl.h>
+#include <signal.h>
+#include <sys/syscall.h>
+#if !defined __NR_getpid && defined __NR_getxpid
+# define __NR_getpid __NR_getxpid	/* alpha */
+#endif
 #endif
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 #include <not-cancel.h>
@@ -251,7 +256,13 @@ static void __check_one_fd(int fd, int mode)
 	   ENOENT, and 2 == STDERR_FILENO would pass for the descriptor.  */
 	if (INTERNAL_SYSCALL_ERROR_P (nullfd, err) || nullfd!=fd)
 	{
-		abort();
+		/* Not abort(): it needs sigaction and sigprocmask to get past
+		   an inherited mask or SIG_IGN.  SIGKILL gets past both.  The
+		   pid goes in a variable of its own: a system call in the
+		   argument of another overwrites the number register.  */
+		int pid = INTERNAL_SYSCALL (getpid, err, 0);
+		INTERNAL_SYSCALL (kill, err, 2, pid, SIGKILL);
+		INTERNAL_SYSCALL (exit_group, err, 1, 127);
 	}
     }
 }
