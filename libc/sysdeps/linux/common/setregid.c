@@ -7,6 +7,7 @@
  */
 
 #include <sys/syscall.h>
+#include <internal/setxid.h>
 #include <unistd.h>
 #include <bits/wordsize.h>
 
@@ -17,13 +18,12 @@
 #  define __NR_setregid __NR_setregid32
 # endif
 
-_syscall2(int, setregid, gid_t, rgid, gid_t, egid)
+int setregid(gid_t rgid, gid_t egid)
+{
+	return INLINE_SETXID_SYSCALL(setregid, 2, rgid, egid);
+}
 
 #else
-
-# define __NR___syscall_setregid __NR_setregid
-static __inline__ _syscall2(int, __syscall_setregid,
-		__kernel_gid_t, rgid, __kernel_gid_t, egid)
 
 int setregid(gid_t rgid, gid_t egid)
 {
@@ -32,7 +32,7 @@ int setregid(gid_t rgid, gid_t egid)
 		__set_errno(EINVAL);
 		return -1;
 	}
-	return (__syscall_setregid(rgid, egid));
+	return INLINE_SETXID_SYSCALL(setregid, 2, rgid, egid);
 }
 #endif
 

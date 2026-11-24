@@ -16,7 +16,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <pthreadP.h>
-#include <sysdep.h>
 
 #define __SETXID_1(cmd, arg1) \
   cmd.id[0] = arg1
@@ -25,24 +24,12 @@
 #define __SETXID_3(cmd, arg1, arg2, arg3) \
   __SETXID_2 (cmd, arg1, arg2); cmd.id[2] = arg3
 
-#ifdef SINGLE_THREAD
-# define INLINE_SETXID_SYSCALL(name, nr, args...) \
-  INLINE_SYSCALL (name, nr, args)
-#elif defined SHARED
-# define INLINE_SETXID_SYSCALL(name, nr, args...) \
+/* __nptl_setxid comes with pthread_create: a program without it has
+   only the one thread.  libc.so always has it.  */
+extern __typeof (__nptl_setxid) __nptl_setxid __attribute__((weak));
+
+#define INLINE_SETXID_SYSCALL(name, nr, args...) \
   ({									\
-    int __result;							\
-	struct xid_command __cmd;					\
-	__cmd.syscall_no = __NR_##name;					\
-	__SETXID_##nr (__cmd, args);					\
-	__result = PTHFCT_CALL (__nptl_setxid, (&__cmd));		\
-	}								\
-    __result;								\
-   })
-#else
-# define INLINE_SETXID_SYSCALL(name, nr, args...) \
-  ({									\
-    extern __typeof (__nptl_setxid) __nptl_setxid __attribute__((weak));\
     int __result;							\
     if (__builtin_expect (__nptl_setxid	!= NULL, 0))			\
       {									\
@@ -55,4 +42,3 @@
       __result = INLINE_SYSCALL (name, nr, args);			\
     __result;								\
    })
-#endif

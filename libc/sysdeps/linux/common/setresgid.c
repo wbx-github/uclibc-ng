@@ -7,6 +7,7 @@
  */
 
 #include <sys/syscall.h>
+#include <internal/setxid.h>
 #ifdef __USE_GNU
 #include <unistd.h>
 
@@ -14,14 +15,13 @@
 # undef __NR_setresgid
 # define __NR_setresgid __NR_setresgid32
 
-_syscall3(int, setresgid, gid_t, rgid, gid_t, egid, gid_t, sgid)
+int setresgid(gid_t rgid, gid_t egid, gid_t sgid)
+{
+	return INLINE_SETXID_SYSCALL(setresgid, 3, rgid, egid, sgid);
+}
 libc_hidden_weak(setresgid)
 
 #elif defined(__NR_setresgid)
-
-# define __NR___syscall_setresgid __NR_setresgid
-static __inline__ _syscall3(int, __syscall_setresgid,
-		__kernel_gid_t, rgid, __kernel_gid_t, egid, __kernel_gid_t, sgid)
 
 int setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 {
@@ -31,7 +31,7 @@ int setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 		__set_errno(EINVAL);
 		return -1;
 	}
-	return (__syscall_setresgid(rgid, egid, sgid));
+	return INLINE_SETXID_SYSCALL(setresgid, 3, rgid, egid, sgid);
 }
 libc_hidden_weak(setresgid)
 

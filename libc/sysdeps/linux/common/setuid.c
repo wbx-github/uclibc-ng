@@ -7,6 +7,7 @@
  */
 
 #include <sys/syscall.h>
+#include <internal/setxid.h>
 #include <unistd.h>
 #include <bits/wordsize.h>
 
@@ -16,12 +17,12 @@
 #  define __NR_setuid __NR_setuid32
 # endif
 
-_syscall1(int, setuid, uid_t, uid)
+int setuid(uid_t uid)
+{
+	return INLINE_SETXID_SYSCALL(setuid, 1, uid);
+}
 
 #else
-
-# define __NR___syscall_setuid __NR_setuid
-static __always_inline _syscall1(int, __syscall_setuid, __kernel_uid_t, uid)
 
 int setuid(uid_t uid)
 {
@@ -29,6 +30,6 @@ int setuid(uid_t uid)
 		__set_errno(EINVAL);
 		return -1;
 	}
-	return __syscall_setuid(uid);
+	return INLINE_SETXID_SYSCALL(setuid, 1, uid);
 }
 #endif

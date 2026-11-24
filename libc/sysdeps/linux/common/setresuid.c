@@ -7,6 +7,7 @@
  */
 
 #include <sys/syscall.h>
+#include <internal/setxid.h>
 #if defined __USE_GNU && defined __UCLIBC_LINUX_SPECIFIC__
 #include <unistd.h>
 
@@ -14,14 +15,13 @@
 # undef __NR_setresuid
 # define __NR_setresuid __NR_setresuid32
 
-_syscall3(int, setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
+int setresuid(uid_t ruid, uid_t euid, uid_t suid)
+{
+	return INLINE_SETXID_SYSCALL(setresuid, 3, ruid, euid, suid);
+}
 libc_hidden_weak(setresuid)
 
 #elif defined(__NR_setresuid)
-
-# define __NR___syscall_setresuid __NR_setresuid
-static __inline__ _syscall3(int, __syscall_setresuid,
-		__kernel_uid_t, rgid, __kernel_uid_t, egid, __kernel_uid_t, sgid)
 
 int setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
@@ -31,7 +31,7 @@ int setresuid(uid_t ruid, uid_t euid, uid_t suid)
 		__set_errno(EINVAL);
 		return -1;
 	}
-	return (__syscall_setresuid(ruid, euid, suid));
+	return INLINE_SETXID_SYSCALL(setresuid, 3, ruid, euid, suid);
 }
 libc_hidden_weak(setresuid)
 

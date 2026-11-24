@@ -7,6 +7,7 @@
  */
 
 #include <sys/syscall.h>
+#include <internal/setxid.h>
 
 #ifdef __USE_BSD
 #include <grp.h>
@@ -14,20 +15,19 @@
 #if defined(__NR_setgroups32)
 # undef __NR_setgroups
 # define __NR_setgroups __NR_setgroups32
-_syscall2(int, setgroups, size_t, size, const gid_t *, list)
+#endif
 
-#elif __WORDSIZE == 64
-_syscall2(int, setgroups, size_t, size, const gid_t *, list)
+#if defined(__NR_setgroups32) || __WORDSIZE == 64
+int setgroups(size_t size, const gid_t *list)
+{
+	return INLINE_SETXID_SYSCALL(setgroups, 2, size, (long) list);
+}
 
 #else
 # include <errno.h>
 # include <stdlib.h>
 # include <unistd.h>
 # include <sys/types.h>
-
-# define __NR___syscall_setgroups __NR_setgroups
-static __always_inline _syscall2(int, __syscall_setgroups,
-				 size_t, size, const __kernel_gid_t *, list)
 
 int setgroups(size_t size, const gid_t *groups)
 {
@@ -52,7 +52,7 @@ ret_error:
 			}
 		}
 
-		i = __syscall_setgroups(size, kernel_groups);
+		i = INLINE_SETXID_SYSCALL(setgroups, 2, size, (long) kernel_groups);
 		free(kernel_groups);
 		return i;
 	}
