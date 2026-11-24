@@ -10,7 +10,7 @@ subdirs += libc/signal
 CSRC-y := allocrtsig.c killpg.c sigaction.c sigaddset.c sigandset.c \
 	sigdelset.c sigempty.c sigfillset.c \
 	sigisempty.c sigismem.c sigjmp.c signal.c \
-	sigorset.c sigsetops.c sigwait.c
+	sigorset.c sigsetops.c sigwait.c sig2str.c
 CSRC-$(UCLIBC_HAS_OBSOLETE_BSD_SIGNAL) += \
 	sighold.c sigignore.c sigrelse.c sigset.c
 CSRC-$(UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL) += sysv_signal.c

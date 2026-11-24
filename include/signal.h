@@ -454,6 +454,19 @@ extern __sighandler_t sigset (int __sig, __sighandler_t __disp) __THROW;
 # include <bits/sigthread.h>
 #endif
 
+#ifdef __USE_XOPEN2K24
+/* Room for any name sig2str writes, with the nul.  */
+# define SIG2STR_MAX	32
+
+/* Write the name of SIGNUM without "SIG" to STR; 0 or -1.  */
+extern int sig2str (int __signum, char *__str) __THROW;
+
+/* Store in *PNUM the signal STR names, as sig2str writes it or as
+   a decimal number; 0 or -1.  */
+extern int str2sig (const char *__restrict __str, int *__restrict __pnum)
+     __THROW;
+#endif
+
 /* The following functions are used internally in the C library and in
    other code which need deep insights.  */
 
