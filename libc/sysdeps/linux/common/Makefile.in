@@ -91,6 +91,11 @@ CSRC- += $(if $(findstring =metag=,=$(TARGET_ARCH)=),vfork.c)
 endif
 # Cancellation points block in this multiplexer and must be unwindable.
 CFLAGS-__socketcall.c = -fasynchronous-unwind-tables
+# posix_close calls close, a cancellation point.  Without unwind
+# tables a thread cancelled in close cannot unwind through this
+# frame, and the caller's cleanup handlers never run.  gcc has them
+# on by default on x86 only.
+CFLAGS-posix_close.c = -fexceptions -fasynchronous-unwind-tables
 
 # xstatconv.c always built (old kernels need it even without ARCH_HAS_DEPRECATED_SYSCALLS)
 

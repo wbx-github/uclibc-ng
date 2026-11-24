@@ -370,6 +370,17 @@ extern void __close_nocancel_no_status(int) attribute_hidden;
 libc_hidden_proto(close)
 #endif
 
+#ifdef __USE_XOPEN2K24
+/* Close FD like close, but report an interrupted close, which Linux
+   completes anyway, with EINPROGRESS (POSIX.1-2024).  FLAG must be 0
+   or POSIX_CLOSE_RESTART, which is 0 here: Linux never restarts.
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+# define POSIX_CLOSE_RESTART	0
+extern int posix_close (int __fd, int __flag);
+#endif
+
 /* Read NBYTES into BUF from FD.  Return the
    number read, -1 for errors or 0 for EOF.
 
@@ -821,6 +832,11 @@ extern __pid_t fork (void) __THROWNL;
 extern __typeof(fork) __libc_fork;
 # endif
 libc_hidden_proto(fork)
+# endif
+# ifdef __USE_XOPEN2K24
+/* Like fork, but without running the pthread_atfork handlers;
+   async-signal-safe.  */
+extern __pid_t _Fork (void) __THROW;
 # endif
 #endif
 
