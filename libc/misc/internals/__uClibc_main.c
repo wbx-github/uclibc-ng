@@ -441,12 +441,15 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
     __uclibc_progname = *argv;
 #if defined __UCLIBC_HAS___PROGNAME__ || (defined __USE_GNU && defined __UCLIBC_HAS_PROGRAM_INVOCATION_NAME__)
     if (*argv != NULL) {
+	const char *p;
+
 	__progname_full = *argv;
-	__progname = strrchr(*argv, '/');
-	if (__progname != NULL)
-	    ++__progname;
-	else
-	    __progname = *argv;
+	/* The part after the last '/'.  A loop rather than strrchr, which
+	   brings strchr along.  */
+	__progname = *argv;
+	for (p = *argv; *p; p++)
+	    if (*p == '/')
+		__progname = p + 1;
     }
 #endif
 
