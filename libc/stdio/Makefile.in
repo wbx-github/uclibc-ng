@@ -37,6 +37,8 @@ CSRC-y += \
 # Other glibc extensions
 CSRC-$(UCLIBC_HAS_GLIBC_CUSTOM_STREAMS) += fopencookie.c fmemopen.c \
 	open_memstream.c
+CSRC-$(if $(findstring yy,$(UCLIBC_HAS_GLIBC_CUSTOM_STREAMS)$(UCLIBC_HAS_WCHAR)),y) += \
+	open_wmemstream.c
 
 # pthread functions
 CSRC-y += flockfile.c ftrylockfile.c funlockfile.c

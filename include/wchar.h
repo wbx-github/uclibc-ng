@@ -541,6 +541,13 @@ extern wchar_t *wcpncpy (wchar_t *__dest, const wchar_t *__src, size_t __n)
 #endif	/* use GNU */
 
 
+#if defined __USE_XOPEN2K8 && defined __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+/* Open a stream that writes into a growing buffer of wide characters;
+   *BUFLOC and *SIZELOC follow it at every flush.  */
+extern __FILE *open_wmemstream (wchar_t **__bufloc, size_t *__sizeloc)
+     __THROW __wur;
+#endif
+
 /* Wide character I/O functions.  */
 #if defined __USE_ISOC99 || defined __USE_UNIX98
 __BEGIN_NAMESPACE_C99
