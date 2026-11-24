@@ -108,6 +108,14 @@ extern __pid_t tcgetsid (int __fd) __THROW;
 # include <sys/ttydefaults.h>
 #endif
 
+#ifdef __USE_XOPEN2K24
+# include <bits/winsize.h>
+
+/* Get or set the window size of the terminal FD.  */
+extern int tcgetwinsize (int __fd, struct winsize *__wsp) __THROW;
+extern int tcsetwinsize (int __fd, const struct winsize *__wsp) __THROW;
+#endif
+
 __END_DECLS
 
 #endif /* termios.h  */

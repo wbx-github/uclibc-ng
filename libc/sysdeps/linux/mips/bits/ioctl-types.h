@@ -23,13 +23,7 @@
 /* Get definition of constants for use with `ioctl'.  */
 #include <asm/ioctls.h>
 
-struct winsize
-  {
-    unsigned short int ws_row;
-    unsigned short int ws_col;
-    unsigned short int ws_xpixel;
-    unsigned short int ws_ypixel;
-  };
+#include <bits/winsize.h>
 
 #define NCC	8
 struct termio
