@@ -22,9 +22,17 @@
 #   include <fcntl.h>
 #   include <unistd.h>
 #   include <string.h>
-#   define OPEN open
-#   define READ read
-#   define CLOSE close
+#   include <sysdep.h>
+/* Raw system calls: this runs before main, and the wrappers are
+   cancellation points that bring their machinery along.  */
+#   ifdef __NR_open
+#    define OPEN(path, flags, mode) INLINE_SYSCALL (open, 3, path, flags, mode)
+#   else
+#    define OPEN(path, flags, mode) \
+	INLINE_SYSCALL (openat, 4, AT_FDCWD, path, flags, mode)
+#   endif
+#   define READ(fd, buf, n) INLINE_SYSCALL (read, 3, fd, buf, n)
+#   define CLOSE(fd) INLINE_SYSCALL (close, 1, fd)
 #   define MEMCPY memcpy
 #  else
 #   include <dl-string.h>

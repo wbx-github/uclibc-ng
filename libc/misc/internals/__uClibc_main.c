@@ -217,17 +217,39 @@ weak_alias(__environ, environ)
 #endif
 
 #ifndef __ARCH_HAS_NO_LDSO__
+/* Raw system calls: this runs before main, in the only thread, and the
+   wrappers are cancellation points that bring their machinery along.  */
+#ifdef __NR_fcntl64
+# define CHECK_FCNTL(fd, cmd) INTERNAL_SYSCALL (fcntl64, err, 2, fd, cmd)
+#else
+# define CHECK_FCNTL(fd, cmd) INTERNAL_SYSCALL (fcntl, err, 2, fd, cmd)
+#endif
+#ifdef __NR_open
+# define CHECK_OPEN(path, mode) INTERNAL_SYSCALL (open, err, 2, path, mode)
+#else
+# define CHECK_OPEN(path, mode) \
+	INTERNAL_SYSCALL (openat, err, 3, AT_FDCWD, path, mode)
+#endif
+
 static void __check_one_fd(int fd, int mode)
 {
+    INTERNAL_SYSCALL_DECL (err);
+    /* Not inside INTERNAL_SYSCALL_ERROR_P: mips, alpha and ia64 ignore its
+       first argument there, so the call would never be made.  */
+    int ret = CHECK_FCNTL (fd, F_GETFD);
+
     /* Check if the specified fd is already open */
-    if (fcntl(fd, F_GETFD) == -1)
+    if (INTERNAL_SYSCALL_ERROR_P (ret, err))
     {
 	/* The descriptor is probably not open, so try to use /dev/null */
-	int nullfd = open(_PATH_DEVNULL, mode);
+	int nullfd = CHECK_OPEN (_PATH_DEVNULL, mode);
 	/* /dev/null is major=1 minor=3.  Make absolutely certain
 	 * that is in fact the device that we have opened and not
 	 * some other wierd file... [removed in uclibc] */
-	if (nullfd!=fd)
+	/* Ask whether the open failed before comparing: where the system
+	   call returns the error number itself, a missing /dev/null gives
+	   ENOENT, and 2 == STDERR_FILENO would pass for the descriptor.  */
+	if (INTERNAL_SYSCALL_ERROR_P (nullfd, err) || nullfd!=fd)
 	{
 		abort();
 	}
