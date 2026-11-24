@@ -222,6 +222,14 @@ extern char *strptime (const char *__restrict __s,
      __THROW;
 # endif
 
+# ifdef __USE_XOPEN_EXTENDED
+/* Why getdate failed, 1 to 8: see getdate in POSIX.  */
+extern int getdate_err;
+
+/* Parse STRING against the templates in the file DATEMSK names.  */
+extern struct tm *getdate (const char *__string);
+# endif
+
 #ifdef __UCLIBC_HAS_XLOCALE__
 # ifdef __USE_XOPEN2K8
 /* Similar to the two functions above but take the information from
