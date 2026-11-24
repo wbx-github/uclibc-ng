@@ -199,6 +199,14 @@ extern int __pthread_tpp_change_priority (int prev_prio, int new_prio)
      attribute_hidden;
 extern int __pthread_current_priority (void) attribute_hidden;
 
+/* Lock waits on a given clock, lowlevelclocklock.c.  */
+extern int __lll_clocklock_wait (int *futex, clockid_t clockid,
+				 const struct timespec *abstime, int private)
+     attribute_hidden;
+extern int __lll_robust_clocklock_wait (int *futex, int id, clockid_t clockid,
+					const struct timespec *abstime,
+					int private) attribute_hidden;
+
 /* The library can run in debugging mode where it performs a lot more
    tests.  */
 extern int __pthread_debug attribute_hidden;

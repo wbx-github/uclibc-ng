@@ -27,16 +27,32 @@
 #include "internal/time64_helpers.h"
 #endif
 
+#ifndef FUTEX_LOCK_PI2
+# define FUTEX_LOCK_PI2	13
+#endif
+
+/* CLOCK_REALTIME keeps the lll_timedlock of the target, which may be
+   written in assembler.  */
+#define lll_clocklock(futex, clockid, abstime, private)			\
+  ((clockid) == CLOCK_REALTIME						\
+   ? lll_timedlock (futex, abstime, private)				\
+   : __lll_clocklock_wait (&(futex), clockid, abstime, private))
+#define lll_robust_clocklock(futex, clockid, abstime, id, private)	\
+  ((clockid) == CLOCK_REALTIME						\
+   ? lll_robust_timedlock (futex, abstime, id, private)			\
+   : __lll_robust_clocklock_wait (&(futex), id, clockid, abstime, private))
+
 /* We need to build this function with optimization to avoid
  * lll_timedlock erroring out with
  * error: can't find a register in class ‘GENERAL_REGS’ while reloading ‘asm’
  */
-int
+static int
 #ifndef  __OPTIMIZE__
 attribute_optimize("Os")
 #endif
-pthread_mutex_timedlock (
+__pthread_mutex_clocklock_common (
      pthread_mutex_t *mutex,
+     clockid_t clockid,
      const struct timespec *abstime)
 {
   int oldval;
@@ -65,7 +81,7 @@ pthread_mutex_timedlock (
 	}
 
       /* We have to get the mutex.  */
-      result = lll_timedlock (mutex->__data.__lock, abstime,
+      result = lll_clocklock (mutex->__data.__lock, clockid, abstime,
 			      PTHREAD_MUTEX_PSHARED (mutex));
 
       if (result != 0)
@@ -86,7 +102,7 @@ pthread_mutex_timedlock (
     case PTHREAD_MUTEX_TIMED_NP:
     simple:
       /* Normal mutex.  */
-      result = lll_timedlock (mutex->__data.__lock, abstime,
+      result = lll_clocklock (mutex->__data.__lock, clockid, abstime,
 			      PTHREAD_MUTEX_PSHARED (mutex));
       break;
 
@@ -103,7 +119,7 @@ pthread_mutex_timedlock (
 	    {
 	      if (cnt++ >= max_cnt)
 		{
-		  result = lll_timedlock (mutex->__data.__lock, abstime,
+		  result = lll_clocklock (mutex->__data.__lock, clockid, abstime,
 					  PTHREAD_MUTEX_PSHARED (mutex));
 		  break;
 		}
@@ -185,7 +201,7 @@ pthread_mutex_timedlock (
 		}
 	    }
 
-	  result = lll_robust_timedlock (mutex->__data.__lock, abstime, id,
+	  result = lll_robust_clocklock (mutex->__data.__lock, clockid, abstime, id,
 					 PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 
 	  if (__builtin_expect (mutex->__data.__owner
@@ -266,23 +282,30 @@ pthread_mutex_timedlock (
 	    int private = (robust
 			   ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
 			   : PTHREAD_MUTEX_PSHARED (mutex));
+	    /* FUTEX_LOCK_PI times out on CLOCK_REALTIME, FUTEX_LOCK_PI2
+	       (Linux 5.14) on CLOCK_MONOTONIC.  */
+	    int op = clockid == CLOCK_REALTIME ? FUTEX_LOCK_PI : FUTEX_LOCK_PI2;
 	    INTERNAL_SYSCALL_DECL (__err);
 
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_futex_time64)
 	    int e = INTERNAL_SYSCALL (futex_time64, __err, 4, &mutex->__data.__lock,
-				      __lll_private_flag (FUTEX_LOCK_PI,
-							  private), 1,
+				      __lll_private_flag (op, private), 1,
 				      TO_TS64_P(abstime));
 #else
 	    int e = INTERNAL_SYSCALL (futex, __err, 4, &mutex->__data.__lock,
-				      __lll_private_flag (FUTEX_LOCK_PI,
-							  private), 1,
+				      __lll_private_flag (op, private), 1,
 				      abstime);
 #endif
 	    if (INTERNAL_SYSCALL_ERROR_P (e, __err))
 	      {
 		if (INTERNAL_SYSCALL_ERRNO (e, __err) == ETIMEDOUT)
 		  return ETIMEDOUT;
+
+		/* A kernel without FUTEX_LOCK_PI2 cannot wait on another
+		   clock; glibc answers EINVAL as well.  */
+		if (INTERNAL_SYSCALL_ERRNO (e, __err) == ENOSYS
+		    && op == FUTEX_LOCK_PI2)
+		  return EINVAL;
 
 		if (INTERNAL_SYSCALL_ERRNO (e, __err) == ESRCH
 		    || INTERNAL_SYSCALL_ERRNO (e, __err) == EDEADLK)
@@ -304,7 +327,7 @@ pthread_mutex_timedlock (
 		    struct timespec now = {.tv_sec = 0, .tv_nsec = 0};
 
 #if defined(__UCLIBC_USE_TIME64__) && defined(__NR_clock_gettime64)
-		    int __r = INTERNAL_SYSCALL (clock_gettime64, __err, 2, CLOCK_REALTIME,
+		    int __r = INTERNAL_SYSCALL (clock_gettime64, __err, 2, clockid,
 				      &__now64);
 
 		    if (__r == 0) {
@@ -312,19 +335,26 @@ pthread_mutex_timedlock (
 			now.tv_nsec = __now64.tv_nsec;
 		    }
 #else
-		    INTERNAL_SYSCALL (clock_gettime, __err, 2, CLOCK_REALTIME,
+		    INTERNAL_SYSCALL (clock_gettime, __err, 2, clockid,
 				      &now);
 #endif
-		    reltime.tv_sec = abstime->tv_sec - now.tv_sec;
-		    reltime.tv_nsec = abstime->tv_nsec - now.tv_nsec;
-		    if (reltime.tv_nsec < 0)
+		    /* Ask before subtracting: a deadline far in the
+		       past makes the difference overflow and come back
+		       as a long sleep.  */
+		    if (abstime->tv_sec > now.tv_sec
+			|| (abstime->tv_sec == now.tv_sec
+			    && abstime->tv_nsec > now.tv_nsec))
 		      {
-			reltime.tv_nsec += 1000000000;
-			--reltime.tv_sec;
+			reltime.tv_sec = abstime->tv_sec - now.tv_sec;
+			reltime.tv_nsec = abstime->tv_nsec - now.tv_nsec;
+			if (reltime.tv_nsec < 0)
+			  {
+			    reltime.tv_nsec += 1000000000;
+			    --reltime.tv_sec;
+			  }
+			while (nanosleep_not_cancel (&reltime, &reltime) != 0)
+			  continue;
 		      }
-		    if (reltime.tv_sec >= 0)
-		      while (nanosleep_not_cancel (&reltime, &reltime) != 0)
-			continue;
 
 		    return ETIMEDOUT;
 		  }
@@ -465,26 +495,30 @@ pthread_mutex_timedlock (
 			goto failpp;
 		      }
 
-		    struct timeval tv;
+		    struct timespec now;
 		    struct timespec rt;
 
 		    /* Get the current time.  */
-		    (void) gettimeofday (&tv, NULL);
+		    (void) clock_gettime (clockid, &now);
+
+		    /* Already timed out?  Ask before subtracting: a
+		       deadline far in the past makes the difference
+		       overflow and come back as a long wait.  */
+		    if (abstime->tv_sec < now.tv_sec
+			|| (abstime->tv_sec == now.tv_sec
+			    && abstime->tv_nsec <= now.tv_nsec))
+		      {
+			result = ETIMEDOUT;
+			goto failpp;
+		      }
 
 		    /* Compute relative timeout.  */
-		    rt.tv_sec = abstime->tv_sec - tv.tv_sec;
-		    rt.tv_nsec = abstime->tv_nsec - tv.tv_usec * 1000;
+		    rt.tv_sec = abstime->tv_sec - now.tv_sec;
+		    rt.tv_nsec = abstime->tv_nsec - now.tv_nsec;
 		    if (rt.tv_nsec < 0)
 		      {
 			rt.tv_nsec += 1000000000;
 			--rt.tv_sec;
-		      }
-
-		    /* Already timed out?  */
-		    if (rt.tv_sec < 0)
-		      {
-			result = ETIMEDOUT;
-			goto failpp;
 		      }
 
 		    lll_futex_timed_wait (&mutex->__data.__lock,
@@ -518,3 +552,25 @@ pthread_mutex_timedlock (
  out:
   return result;
 }
+
+int
+pthread_mutex_timedlock (pthread_mutex_t *mutex,
+			 const struct timespec *abstime)
+{
+  return __pthread_mutex_clocklock_common (mutex, CLOCK_REALTIME, abstime);
+}
+
+int
+pthread_mutex_clocklock (pthread_mutex_t *mutex, clockid_t clockid,
+			 const struct timespec *abstime)
+{
+  if (clockid != CLOCK_REALTIME && clockid != CLOCK_MONOTONIC)
+    return EINVAL;
+
+  return __pthread_mutex_clocklock_common (mutex, clockid, abstime);
+}
+
+/* uClibc's own locks unlock through __pthread_mutex_unlock, which
+   __uClibc_main.o defines as a dummy: a static program that locks a
+   mutex but never unlocks one must still get the real unlock.  */
+PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_unlock)

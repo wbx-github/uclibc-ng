@@ -756,6 +756,15 @@ extern int pthread_mutex_timedlock (pthread_mutex_t *__restrict __mutex,
 				    __abstime) __THROWNL __nonnull ((1, 2));
 #endif
 
+#if defined __USE_GNU || defined __USE_XOPEN2K24
+/* Like pthread_mutex_timedlock, but ABSTIME is measured against
+   CLOCK_ID (CLOCK_REALTIME or CLOCK_MONOTONIC).  */
+extern int pthread_mutex_clocklock (pthread_mutex_t *__restrict __mutex,
+				    __clockid_t __clock_id,
+				    const struct timespec *__restrict
+				    __abstime) __THROWNL __nonnull ((1, 3));
+#endif
+
 /* Unlock a mutex.  */
 extern int pthread_mutex_unlock (pthread_mutex_t *__mutex)
      __THROWNL __nonnull ((1));

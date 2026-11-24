@@ -63,7 +63,7 @@ libpthread_linux_CSRC += pthread_attr_getaffinity.c pthread_attr_setaffinity.c \
 	pthread_mutex_cond_lock.c pthread_yield.c		\
 	sem_post.c sem_timedwait.c sem_trywait.c sem_wait.c	\
 	pthread_sigqueue.c \
-	lowlevellock.c lowlevelrobustlock.c
+	lowlevellock.c lowlevelrobustlock.c lowlevelclocklock.c
 
 libpthread_linux_SSRC := #ptw-close.S ptw-open.S ptw-waitid.S ptw-waidpid.S ptw-write.S
 
