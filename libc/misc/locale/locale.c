@@ -98,6 +98,12 @@
 
 extern int _locale_set_l(const unsigned char *p, __locale_t base) attribute_hidden;
 extern void _locale_init_l(__locale_t base) attribute_hidden;
+#ifndef __LOCALE_C_ONLY
+/* Lays the category names out as setlocale returns them.  newlocale calls
+   it once per object so that getlocalename_l only has to read.  */
+extern void __locale_update_names(char *names, const unsigned char *spec)
+	attribute_hidden;
+#endif
 
 #endif /* __LOCALE_C_ONLY */
 
@@ -128,6 +134,14 @@ char *setlocale(int category, register const char *locale)
 		: NULL;
 }
 
+#ifdef __UCLIBC_HAS_XLOCALE__
+const char *getlocalename_l(int category, __locale_t locobj)
+{
+	(void) locobj;
+	return ((unsigned int)(category)) <= LC_ALL ? C_string : NULL;
+}
+#endif
+
 #else /* ---------------------------------------------- __LOCALE_C_ONLY */
 
 #if !defined(__LOCALE_DATA_NUM_LOCALES) || (__LOCALE_DATA_NUM_LOCALES <= 1)
@@ -141,9 +155,14 @@ static const char utf8[] = "UTF-8";
  * This holds for LC_ALL as well.
  */
 static char hr_locale[(MAX_LOCALE_CATEGORY_STR * LC_ALL) + MAX_LOCALE_STR];
+#ifdef __UCLIBC_HAS_XLOCALE__
+/* Each locale object holds the same layout for getlocalename_l.  */
+typedef char __names_fit[sizeof(((__locale_t) 0)->__names)
+			 == sizeof(hr_locale) ? 1 : -1];
+#endif
 
 
-static void update_hr_locale(const unsigned char *spec)
+void __locale_update_names(char *names, const unsigned char *spec)
 {
 	const unsigned char *loc;
 	const unsigned char *s;
@@ -153,7 +172,7 @@ static void update_hr_locale(const unsigned char *spec)
 	done = category = 0;
 	do {
 		s = spec + 1;
-		n = hr_locale + category * MAX_LOCALE_CATEGORY_STR;
+		n = names + category * MAX_LOCALE_CATEGORY_STR;
 
 		if (category == LC_ALL) {
 			done = 1;
@@ -234,15 +253,30 @@ char *setlocale(int category, const char *locale)
 		if (!newlocale((1 << category), locale, __global_locale)) {
 			return NULL;		/* Failed! */
 		}
-		update_hr_locale(__global_locale->cur_locale);
+		__locale_update_names(hr_locale, __global_locale->cur_locale);
 	} else if (!*hr_locale) {
 		/* A query before any setlocale: the program starts in "C".  */
-		update_hr_locale(__global_locale->cur_locale);
+		__locale_update_names(hr_locale, __global_locale->cur_locale);
 	}
 
 	/* Either a query or a successful set, so return current locale string. */
 	return hr_locale + (category * MAX_LOCALE_CATEGORY_STR);
 }
+
+#ifdef __UCLIBC_HAS_XLOCALE__
+const char *getlocalename_l(int category, __locale_t locobj)
+{
+	if (((unsigned int)(category)) > LC_ALL)
+		return NULL;
+	/* The global locale's names are setlocale's own, and setlocale
+	   lays them out on the first query if nothing has set a locale
+	   yet.  A locale object carries its own, written by newlocale.
+	   Either way this is a read: two threads may ask at once.  */
+	if (locobj == LC_GLOBAL_LOCALE)
+		return setlocale(category, NULL);
+	return locobj->__names + (category * MAX_LOCALE_CATEGORY_STR);
+}
+#endif
 
 #endif /* __LOCALE_C_ONLY */
 
@@ -1231,6 +1265,10 @@ __locale_t newlocale(int category_mask, const char *locale, __locale_t base)
 	}
 
 	_locale_set_l(new_selector, base);
+#endif
+
+#ifdef __UCLIBC_HAS_XLOCALE__
+	__locale_update_names(base->__names, base->cur_locale);
 #endif
 
 	return base;

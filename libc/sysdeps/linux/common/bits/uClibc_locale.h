@@ -311,6 +311,10 @@ struct __uclibc_locale_struct {
 
 	/* collate is at the end */
 	__collate_t collate;
+#ifdef __UCLIBC_HAS_XLOCALE__
+	/* The names getlocalename_l returns, laid out as setlocale's.  */
+	char __names[32 * __LC_ALL + 256];
+#endif
 };
 
 extern struct __uclibc_locale_struct __global_locale_data;

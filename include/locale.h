@@ -215,6 +215,13 @@ libc_hidden_proto(uselocale)
    Passing this value to any other function has undefined behavior.  */
 # define LC_GLOBAL_LOCALE	((__locale_t) -1L)
 
+# ifdef __USE_XOPEN2K24
+/* Return the name of CATEGORY in LOCOBJ, as setlocale gives it for the
+   global locale.  */
+extern const char *getlocalename_l (int __category, __locale_t __locobj)
+     __THROW;
+# endif
+
 #endif
 
 __END_DECLS
