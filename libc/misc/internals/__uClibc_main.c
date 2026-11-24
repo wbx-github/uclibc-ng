@@ -267,23 +267,6 @@ static void __check_one_fd(int fd, int mode)
     }
 }
 
-#ifndef SHARED
-static int __check_suid(void)
-{
-    uid_t uid, euid;
-    gid_t gid, egid;
-
-    uid  = getuid();
-    euid = geteuid();
-    if (uid != euid)
-	return 1;
-    gid  = getgid();
-    egid = getegid();
-    if (gid != egid)
-	return 1;
-    return 0; /* we are not suid */
-}
-#endif
 #endif
 
 /* __uClibc_init completely initialize uClibc so it is ready to use.
@@ -454,10 +437,8 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
 #ifndef SHARED
     /* Prevent starting SUID binaries where the stdin. stdout, and
      * stderr file descriptors are not already opened. */
-    if ((_dl_auxvt[AT_UID].a_un.a_val == (size_t)-1 && __check_suid()) ||
-	    (_dl_auxvt[AT_UID].a_un.a_val != (size_t)-1 &&
-	    (_dl_auxvt[AT_UID].a_un.a_val != _dl_auxvt[AT_EUID].a_un.a_val ||
-	     _dl_auxvt[AT_GID].a_un.a_val != _dl_auxvt[AT_EGID].a_un.a_val)))
+    if (_dl_auxvt[AT_UID].a_un.a_val != _dl_auxvt[AT_EUID].a_un.a_val ||
+	    _dl_auxvt[AT_GID].a_un.a_val != _dl_auxvt[AT_EGID].a_un.a_val)
 #else
     if (_dl_secure)
 #endif
