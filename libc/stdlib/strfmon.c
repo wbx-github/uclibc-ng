@@ -330,8 +330,9 @@ static ssize_t vstrfmon(char *s, size_t maxsize, const struct mon *m,
 		else
 			v = va_arg(ap, double);
 		/* signbit, not v < 0: -0.0 and a value that rounds to it
-		   carry the negative sign in glibc too.  */
-		negative = signbit(v);
+		   carry the negative sign in glibc too.  It is only nonzero,
+		   not 1, and NEGATIVE counts the '(' below.  */
+		negative = signbit(v) != 0;
 		if (negative)
 			v = -v;
 
