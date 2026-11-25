@@ -18,9 +18,8 @@
 
 #include "pthreadP.h"
 #include <lowlevellock.h>
+#include <fork.h>
 
-
-unsigned long int __fork_generation attribute_hidden;
 
 
 static void

@@ -23,7 +23,7 @@
 #include <tls.h>
 
 
-	.comm	__fork_generation, 4, 4
+	.hidden	__fork_generation
 
 	.text
 

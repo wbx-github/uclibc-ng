@@ -8,8 +8,7 @@
 
 #include "pthreadP.h"
 #include <lowlevellock.h>
-
-unsigned long int __fork_generation attribute_hidden;
+#include <fork.h>
 
 static void
 clear_once_control (void *arg)
