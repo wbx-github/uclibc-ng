@@ -17,6 +17,9 @@ int pipe(int filedes[2])
 }
 /* If both are defined then use the pipe syscall */
 #else
-_syscall1(int, pipe, int *, filedes)
+int pipe(int filedes[2])
+{
+	return INLINE_SYSCALL(pipe, 1, filedes);
+}
 #endif
 libc_hidden_def(pipe)
