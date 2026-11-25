@@ -63,46 +63,6 @@ static const char nptl_version[] __attribute_used__ = VERSION;
 #pragma weak _stdio_openlist
 #pragma weak _stdio_user_locking
 
-struct xid_command *__xidcmd attribute_hidden;
-
-/* For asynchronous cancellation we use a signal.  This is the handler.  */
-static void
-sighandler_setxid (int sig, siginfo_t *si, void *ctx)
-{
-
-  /* Safety check.  It would be possible to call this function for
-     other signals and send a signal from another process.  This is not
-     correct and might even be a security problem.  Try to catch as
-     many incorrect invocations as possible.  */
-  if (sig != SIGSETXID
-      || si->si_pid != getpid()
-      || si->si_code != SI_TKILL)
-    return;
-
-  INTERNAL_SYSCALL_DECL (err);
-  INTERNAL_SYSCALL_NCS (__xidcmd->syscall_no, err, 3, __xidcmd->id[0],
-			__xidcmd->id[1], __xidcmd->id[2]);
-
-  /* Reset the SETXID flag.  */
-  struct pthread *self = THREAD_SELF;
-  int flags, newval;
-  do
-    {
-      flags = THREAD_GETMEM (self, cancelhandling);
-      newval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling,
-					  flags & ~SETXID_BITMASK, flags);
-    }
-  while (flags != newval);
-
-  /* And release the futex.  */
-  self->setxid_futex = 1;
-  lll_futex_wake (&self->setxid_futex, 1, LLL_PRIVATE);
-
-  if (atomic_decrement_val (&__xidcmd->cntr) == 0)
-    lll_futex_wake (&__xidcmd->cntr, 1, LLL_PRIVATE);
-}
-
-
 /* When using __thread for this, we do it in libc so as not
    to give libpthread its own TLS segment just for this.  */
 extern void **__libc_dl_error_tsd (void) __attribute__ ((const));
@@ -205,21 +165,14 @@ __pthread_initialize_minimal_internal (void)
      had to set __nptl_initial_report_events.  Propagate its setting.  */
   THREAD_SETMEM (pd, report_events, __nptl_initial_report_events);
 
-  /* Install the handle to change the threads' uid/gid.  The handler for
-     SIGCANCEL comes with pthread_cancel, which is what sends it.  */
-  struct sigaction sa;
-  __sigemptyset (&sa.sa_mask);
-  sa.sa_sigaction = sighandler_setxid;
-  sa.sa_flags = SA_SIGINFO | SA_RESTART;
-
-  (void) __libc_sigaction (SIGSETXID, &sa, NULL);
-
-  /* The parent process might have left the signals blocked.  Just in
-     case, unblock it.  We reuse the signal mask in the sigaction
-     structure.  It is already cleared.  */
-  __sigaddset (&sa.sa_mask, SIGCANCEL);
-  __sigaddset (&sa.sa_mask, SIGSETXID);
-  (void) INTERNAL_SYSCALL (rt_sigprocmask, err, 4, SIG_UNBLOCK, &sa.sa_mask,
+  /* The handlers for SIGCANCEL and SIGSETXID come with pthread_cancel and
+     pthread_create, which are what make them needed.  The parent process
+     might have left the signals blocked; just in case, unblock them.  */
+  sigset_t mask;
+  __sigemptyset (&mask);
+  __sigaddset (&mask, SIGCANCEL);
+  __sigaddset (&mask, SIGSETXID);
+  (void) INTERNAL_SYSCALL (rt_sigprocmask, err, 4, SIG_UNBLOCK, &mask,
 			   NULL, _NSIG / 8);
 
   /* Get the size of the static and alignment requirements for the TLS

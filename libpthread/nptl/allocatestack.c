@@ -939,6 +939,66 @@ setxid_unmark_thread (struct xid_command *cmdp, struct pthread *t)
 }
 
 
+struct xid_command *__xidcmd attribute_hidden;
+
+/* setuid and the like reach the other threads with SIGSETXID; this is the
+   handler.  */
+static void
+sighandler_setxid (int sig, siginfo_t *si, void *ctx)
+{
+
+  /* Safety check.  It would be possible to call this function for
+     other signals and send a signal from another process.  This is not
+     correct and might even be a security problem.  Try to catch as
+     many incorrect invocations as possible.  */
+  if (sig != SIGSETXID
+      || si->si_pid != getpid()
+      || si->si_code != SI_TKILL)
+    return;
+
+  INTERNAL_SYSCALL_DECL (err);
+  INTERNAL_SYSCALL_NCS (__xidcmd->syscall_no, err, 3, __xidcmd->id[0],
+			__xidcmd->id[1], __xidcmd->id[2]);
+
+  /* Reset the SETXID flag.  */
+  struct pthread *self = THREAD_SELF;
+  int flags, newval;
+  do
+    {
+      flags = THREAD_GETMEM (self, cancelhandling);
+      newval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling,
+					  flags & ~SETXID_BITMASK, flags);
+    }
+  while (flags != newval);
+
+  /* And release the futex.  */
+  self->setxid_futex = 1;
+  lll_futex_wake (&self->setxid_futex, 1, LLL_PRIVATE);
+
+  if (atomic_decrement_val (&__xidcmd->cntr) == 0)
+    lll_futex_wake (&__xidcmd->cntr, 1, LLL_PRIVATE);
+}
+
+
+/* Install the SIGSETXID handler, once.  pthread_create calls it before
+   the first thread starts: until then __nptl_setxid has no other thread
+   to tell.  */
+static void
+setxid_init (void)
+{
+  static int installed;
+  struct sigaction sa;
+
+  if (installed)
+    return;
+  __sigemptyset (&sa.sa_mask);
+  sa.sa_sigaction = sighandler_setxid;
+  sa.sa_flags = SA_SIGINFO | SA_RESTART;
+  (void) __libc_sigaction (SIGSETXID, &sa, NULL);
+  installed = 1;
+}
+
+
 static int
 internal_function
 setxid_signal_thread (struct xid_command *cmdp, struct pthread *t)
