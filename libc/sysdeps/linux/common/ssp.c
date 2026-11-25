@@ -23,7 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#ifdef __UCLIBC_HAS_SYSLOG__
+#ifdef __UCLIBC_HAS_SSP_SYSLOG__
 #include <sys/syslog.h>
 #endif
 
@@ -45,7 +45,7 @@ static void __cold do_msg(const char *msg1, const char *msg2, const char *msg3)
 	do_write(msg2);
 	do_write(msg3);
 	do_write("\n");
-#ifdef __UCLIBC_HAS_SYSLOG__
+#ifdef __UCLIBC_HAS_SSP_SYSLOG__
 	syslog(LOG_INFO, "%s%s%s()", msg1, msg2, msg3);
 #endif
 }

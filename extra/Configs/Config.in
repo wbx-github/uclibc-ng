@@ -2244,6 +2244,23 @@ config PROPOLICE_BLOCK_SEGV
 
 endchoice
 
+config UCLIBC_HAS_SSP_SYSLOG
+	bool "Also report stack smashing to syslog"
+	depends on UCLIBC_HAS_SSP
+	depends on UCLIBC_HAS_SYSLOG
+	help
+	  When the stack protector catches an overflow, the program is told
+	  so on standard error and then killed.  Answer Y to send the same
+	  message to the system logger as well.
+
+	  The cost is size: syslog() formats with printf, so every program
+	  that contains a protected function gets printf, the time zone code
+	  and, with locale support, the locale data linked in statically.
+	  With all locales that is more than 250 KB for a program that does
+	  nothing.  glibc and musl do not log here either.
+
+	  Most people will answer N.
+
 config UCLIBC_BUILD_SSP
 	bool "Build uClibc with -fstack-protector"
 	depends on UCLIBC_HAS_SSP
