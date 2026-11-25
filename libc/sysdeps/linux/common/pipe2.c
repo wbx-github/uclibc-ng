@@ -10,6 +10,9 @@
 #include <unistd.h>
 
 #ifdef __NR_pipe2
-_syscall2(int, pipe2, int *, filedes, int, flags)
+int pipe2(int filedes[2], int flags)
+{
+	return INLINE_SYSCALL(pipe2, 2, filedes, flags);
+}
 libc_hidden_def(pipe2)
 #endif
