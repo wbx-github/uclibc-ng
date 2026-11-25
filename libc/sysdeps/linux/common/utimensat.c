@@ -32,7 +32,10 @@ int utimensat(int fd, const char *path, const struct timespec times[2], int flag
     return INLINE_SYSCALL(utimensat_time64, 4, fd, path, times ? (uintptr_t) &__times64 : 0, flags);
 }
 #else
-_syscall4(int, utimensat, int, fd, const char *, path, const struct timespec *, times, int, flags)
+int utimensat(int fd, const char *path, const struct timespec times[2], int flags)
+{
+    return INLINE_SYSCALL(utimensat, 4, fd, path, times, flags);
+}
 #endif
 libc_hidden_def(utimensat)
 #else
