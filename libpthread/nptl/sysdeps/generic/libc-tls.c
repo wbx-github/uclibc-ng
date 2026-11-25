@@ -308,22 +308,5 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 # endif
 }
 
-/* This is called only when the data structure setup was skipped at startup,
-   when there was no need for it then.  Now we have dynamically loaded
-   something needing TLS, or libpthread needs it.  */
-int
-internal_function
-_dl_tls_setup (void)
-{
-  init_slotinfo ();
-  init_static_tls (
-# if defined(TLS_TCB_AT_TP)
-		   TLS_TCB_SIZE,
-# else
-		   0,
-# endif
-		   TLS_TCB_ALIGN);
-  return 0;
-}
 
 #endif
