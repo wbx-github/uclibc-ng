@@ -138,6 +138,21 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   size_t max_align = tcbalign;
   size_t tcb_offset;
   ElfW(Phdr) *phdr;
+#if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
+  ElfW(Addr) load_base = _dl_load_base;
+
+  /* reloc_static_pie() sets _dl_load_base only when the program
+     relocates itself; one started through ld-uClibc (noMMU ELF) is
+     relocated by the loader.  The program headers give the load
+     address either way.  */
+  if (_dl_phdr != NULL)
+    for (phdr = _dl_phdr; phdr < &_dl_phdr[_dl_phnum]; ++phdr)
+      if (phdr->p_type == PT_PHDR)
+	{
+	  load_base = (ElfW(Addr)) _dl_phdr - phdr->p_vaddr;
+	  break;
+	}
+#endif
 
   /* Look through the TLS segment if there is any.  */
   if (_dl_phdr != NULL)
@@ -152,7 +167,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 #else
 	  initimage = (void *) phdr->p_vaddr;
 #if !defined(SHARED) && defined(STATIC_PIE)
-	  initimage += _dl_load_base;
+	  initimage += load_base;
 #endif
 #endif
 	  align = phdr->p_align;
