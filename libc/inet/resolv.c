@@ -4097,30 +4097,6 @@ b64_pton (char const *src, u_char *target, size_t targsize)
 }
 #endif
 
-/* This needs to be after the use of _res in res_init, above.  */
-#undef _res
-
-#ifndef __UCLIBC_HAS_THREADS__
-/* The resolver state for use by single-threaded programs.
-   This differs from plain `struct __res_state _res;' in that it doesn't
-   create a common definition, but a plain symbol that resides in .bss,
-   which can have an alias.  */
-struct __res_state _res __attribute__((section (".bss")));
-struct __res_state *__resp = &_res;
-#else /* __UCLIBC_HAS_THREADS__ */
-struct __res_state _res __attribute__((section (".bss"))) attribute_hidden;
-
-# if defined __UCLIBC_HAS_TLS__
-#  undef __resp
-__thread struct __res_state *__resp = &_res;
-extern __thread struct __res_state *__libc_resp
-       __attribute__ ((alias ("__resp"))) attribute_hidden attribute_tls_model_ie;
-# else
-#  undef __resp
-struct __res_state *__resp = &_res;
-# endif
-#endif /* !__UCLIBC_HAS_THREADS__ */
-
 /*
  * Set up default settings.  If the configuration file exist, the values
  * there will have precedence.  Otherwise, the server address is set to
@@ -4155,6 +4131,32 @@ res_ninit(res_state statp)
 #endif /* L_res_init */
 
 #ifdef L_res_state
+/* The resolver state, here rather than with res_init: pthread_create
+   points __resp at each new thread's own state, and that should not
+   take the resolv.conf parser into every program with threads.  */
+#undef _res
+
+#ifndef __UCLIBC_HAS_THREADS__
+/* The resolver state for use by single-threaded programs.
+   This differs from plain `struct __res_state _res;' in that it doesn't
+   create a common definition, but a plain symbol that resides in .bss,
+   which can have an alias.  */
+struct __res_state _res __attribute__((section (".bss")));
+struct __res_state *__resp = &_res;
+#else /* __UCLIBC_HAS_THREADS__ */
+struct __res_state _res __attribute__((section (".bss"))) attribute_hidden;
+
+# if defined __UCLIBC_HAS_TLS__
+#  undef __resp
+__thread struct __res_state *__resp = &_res;
+extern __thread struct __res_state *__libc_resp
+       __attribute__ ((alias ("__resp"))) attribute_hidden attribute_tls_model_ie;
+# else
+#  undef __resp
+struct __res_state *__resp = &_res;
+# endif
+#endif /* !__UCLIBC_HAS_THREADS__ */
+
 # if !defined __UCLIBC_HAS_TLS__
 extern struct __res_state *__resp;
 struct __res_state *
