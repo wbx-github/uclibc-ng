@@ -4131,51 +4131,28 @@ res_ninit(res_state statp)
 #endif /* L_res_init */
 
 #ifdef L_res_state
-/* The resolver state, here rather than with res_init: pthread_create
-   points __resp at each new thread's own state, and that should not
-   take the resolv.conf parser into every program with threads.  */
+/* The resolver state, one for the whole process: res_init, res_search and
+   the others use it, and programs reach it as _res through __res_state().
+   It lives here rather than with res_init so that it does not bring the
+   resolv.conf parser along.  */
 #undef _res
 
 #ifndef __UCLIBC_HAS_THREADS__
-/* The resolver state for use by single-threaded programs.
-   This differs from plain `struct __res_state _res;' in that it doesn't
+/* This differs from plain `struct __res_state _res;' in that it doesn't
    create a common definition, but a plain symbol that resides in .bss,
    which can have an alias.  */
 struct __res_state _res __attribute__((section (".bss")));
 struct __res_state *__resp = &_res;
-#else /* __UCLIBC_HAS_THREADS__ */
+#else
 struct __res_state _res __attribute__((section (".bss"))) attribute_hidden;
+#endif
 
-# if defined __UCLIBC_HAS_TLS__
-#  undef __resp
-__thread struct __res_state *__resp = &_res;
-extern __thread struct __res_state *__libc_resp
-       __attribute__ ((alias ("__resp"))) attribute_hidden attribute_tls_model_ie;
-# else
-#  undef __resp
-struct __res_state *__resp = &_res;
-# endif
-#endif /* !__UCLIBC_HAS_THREADS__ */
-
-# if !defined __UCLIBC_HAS_TLS__
-extern struct __res_state *__resp;
-struct __res_state *
-__res_state (void)
-{
-       return __resp;
-}
-# else
-#  undef _res
-extern struct __res_state _res;
-
-/* When threaded, _res may be a per-thread variable.  */
 struct __res_state *
 weak_const_function
 __res_state (void)
 {
        return &_res;
 }
-# endif
 
 #endif /* L_res_state */
 

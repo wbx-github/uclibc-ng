@@ -451,14 +451,9 @@ __END_DECLS
 
 # if _LIBC
 #  ifdef __UCLIBC_HAS_THREADS__
-#   if defined __UCLIBC_HAS_TLS__ \
-	       && (!defined NOT_IN_libc || defined IS_IN_libpthread)
+#   ifndef NOT_IN_libc
 #    undef _res
-#    ifndef NOT_IN_libc
-#     define __resp __libc_resp
-#    endif
-#    define _res (*__res_state())
-extern __thread struct __res_state *__resp attribute_tls_model_ie;
+extern struct __res_state _res attribute_hidden;
 #   endif
 #  else
 #   undef _res

@@ -353,9 +353,6 @@ struct pthread
   /* Thread Priority Protection data.  */
   struct priority_protection_data *tpp;
 
-  /* Resolver state.  */
-  struct __res_state res;
-
   /* This member must be last.  */
   char end_padding[];
 
