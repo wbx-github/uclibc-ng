@@ -195,8 +195,13 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
    */
 # if defined(TLS_TCB_AT_TP)
   /* The thread pointer is the TLS block's end; the block below it is
-     laid out for a thread pointer aligned like its most aligned part.  */
-  tcb_offset = roundup (memsz + GL(dl_tls_static_size), max_align);
+     laid out for a thread pointer aligned like its most aligned part.
+     The program's own block is rounded up first and the surplus added
+     to that, the way the loader counts: rounding the sum instead can
+     swallow the whole surplus when p_align is large -- 128 bytes of
+     TLS at an alignment of 4096 leaves none of 2048.  */
+  tcb_offset = roundup (roundup (memsz, align ?: 1)
+			+ GL(dl_tls_static_size), max_align);
 #  if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
   tlsblock = mmap (NULL, tcb_offset + tcbsize + max_align,
                    PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -205,14 +210,19 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 #  endif
 # elif defined(TLS_DTV_AT_TP)
   tcb_offset = roundup (tcbsize, align ?: 1);
+  /* Likewise the rounded size here: the layout below uses it, and
+     reserving the raw one leaves the surplus partly outside the
+     block that was asked for.  */
 #  if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
-  tlsblock = mmap (NULL, tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size),
+  tlsblock = mmap (NULL, tcb_offset + roundup (memsz, align ?: 1) + max_align
+                   + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size),
                    PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #  else
-  tlsblock = sbrk (tcb_offset + memsz + max_align
+  tlsblock = sbrk (tcb_offset + roundup (memsz, align ?: 1) + max_align
 		     + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
 #  endif
-  memset(tlsblock, '\0', tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
+  memset(tlsblock, '\0', tcb_offset + roundup (memsz, align ?: 1) + max_align
+         + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
   tlsblock += TLS_PRE_TCB_SIZE;
 # else
   /* In case a model with a different layout for the TCB and DTV
@@ -284,12 +294,18 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   memsz = roundup (memsz, align ?: 1);
 
 # if defined(TLS_TCB_AT_TP)
-  memsz += tcbsize;
+  /* Count it as _dl_determine_tlsoffset does: _dl_tls_static_used is
+     what lies below the thread pointer, and the TCB above it only adds
+     to the size.  The size is the main thread's block, so that
+     _dl_try_allocate_static_tls hands out exactly its surplus.  */
+  GL(dl_tls_static_size) = tcb_offset + TLS_TCB_SIZE;
+  GL(dl_tls_static_used) = memsz;
+  GL(dl_tls_static_align) = MAX (TLS_TCB_ALIGN, max_align);
+  GL(dl_tls_static_nelem) = GL(dl_tls_max_dtv_idx);
 # elif defined(TLS_DTV_AT_TP)
   memsz += tcb_offset;
-# endif
-
   init_static_tls (memsz, MAX (TLS_TCB_ALIGN, max_align));
+# endif
 }
 
 /* This is called only when the data structure setup was skipped at startup,

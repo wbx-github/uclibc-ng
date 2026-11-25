@@ -116,7 +116,10 @@ fail:
 	size_t n;
 	size_t blsize;
 
-	freebytes = _dl_tls_static_size - _dl_tls_static_used - TLS_TCB_SIZE;
+	freebytes = _dl_tls_static_size - _dl_tls_static_used;
+	if (freebytes < TLS_TCB_SIZE)
+		goto fail;
+	freebytes -= TLS_TCB_SIZE;
 
 	blsize = map->l_tls_blocksize + map->l_tls_firstbyte_offset;
 	if (freebytes < blsize)
