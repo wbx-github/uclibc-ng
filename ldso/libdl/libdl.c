@@ -119,10 +119,11 @@ struct r_debug *_dl_debug_addr = NULL;
 
 # if defined(USE_TLS) && USE_TLS
 /*
- * Giving this initialized value preallocates some surplus bytes in the
- * static TLS area, see __libc_setup_tls (libc-tls.c).
+ * Surplus bytes preallocated in the static TLS area when a static
+ * program links dlopen, see __libc_setup_tls (libc-tls.c).
  */
-size_t _dl_tls_static_size = 2048;
+extern const size_t _dl_tls_static_surplus attribute_hidden;
+const size_t _dl_tls_static_surplus = 2048;
 # endif
 #include LDSO_ELFINTERP
 #include "../ldso/dl-hash.c"

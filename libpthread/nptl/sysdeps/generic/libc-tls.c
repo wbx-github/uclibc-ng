@@ -76,8 +76,13 @@ bool _dl_tls_dtv_gaps;
 struct dtv_slotinfo_list *_dl_tls_dtv_slotinfo_list;
 /* Number of modules in the static TLS block.  */
 size_t _dl_tls_static_nelem;
-/* Size of the static TLS block.  */
-size_t _dl_tls_static_size;
+/* Size of the static TLS block.  Initialized, so that it is no common
+   symbol: one would make the linker pull in libdl.os for its definition.  */
+size_t _dl_tls_static_size = 0;
+/* Surplus for modules with IE-model TLS loaded by dlopen; libdl.c
+   defines it, so a program without dlopen has none.  */
+extern const size_t _dl_tls_static_surplus attribute_hidden
+	__attribute__ ((weak));
 /* Size actually allocated in the static TLS block.  */
 size_t _dl_tls_static_used;
 /* Alignment requirement of the static TLS block.  */
@@ -110,9 +115,9 @@ init_slotinfo (void)
 static inline void
 init_static_tls (size_t memsz, size_t align)
 {
-  /* That is the size of the TLS memory for this object.  The initialized
-     value of _dl_tls_static_size is provided by dl-open.c to request some
-     surplus that permits dynamic loading of modules with IE-model TLS.  */
+  /* That is the size of the TLS memory for this object.  The value of
+     _dl_tls_static_size set in __libc_setup_tls is the surplus that
+     permits dynamic loading of modules with IE-model TLS.  */
   GL(dl_tls_static_size) = roundup (memsz + GL(dl_tls_static_size),
 				    TLS_TCB_ALIGN);
   GL(dl_tls_static_used) = memsz;
@@ -140,6 +145,12 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   ElfW(Phdr) *phdr;
 #if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
   ElfW(Addr) load_base = _dl_load_base;
+#endif
+
+  if (&_dl_tls_static_surplus != NULL)
+    GL(dl_tls_static_size) = _dl_tls_static_surplus;
+
+#if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
 
   /* reloc_static_pie() sets _dl_load_base only when the program
      relocates itself; one started through ld-uClibc (noMMU ELF) is
@@ -182,9 +193,8 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
      In this case we are right away out of memory and the user gets
      what she/he deserves.
 
-     The initialized value of _dl_tls_static_size is provided by dl-open.c
-     to request some surplus that permits dynamic loading of modules with
-     IE-model TLS.  */
+     _dl_tls_static_size holds the surplus that permits dynamic loading
+     of modules with IE-model TLS.  */
   /* Use mmap instead of sbrk since this commit disables sbrk area
      for FDPIC MMU-less platforms:
      fs/binfmt_elf_fdpic.c: fix brk area overlap with stack on NOMMU
