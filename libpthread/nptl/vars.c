@@ -37,8 +37,3 @@ int __pthread_multiple_threads attribute_hidden;
 /* Pointer to the corresponding variable in libc.  */
 int *__libc_multiple_threads_ptr attribute_hidden;
 #endif
-
-/* Table of the key information.  */
-struct pthread_key_struct __pthread_keys[PTHREAD_KEYS_MAX]
-  __attribute__ ((nocommon));
-hidden_data_def (__pthread_keys)
