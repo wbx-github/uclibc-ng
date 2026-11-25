@@ -32,14 +32,15 @@
 #include <link.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdio.h>
 
 #define	_dl_malloc	malloc
 #define _dl_memset	memset
 #define _dl_mempcpy	mempcpy
-#define _dl_dprintf	fprintf
-#define _dl_debug_file	stderr
-#define _dl_exit	exit
+/* The messages are fixed strings: no stdio for them, and no exit
+   handlers on the way out.  */
+#define _dl_dprintf(fd, msg)	((void) write (fd, msg, sizeof (msg) - 1))
+#define _dl_debug_file	STDERR_FILENO
+#define _dl_exit	_exit
 
 /* Amount of excess space to allocate in the static TLS area
    to allow dynamic loading of modules defining IE-model TLS data.  */
@@ -92,7 +93,7 @@ _dl_allocate_static_tls (struct link_map *map)
 	if (map->l_tls_align > _dl_tls_static_align)
 	{
 fail:
-		_dl_dprintf(_dl_debug_file, "cannot allocate memory in static TLS block");
+		_dl_dprintf(_dl_debug_file, "cannot allocate memory in static TLS block\n");
 		_dl_exit(30);
 	}
 
