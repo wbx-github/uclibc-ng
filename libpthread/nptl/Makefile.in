@@ -100,7 +100,7 @@ CLEAN_libpthread/nptl:
 	$(do_rm) $(addprefix $(libpthread_OUT)/*., o os oS a)
 
 CFLAGS-dir_nptl := -DNOT_IN_libc -DIS_IN_libpthread
-CFLAGS-libpthread/nptl := $(CFLAGS-dir_nptl) $(SSP_ALL_CFLAGS)
+CFLAGS-libpthread/nptl := $(CFLAGS-dir_nptl)
 
 # Since cancellation handling is in large parts handled using exceptions
 # we have to compile some files with exception handling enabled, some

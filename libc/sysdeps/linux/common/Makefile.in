@@ -139,6 +139,16 @@ endif
 
 CFLAGS-OMIT-ssp.c := $(CFLAG_-fstack-protector) $(CFLAG_-fstack-protector-all) $(CFLAG_-fstack-protector-strong)
 CFLAGS-OMIT-ssp-local.c := $(CFLAG_-fstack-protector) $(CFLAG_-fstack-protector-all) $(CFLAG_-fstack-protector-strong)
+# __libc_setup_tls gets its block through sbrk before there is a thread
+# pointer, so a canary read from the TCB faults.  The arch copies of
+# brk.c are covered too: CFLAGS-<file> goes by base name.  On FDPIC and
+# on noMMU static PIE the block comes from mmap instead, for want of a
+# brk area; cris, frv, or1k and sh reach brk through __init_brk.
+CFLAGS-sbrk.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-brk.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-__init_brk.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-mmap.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-mmap64.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-ssp.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-ssp-local.c := $(SSP_DISABLE_FLAGS)
 

@@ -2262,11 +2262,40 @@ config UCLIBC_HAS_SSP_SYSLOG
 	  Most people will answer N.
 
 config UCLIBC_BUILD_SSP
-	bool "Build uClibc with -fstack-protector"
+	bool "Build uClibc with the stack protector"
 	depends on UCLIBC_HAS_SSP
 	help
-	  Build all uClibc libraries and executables with -fstack-protector,
-	  adding extra stack overflow checking to most uClibc functions.
+	  Build all uClibc libraries and executables with the stack
+	  protector, in the strength chosen below.
+
+choice
+	prompt "Stack protector strength"
+	depends on UCLIBC_BUILD_SSP
+	default UCLIBC_BUILD_SSP_STRONG
+	help
+	  Which functions get a stack canary.  The same strength applies to
+	  all of uClibc.
+
+config UCLIBC_BUILD_SSP_NORMAL
+	bool "-fstack-protector"
+	help
+	  Functions with character arrays of 8 bytes or more, or with
+	  alloca.
+
+config UCLIBC_BUILD_SSP_STRONG
+	bool "-fstack-protector-strong"
+	help
+	  In addition, functions with any local array or that take the
+	  address of a local variable.  The usual choice of distributions.
+	  Compilers before gcc 4.9 lack it and get -fstack-protector.
+
+config UCLIBC_BUILD_SSP_ALL
+	bool "-fstack-protector-all"
+	help
+	  Every function, also those without any buffer, such as
+	  __errno_location.  Costs time in hot paths.
+
+endchoice
 
 config UCLIBC_BUILD_RELRO
 	bool "Build uClibc with linker option -z RELRO"

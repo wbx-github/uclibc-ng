@@ -11,7 +11,7 @@
 
 subdirs += libuargp
 
-CFLAGS-libuargp := -DNOT_IN_libc -DIS_IN_libuargp $(SSP_ALL_CFLAGS)
+CFLAGS-libuargp := -DNOT_IN_libc -DIS_IN_libuargp
 
 libuargp_DIR := $(top_srcdir)libuargp
 libuargp_OUT := $(top_builddir)libuargp

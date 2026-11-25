@@ -7,7 +7,7 @@
 
 subdirs += librt
 
-CFLAGS-librt := -DNOT_IN_libc -DIS_IN_librt $(SSP_ALL_CFLAGS)
+CFLAGS-librt := -DNOT_IN_libc -DIS_IN_librt
 
 librt_DIR := $(top_srcdir)librt
 librt_OUT := $(top_builddir)librt

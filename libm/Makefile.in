@@ -22,7 +22,7 @@
 
 subdirs += libm libm/$(TARGET_ARCH)
 
-CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
+CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm
 
 # -fexcess-precision=standard for the imported implementations only: they are
 # written for a double that is a double, which on x87 the compiler otherwise

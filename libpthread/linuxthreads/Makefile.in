@@ -9,7 +9,7 @@
 subdirs += libpthread/linuxthreads
 
 CFLAGS-dir_linuxthreads := -DNOT_IN_libc -DIS_IN_libpthread
-CFLAGS-libpthread/linuxthreads := $(CFLAGS-dir_linuxthreads) $(SSP_ALL_CFLAGS)
+CFLAGS-libpthread/linuxthreads := $(CFLAGS-dir_linuxthreads)
 
 libpthread_DIR := $(top_srcdir)libpthread/linuxthreads
 libpthread_OUT := $(top_builddir)libpthread/linuxthreads

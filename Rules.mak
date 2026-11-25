@@ -607,12 +607,21 @@ CPU_CFLAGS=$(call qstrip,$(CPU_CFLAGS-y))
 $(eval $(call check-gcc-var,-fno-stack-protector))
 SSP_DISABLE_FLAGS ?= $(CFLAG_-fno-stack-protector)
 ifeq ($(UCLIBC_BUILD_SSP),y)
+# One strength for all of uClibc, see UCLIBC_BUILD_SSP_*.
+ifeq ($(UCLIBC_BUILD_SSP_ALL),y)
+$(eval $(call check-gcc-var,-fstack-protector-all))
+SSP_CFLAGS := $(CFLAG_-fstack-protector-all)
+else
 $(eval $(call check-gcc-var,-fno-stack-protector-all))
 $(eval $(call check-gcc-var,-fstack-protector))
-$(eval $(call check-gcc-var,-fstack-protector-all))
-SSP_CFLAGS := $(CFLAG_-fno-stack-protector-all)
-SSP_CFLAGS += $(CFLAG_-fstack-protector)
-SSP_ALL_CFLAGS ?= $(CFLAG_-fstack-protector-all)
+SSP_CFLAGS := $(CFLAG_-fno-stack-protector-all) $(CFLAG_-fstack-protector)
+ifeq ($(UCLIBC_BUILD_SSP_STRONG),y)
+$(eval $(call check-gcc-var,-fstack-protector-strong))
+ifneq ($(CFLAG_-fstack-protector-strong),)
+SSP_CFLAGS := $(CFLAG_-fno-stack-protector-all) $(CFLAG_-fstack-protector-strong)
+endif
+endif
+endif
 else
 SSP_CFLAGS := $(SSP_DISABLE_FLAGS)
 endif

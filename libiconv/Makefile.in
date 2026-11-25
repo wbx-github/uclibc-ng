@@ -3,7 +3,7 @@
 
 subdirs += libiconv
 
-CFLAGS-libiconv := -DNOT_IN_libc -DIS_IN_libiconv $(SSP_ALL_CFLAGS) \
+CFLAGS-libiconv := -DNOT_IN_libc -DIS_IN_libiconv \
 		-I$(top_srcdir)libiconv/include
 
 libiconv_DIR := $(top_srcdir)libiconv

@@ -7,7 +7,7 @@
 
 subdirs += libutil
 
-CFLAGS-libutil := -DNOT_IN_libc -DIS_IN_libutil $(SSP_ALL_CFLAGS)
+CFLAGS-libutil := -DNOT_IN_libc -DIS_IN_libutil
 
 libutil_DIR := $(top_srcdir)libutil
 libutil_OUT := $(top_builddir)libutil

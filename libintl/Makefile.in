@@ -3,7 +3,7 @@
 
 subdirs += libintl
 
-CFLAGS-libintl := -DNOT_IN_libc -DIS_IN_libintl $(SSP_ALL_CFLAGS)
+CFLAGS-libintl := -DNOT_IN_libc -DIS_IN_libintl
 
 libintl_DIR := $(top_srcdir)libintl
 libintl_OUT := $(top_builddir)libintl

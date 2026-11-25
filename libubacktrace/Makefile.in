@@ -8,7 +8,7 @@
 
 subdirs += libubacktrace libubacktrace/$(TARGET_ARCH)
 
-CFLAGS-libubacktrace := -DNOT_IN_libc -DIS_IN_libubacktrace $(SSP_ALL_CFLAGS)
+CFLAGS-libubacktrace := -DNOT_IN_libc -DIS_IN_libubacktrace
 
 libubacktrace_DIR := $(top_srcdir)libubacktrace
 libubacktrace_OUT := $(top_builddir)libubacktrace

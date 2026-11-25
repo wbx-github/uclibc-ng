@@ -13,8 +13,12 @@ subdirs += libpthread/nptl/sysdeps/generic
 libpthread_generic_DIR := $(top_srcdir)libpthread/nptl/sysdeps/generic
 libpthread_generic_OUT := $(top_builddir)libpthread/nptl/sysdeps/generic
 
+# __libc_setup_tls runs before there is a thread pointer, so a canary
+# read from the TCB faults.  The arch copies of libc-tls.c are covered
+# too: CFLAGS-<file> goes by base name.
+CFLAGS-libc-tls.c := $(SSP_DISABLE_FLAGS)
 ifeq ($(STATIC_PIE),y)
-CFLAGS-libc-tls.c := -DSTATIC_PIE
+CFLAGS-libc-tls.c += -DSTATIC_PIE
 endif
 
 libpthread_generic_libc_a_CSRC = libc-tls.c

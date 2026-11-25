@@ -7,7 +7,7 @@
 
 subdirs += libcrypt
 
-CFLAGS-libcrypt := -DNOT_IN_libc -DIS_IN_libcrypt $(SSP_ALL_CFLAGS)
+CFLAGS-libcrypt := -DNOT_IN_libc -DIS_IN_libcrypt
 
 libcrypt_DIR := $(top_srcdir)libcrypt
 libcrypt_OUT := $(top_builddir)libcrypt

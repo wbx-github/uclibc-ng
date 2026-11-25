@@ -7,7 +7,7 @@
 
 subdirs += ldso/libdl
 
-CFLAGS-libdl := -DNOT_IN_libc -DIS_IN_libdl $(SSP_ALL_CFLAGS)
+CFLAGS-libdl := -DNOT_IN_libc -DIS_IN_libdl
 
 CFLAGS-libdl += -I$(top_srcdir)ldso/ldso/$(TARGET_ARCH) -I$(top_srcdir)ldso/include -I$(top_srcdir)ldso/ldso
 

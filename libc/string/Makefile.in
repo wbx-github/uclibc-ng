@@ -7,6 +7,12 @@
 
 subdirs += libc/string/$(TARGET_ARCH) libc/string/generic
 
+# __libc_setup_tls copies the TLS init image and clears its block before
+# there is a thread pointer, so a canary read from the TCB faults.  This
+# only bites with -fstack-protector-all; -strong leaves these alone.
+CFLAGS-memcpy.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-memset.c := $(SSP_DISABLE_FLAGS)
+
 #
 # Arch specific fun
 #
