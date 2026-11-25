@@ -271,13 +271,11 @@ __pthread_initialize_minimal_internal (void)
 
 #endif
 
-  GL(dl_init_static_tls) = &__pthread_init_static_tls;
-
   /* Register the fork generation counter with the libc.  */
 #ifndef TLS_MULTIPLE_THREADS_IN_TCB
   __libc_multiple_threads_ptr =
 #endif
-    __libc_pthread_init (&__fork_generation, __reclaim_stacks);
+    __libc_pthread_init (&__fork_generation);
 
   /* Determine whether the machine is SMP or not.  */
   __is_smp = is_smp_system ();

@@ -36,17 +36,11 @@ extern int __libc_multiple_threads attribute_hidden;
 int *
 #endif
 __libc_pthread_init (
-     unsigned long int *ptr,
-     void (*reclaim) (void))
+     unsigned long int *ptr)
 {
   /* Remember the pointer to the generation counter in libpthread.  */
 #ifdef __ARCH_USE_MMU__
   __fork_generation_pointer = ptr;
-#endif
-
-  /* Called by a child after fork.  */
-#ifdef __ARCH_USE_MMU__
-  __register_atfork (NULL, NULL, reclaim, NULL);
 #endif
 
 #ifndef TLS_MULTIPLE_THREADS_IN_TCB

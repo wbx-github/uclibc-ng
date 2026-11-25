@@ -23,6 +23,7 @@
 #include "pthreadP.h"
 #include <ldsodefs.h>
 #include <atomic.h>
+#include <fork.h>
 #include <resolv.h>
 #include <bits/kernel-features.h>
 
@@ -424,6 +425,24 @@ pthread_create (
      void *arg)
 {
   STACK_VARIABLES;
+
+  /* Once there can be a second thread, fork has stacks to reclaim and
+     dlopen has static TLS to set up in every thread.  Only on the way
+     to the first one: the first call is by definition the
+     single-threaded one, and whoever reads the two hooks runs in a
+     thread that this call creates, so the clone orders the writes.
+     Writing them again from a later call, next to a reader, would be
+     a data race even with the same value.  */
+  static int threads_coming;
+
+  if (!threads_coming)
+    {
+#ifdef __ARCH_USE_MMU__
+      __fork_reclaim = __reclaim_stacks;
+#endif
+      GL(dl_init_static_tls) = &__pthread_init_static_tls;
+      threads_coming = 1;
+    }
 
   const struct pthread_attr *iattr = (struct pthread_attr *) attr;
   if (iattr == NULL)

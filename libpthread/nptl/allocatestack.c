@@ -121,11 +121,6 @@ static LIST_HEAD (stack_used);
    can correct for the work.  */
 static uintptr_t in_flight_stack;
 
-/* List of the threads with user provided stacks in use.  No need to
-   initialize this, since it's done in __pthread_initialize_minimal.  */
-list_t __stack_user __attribute__ ((nocommon));
-hidden_data_def (__stack_user)
-
 #if defined COLORING_INCREMENT && COLORING_INCREMENT != 0
 /* Number of threads created.  */
 static unsigned int nptl_ncreated;

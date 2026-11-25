@@ -24,6 +24,10 @@ extern unsigned long int __fork_generation attribute_hidden;
 /* Pointer to the fork generation counter in the thread library.  */
 extern unsigned long int *__fork_generation_pointer attribute_hidden;
 
+/* Called in the child first: __reclaim_stacks, set by the first
+   pthread_create.  Without a second thread there is nothing to reclaim.  */
+extern void (*__fork_reclaim) (void) attribute_hidden;
+
 /* Lock to protect allocation and deallocation of fork handlers.  */
 extern int __fork_lock attribute_hidden;
 

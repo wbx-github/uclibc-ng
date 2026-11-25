@@ -29,7 +29,6 @@
 #include <errno.h>
 
 #ifdef __ARCH_USE_MMU__
-unsigned long int *__fork_generation_pointer;
 
 
 
@@ -150,6 +149,9 @@ fork (void)
       if (__fork_generation_pointer != NULL)
 	*__fork_generation_pointer += 4;
 
+      if (__fork_reclaim != NULL)
+	__fork_reclaim ();
+
       /* Reset the file list.  These are recursive mutexes.  */
       fresetlockfiles ();
 
@@ -218,6 +220,8 @@ _Fork (void)
     {
       if (__fork_generation_pointer != NULL)
 	*__fork_generation_pointer += 4;
+      if (__fork_reclaim != NULL)
+	__fork_reclaim ();
       __fork_lock = LLL_LOCK_INITIALIZER;
     }
 
