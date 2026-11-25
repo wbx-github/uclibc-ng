@@ -337,6 +337,9 @@ extern void __deallocate_stack (struct pthread *pd)
    function also re-initializes the lock for the stack cache.  */
 extern void __reclaim_stacks (void) attribute_hidden;
 
+/* Install the SIGCANCEL handler, once.  */
+extern void __pthread_sigcancel_init (void) attribute_hidden;
+
 /* Make all threads's stacks executable.  */
 extern int __make_stacks_executable (void **stack_endp)
      internal_function attribute_hidden;

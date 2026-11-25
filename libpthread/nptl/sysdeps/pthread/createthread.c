@@ -106,6 +106,7 @@ do_clone (struct pthread *pd, const struct pthread_attr *attr,
 		 send it the cancellation signal.  */
 	      INTERNAL_SYSCALL_DECL (err2);
 	    err_out:
+	      __pthread_sigcancel_init ();
 	      (void) INTERNAL_SYSCALL (tgkill, err2, 3, pid, pd->tid, SIGCANCEL);
 
 	      return (INTERNAL_SYSCALL_ERROR_P (res, err)
