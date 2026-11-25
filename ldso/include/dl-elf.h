@@ -131,11 +131,11 @@ extern unsigned int _dl_parse_dynamic_info(ElfW(Dyn) *dpnt, unsigned long dynami
                                            void *debug_addr, DL_LOADADDR_TYPE load_off);
 
 static __always_inline
-unsigned int __dl_parse_dynamic_info(ElfW(Dyn) *dpnt, unsigned long dynamic_info[],
+unsigned int __dl_parse_dynamic_info(ElfW(Dyn) *dyn_start, unsigned long dynamic_info[],
                                      void *debug_addr, DL_LOADADDR_TYPE load_off)
 {
 	unsigned int rtld_flags = 0;
-	ElfW(Dyn) *dyn_start = dpnt;
+	ElfW(Dyn) *dpnt = dyn_start;
 
 	for (; dpnt->d_tag; dpnt++) {
 		if (dpnt->d_tag < DT_NUM) {
