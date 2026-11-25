@@ -392,16 +392,6 @@ allocate_dtv (void *result)
 }
 
 
-/* Get size and alignment requirements of the static TLS block.  */
-void
-internal_function
-_dl_get_tls_static_info (size_t *sizep, size_t *alignp)
-{
-  *sizep = GL(dl_tls_static_size);
-  *alignp = GL(dl_tls_static_align);
-}
-
-
 void *
 internal_function
 _dl_allocate_tls_storage (void)

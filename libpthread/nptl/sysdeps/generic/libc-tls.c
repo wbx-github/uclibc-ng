@@ -318,5 +318,16 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 # endif
 }
 
+/* Get size and alignment requirements of the static TLS block.  Here,
+   next to the variables, rather than in dl-tls.c, which the thread setup
+   would otherwise bring in with malloc for every program.  */
+void
+internal_function
+_dl_get_tls_static_info (size_t *sizep, size_t *alignp)
+{
+  *sizep = GL(dl_tls_static_size);
+  *alignp = GL(dl_tls_static_align);
+}
+
 
 #endif
