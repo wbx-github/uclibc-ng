@@ -24,6 +24,7 @@
 #include <ldsodefs.h>
 #include <atomic.h>
 #include <fork.h>
+#include <stdio.h>
 #include <resolv.h>
 #include <bits/kernel-features.h>
 
@@ -417,6 +418,27 @@ static const struct pthread_attr default_attr =
   };
 
 
+#pragma weak _stdio_openlist
+#pragma weak _stdio_user_locking
+
+/* Turn on locking in stdio, once: for every open stream the program did
+   not set to FSETLOCKING_BYCALLER, and through _stdio_user_locking for
+   those opened later.  Until there is a second thread no stream needs
+   it.  The references are weak, for a program without stdio.  */
+static void
+stdio_locking_init (void)
+{
+  FILE *fp;
+
+  if (&_stdio_user_locking == NULL || _stdio_user_locking != 2)
+    return;
+  _stdio_user_locking = 0;
+  for (fp = _stdio_openlist; fp != NULL; fp = fp->__nextopen)
+    if (fp->__user_locking != 1)
+      fp->__user_locking = 0;
+}
+
+
 int
 pthread_create (
      pthread_t *newthread,
@@ -442,6 +464,7 @@ pthread_create (
 #endif
       GL(dl_init_static_tls) = &__pthread_init_static_tls;
       setxid_init ();
+      stdio_locking_init ();
       threads_coming = 1;
     }
 
