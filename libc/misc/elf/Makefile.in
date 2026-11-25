@@ -6,7 +6,7 @@
 
 subdirs += libc/misc/elf
 
-libc_a_CSRC = dl-support.c dl-core.c dl-iterate-phdr.c
+libc_a_CSRC = dl-support.c dl-static-tls.c dl-core.c dl-iterate-phdr.c
 # _dl_aux_init runs before the thread pointer exists, so a canary read
 # from the TCB faults.
 CFLAGS-dl-support.c=$(SSP_DISABLE_FLAGS)
