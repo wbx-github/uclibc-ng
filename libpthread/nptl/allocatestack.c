@@ -458,8 +458,12 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	size += pagesize_m1 + 1;
 #endif
 
-      /* Adjust the stack size for alignment.  */
-      size &= ~__static_tls_align_m1;
+      /* Adjust the stack size for alignment -- up, not down.  The
+	 descriptor's address is rounded down to the static TLS
+	 alignment below, which takes up to that much less one from the
+	 stack; rounding the size down here would take the same amount a
+	 second time.  */
+      size = (size + __static_tls_align_m1) & ~__static_tls_align_m1;
       assert (size != 0);
 
       /* Make sure the size of the stack is enough for the guard and
@@ -526,7 +530,11 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	  /* Place the thread descriptor at the end of the stack.  */
 #if defined(TLS_TCB_AT_TP)
-	  pd = (struct pthread *) ((char *) mem + size - coloring) - 1;
+	  /* The static TLS blocks lie below the thread pointer at offsets
+	     that assume it to be aligned like the most aligned of them.  */
+	  pd = (struct pthread *) ((((uintptr_t) mem + size - coloring)
+				    - TLS_TCB_SIZE)
+				   & ~__static_tls_align_m1);
 #elif defined(TLS_DTV_AT_TP)
 	  pd = (struct pthread *) ((((uintptr_t) mem + size - coloring
 				    - __static_tls_size)

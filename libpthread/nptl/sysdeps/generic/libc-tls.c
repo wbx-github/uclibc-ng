@@ -179,7 +179,9 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
      and it is subject to the same brk restriction.
    */
 # if defined(TLS_TCB_AT_TP)
-  tcb_offset = roundup (memsz + GL(dl_tls_static_size), tcbalign);
+  /* The thread pointer is the TLS block's end; the block below it is
+     laid out for a thread pointer aligned like its most aligned part.  */
+  tcb_offset = roundup (memsz + GL(dl_tls_static_size), max_align);
 #  if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
   tlsblock = mmap (NULL, tcb_offset + tcbsize + max_align,
                    PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);

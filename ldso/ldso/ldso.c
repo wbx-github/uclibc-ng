@@ -279,26 +279,23 @@ void _dl_free(void *p)
 #if defined(USE_TLS) && USE_TLS
 void *_dl_memalign(size_t __boundary, size_t __size)
 {
-	void *result;
-	int i = 0;
-	size_t delta;
-	size_t rounded = 0;
+	unsigned long result;
+	size_t rounded = 1;
 
 	if (_dl_memalign_function)
 		return (*_dl_memalign_function) (__boundary, __size);
 
-	while (rounded < __boundary) {
-		rounded = (1 << i++);
-	}
+	while (rounded < __boundary)
+		rounded <<= 1;
 
-	delta = (((size_t) _dl_malloc_addr + __size) & (rounded - 1));
+	/* Take the slack along and align inside it.  Padding first and then
+	   allocating does not work: _dl_malloc may switch to a fresh mapping
+	   in between, and the static TLS block wants up to a page.  */
+	result = (unsigned long) _dl_malloc(__size + rounded - 1);
+	if (result == 0)
+		return NULL;
 
-	if ((result = _dl_malloc(rounded - delta)) == NULL)
-		return result;
-
-	result = _dl_malloc(__size);
-
-	return result;
+	return (void *) ((result + rounded - 1) & ~(rounded - 1));
 }
 #endif
 
