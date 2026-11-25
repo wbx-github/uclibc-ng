@@ -86,9 +86,9 @@ int shm_open(const char *name, int oflag, mode_t mode)
 		 */
 	}
 #endif
-    if (fd < 0 && errno == EISDIR)
-        /* EISDIR is not valid for shm_open, replace it with EINVAL as glibc.  */
-        __set_errno (EINVAL);
+	/* EISDIR is not valid for shm_open, replace it with EINVAL as glibc.  */
+	if (fd < 0 && errno == EISDIR)
+		__set_errno(EINVAL);
 	free(shm_name); /* doesn't affect errno */
 	return fd;
 }
