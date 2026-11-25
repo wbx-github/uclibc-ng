@@ -102,16 +102,9 @@
 /* Real-time signals are supported.  */
 #define _POSIX_REALTIME_SIGNALS	200809L
 
-/* We support asynchronous I/O.  */
-#define _POSIX_ASYNCHRONOUS_IO	200809L
-#define _POSIX_ASYNC_IO		1
-/* Alternative name for Unix98.  */
-#define _LFS_ASYNCHRONOUS_IO	1
-/* Support for prioritization is also available.  */
-#define _POSIX_PRIORITIZED_IO	200809L
-
-/* The LFS support in asynchronous I/O is also available.  */
-#define _LFS64_ASYNCHRONOUS_IO	1
+/* Asynchronous I/O needs NPTL.  */
+#define _POSIX_ASYNCHRONOUS_IO	-1
+#define _POSIX_PRIORITIZED_IO	-1
 
 /* The rest of the LFS is also available.  */
 #define _LFS_LARGEFILE		1

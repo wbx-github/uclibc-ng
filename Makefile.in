@@ -259,6 +259,7 @@ HEADERS_RM- += sgtty.h
 endif
 HEADERS_RM-$(HAVE_SHARED)                    += dlfcn.h bits/dlfcn.h
 HEADERS_RM-$(PTHREADS_DEBUG_SUPPORT)         += thread_db.h
+HEADERS_RM-$(UCLIBC_HAS_THREADS_NATIVE)      += aio.h
 HEADERS_RM-$(UCLIBC_HAS_ARGP)                += argp.h
 HEADERS_RM-$(UCLIBC_HAS_BSD_ERR)             += err.h
 HEADERS_RM-$(UCLIBC_HAS_CRYPT)               += crypt.h

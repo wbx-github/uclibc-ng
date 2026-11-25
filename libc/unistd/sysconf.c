@@ -261,14 +261,14 @@ long int sysconf(int name)
 #endif
 
     case _SC_ASYNCHRONOUS_IO:
-#ifdef	_POSIX_ASYNCHRONOUS_IO
+#if defined _POSIX_ASYNCHRONOUS_IO && _POSIX_ASYNCHRONOUS_IO > 0
       return 1;
 #else
       RETURN_NEG_1;
 #endif
 
     case _SC_PRIORITIZED_IO:
-#ifdef	_POSIX_PRIORITIZED_IO
+#if defined _POSIX_PRIORITIZED_IO && _POSIX_PRIORITIZED_IO > 0
       return 1;
 #else
       RETURN_NEG_1;

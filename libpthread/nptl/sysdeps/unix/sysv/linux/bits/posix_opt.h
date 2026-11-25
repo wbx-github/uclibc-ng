@@ -109,8 +109,8 @@
 #define _POSIX_ASYNC_IO		1
 /* Alternative name for Unix98.  */
 #define _LFS_ASYNCHRONOUS_IO	1
-/* Support for prioritization is also available.  */
-#define _POSIX_PRIORITIZED_IO	200809L
+/* aio_reqprio is not used.  */
+#define _POSIX_PRIORITIZED_IO	-1
 
 /* The LFS support in asynchronous I/O is also available.  */
 #define _LFS64_ASYNCHRONOUS_IO	1
