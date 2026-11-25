@@ -42,7 +42,9 @@
 /*****************************************************************************/
 /* Fairly portable nan check.  Bitwise for i386 generated larger code.
  * If you have a better version, comment this out.
+ * Overrides the libm based isnan() from <math.h>.
  */
+#undef isnan
 #define isnan(x)             ((x) != (x))
 
 /*****************************************************************************/
