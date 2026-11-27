@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <not-cancel.h>
 
 #ifndef _PATH_SHM
 #define _PATH_SHM "/dev/shm/"
@@ -63,13 +64,14 @@ int shm_open(const char *name, int oflag, mode_t mode)
 	/* Stripped multiple '/' from start; may have set errno properly */
 	if (shm_name == NULL)
 		return -1;
-	/* The FD_CLOEXEC file descriptor flag associated with the new
+	/* Not a cancellation point, so open() must not be one here.
+	 * The FD_CLOEXEC file descriptor flag associated with the new
 	 * file descriptor is set.  */
 #ifdef O_CLOEXEC
 	 /* Just open it with CLOEXEC set, for brevity */
-	fd = open(shm_name, oflag | O_CLOEXEC, mode);
+	fd = open_not_cancel(shm_name, oflag | O_CLOEXEC, mode);
 #else
-	fd = open(shm_name, oflag, mode);
+	fd = open_not_cancel(shm_name, oflag, mode);
 	if (fd >= 0) {
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
 		/* thus far, {G,S}ETFD only has this single flag,
