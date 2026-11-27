@@ -1,6 +1,5 @@
-/* Enable floating-point exceptions.
-   Copyright (C) 2004 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Enable floating-point exceptions.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,43 +15,39 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 #include <syscall.h>
-#include <sys/prctl.h>
 
 int
 feenableexcept (int excepts)
 {
-  unsigned int result = 0, pflags, r;
+  int result, pflags, r;
   INTERNAL_SYSCALL_DECL (err);
 
-  INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &pflags);
-
-  /* Save old enable bits.  */
-  if (pflags & PR_FP_EXC_OVF)
-    result |= FE_OVERFLOW;
-  if (pflags & PR_FP_EXC_UND)
-    result |= FE_UNDERFLOW;
-  if (pflags & PR_FP_EXC_INV)
-    result |= FE_INVALID;
-  if (pflags & PR_FP_EXC_DIV)
-    result |= FE_DIVBYZERO;
-  if (pflags & PR_FP_EXC_RES)
-    result |= FE_INEXACT;
-
-  if (excepts & FE_INEXACT)
-    pflags |= PR_FP_EXC_RES;
-  if (excepts & FE_DIVBYZERO)
-    pflags |= PR_FP_EXC_DIV;
-  if (excepts & FE_UNDERFLOW)
-    pflags |= PR_FP_EXC_UND;
-  if (excepts & FE_OVERFLOW)
-    pflags |= PR_FP_EXC_OVF;
-  if (excepts & FE_INVALID)
-    pflags |= PR_FP_EXC_INV;
-  r = INTERNAL_SYSCALL (prctl, err, 2, PR_SET_FPEXC, pflags);
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &pflags);
   if (INTERNAL_SYSCALL_ERROR_P (r, err))
     return -1;
+
+  /* Save old enable bits.  */
+  result = __fexcepts_from_prctl (pflags);
+
+  pflags |= __fexcepts_to_prctl (excepts);
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_SET_FPEXC,
+			pflags | PR_FP_EXC_SW_ENABLE);
+  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+    return -1;
+
+  /* "Inexact" only traps to the kernel while signals for it are
+     wanted.  */
+  if ((excepts & FE_INEXACT) != 0)
+    {
+      unsigned int fpescr;
+
+      fpescr = fegetenv_register ();
+      fpescr |= SPEFSCR_FINXE;
+      fesetenv_register (fpescr);
+    }
 
   return result;
 }

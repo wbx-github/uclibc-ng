@@ -1,6 +1,5 @@
-/* Store current representation for exceptions.
-   Copyright (C) 2004 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Store current representation for exceptions.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,22 +15,13 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 
 int
-__fegetexceptflag (fexcept_t *flagp, int excepts)
+fegetexceptflag (fexcept_t *flagp, int excepts)
 {
-  unsigned long fpescr;
+  *flagp = fegetenv_register () & excepts & FE_ALL_EXCEPT;
 
-  /* Get the current state.  */
-  fpescr = fegetenv_register ();
-
-  /* ?? Classic PPC doesn't do anything with `excepts', so we'll do
-     the same here.  (We should really be ignoring exceptions in
-     excepts) ??  */
-  *flagp = fpescr & FE_ALL_EXCEPT;
-
-  /* Success.  */
   return 0;
 }
-

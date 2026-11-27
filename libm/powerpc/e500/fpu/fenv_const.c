@@ -1,6 +1,5 @@
-/* Constants for fenv_bits.h.
-   Copyright (C) 2004 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Constants for fenv_bits.h.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,10 +15,32 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-/* If the default argument is used we use this value.  */
+
+/* The use of "unsigned long long" as the type to define the
+   bit-pattern explicitly, rather than the type "double" used in
+   <bits/fenv.h>, means that we cannot include "fenv_libc.h" here to
+   get the enum constants for the SPEFSCR bits.  The low word is the
+   SPEFSCR, the high word the prctl PR_SET_FPEXC mode.  */
+#include <sys/prctl.h>
+
+/* If the default argument is used we use this value.  Trapping to the
+   kernel for invalid, divide by zero, underflow and overflow is what
+   gives IEEE 754 semantics; the kernel then emulates the instruction.  */
 const unsigned long long __fe_dfl_env __attribute__ ((aligned (8))) =
-0x0ULL;
+  0x3cULL;
+
+/* The same representation is used for femode_t.  */
+extern const unsigned long long __fe_dfl_mode
+  __attribute__ ((aligned (8), alias ("__fe_dfl_env")));
 
 /* Floating-point environment where none of the exceptions are masked.  */
 const unsigned long long __fe_enabled_env __attribute__ ((aligned (8))) =
-0xF00000000ULL;
+  (((unsigned long long) (PR_FP_EXC_DIV
+			  | PR_FP_EXC_OVF
+			  | PR_FP_EXC_UND
+			  | PR_FP_EXC_RES
+			  | PR_FP_EXC_INV)) << 32) | 0x7cULL;
+
+/* Non-IEEE mode.  */
+const unsigned long long __fe_nonieee_env __attribute__ ((aligned (8))) =
+  0x0ULL;

@@ -1,6 +1,5 @@
-/* Raise given exceptions.
-   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Raise given exceptions.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,10 +15,15 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 
-#undef feraiseexcept
-
-#define __FERAISEEXCEPT_INTERNAL feraiseexcept
-
+#define __FERAISEEXCEPT_INTERNAL __feraiseexcept_spe
 #include "../spe-raise.c"
+
+#undef feraiseexcept
+int
+feraiseexcept (int excepts)
+{
+  return __feraiseexcept_spe (excepts & FE_ALL_EXCEPT);
+}

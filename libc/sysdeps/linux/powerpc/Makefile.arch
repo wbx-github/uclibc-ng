@@ -11,7 +11,3 @@ CSRC-$(if $(UCLIBC_HAS_LONG_DOUBLE_MATH),,y) += copysignl.c
 SSRC-y := \
 	__longjmp.S setjmp.S bsd-setjmp.S bsd-_setjmp.S brk.S \
 	__uClibc_syscall.S syscall.S clone.S vfork.S
-
-ifeq ($(CONFIG_E500),y)
-ARCH_HEADERS := fenv.h
-endif

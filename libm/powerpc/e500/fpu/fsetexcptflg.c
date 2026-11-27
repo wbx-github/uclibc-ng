@@ -1,5 +1,5 @@
-/* Set floating-point environment exception handling.
-   Copyright (C) 1997,99,2000,01,04 Free Software Foundation, Inc.
+/* Set floating-point environment exception handling.  e500 version.
+   Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -15,30 +15,26 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 
 int
-__fesetexceptflag (const fexcept_t *flagp, int excepts)
+fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
-  unsigned long spefscr;
-  fexcept_t flag;
+  unsigned int old_spefscr, spefscr;
 
-  /* Get the current state.  */
-  spefscr = fegetenv_register ();
+  excepts &= FE_ALL_EXCEPT;
 
-  /* Ignore exceptions not listed in 'excepts'.  */
-  flag = *flagp & excepts;
-
-  /* Replace the exception status */
-  spefscr = (spefscr & ~FE_ALL_EXCEPT) | flag;
-
-  /* Store the new status word (along with the rest of the environment).
-     This may cause floating-point exceptions if the restored state
-     requests it.  */
+  /* Replace the status of the exceptions listed in EXCEPTS.  No trap
+     is taken.  */
+  old_spefscr = fegetenv_register ();
+  spefscr = (old_spefscr & ~excepts) | (*flagp & excepts);
   fesetenv_register (spefscr);
-  feraiseexcept (spefscr & FE_ALL_EXCEPT);
 
-  /* Success.  */
+  /* If the state of the "invalid" or "underflow" flag has changed,
+     inform the kernel.  */
+  if (((spefscr ^ old_spefscr) & (SPEFSCR_FINVS | SPEFSCR_FUNFS)) != 0)
+    __fe_note_change ();
+
   return 0;
 }
-

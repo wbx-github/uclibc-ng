@@ -1,6 +1,5 @@
-/* Store current floating-point environment and clear exceptions.
-   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Store current floating-point environment and clear exceptions.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,27 +15,40 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 #include <syscall.h>
-#include <sys/prctl.h>
 
 int
 feholdexcept (fenv_t *envp)
 {
   fenv_union_t u;
   INTERNAL_SYSCALL_DECL (err);
-
+  int r;
 
   /* Get the current state.  */
-  INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &u.l[0]);
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &u.l[0]);
+  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+    return -1;
+
   u.l[1] = fegetenv_register ();
   *envp = u.fenv;
 
-  /* Clear everything except for the rounding mode.  */
-  u.l[1] &= 3;
+  /* Clear everything except for the rounding mode and trapping to the
+     kernel.  */
+  u.l[0] &= ~(PR_FP_EXC_DIV
+	      | PR_FP_EXC_OVF
+	      | PR_FP_EXC_UND
+	      | PR_FP_EXC_RES
+	      | PR_FP_EXC_INV);
+  u.l[1] &= SPEFSCR_FRMC | (SPEFSCR_ALL_EXCEPT_ENABLE & ~SPEFSCR_FINXE);
 
   /* Put the new state in effect.  */
   fesetenv_register (u.l[1]);
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_SET_FPEXC,
+			u.l[0] | PR_FP_EXC_SW_ENABLE);
+  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+    return -1;
 
   return 0;
 }

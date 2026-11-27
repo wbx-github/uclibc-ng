@@ -1,6 +1,5 @@
-/* Get floating-point exceptions.
-   Copyright (C) 2004 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004.
+/* Get floating-point exceptions.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,14 +15,19 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
+#include <syscall.h>
 
 int
 fegetexcept (void)
 {
-  unsigned long fpescr;
+  int pflags, r;
+  INTERNAL_SYSCALL_DECL (err);
 
-  fpescr = fegetenv_register ();
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &pflags);
+  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+    return -1;
 
-  return fpescr & FE_ALL_EXCEPT;
+  return __fexcepts_from_prctl (pflags);
 }

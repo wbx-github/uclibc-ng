@@ -1,6 +1,5 @@
-/* Store current floating-point environment.
-   Copyright (C) 2004 Free Software Foundation, Inc.
-   Contributed by Aldy Hernandez <aldyh@redhat.com>, 2004
+/* Store current floating-point environment.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,21 +15,23 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 #include <syscall.h>
-#include <sys/prctl.h>
 
 int
-__fegetenv (fenv_t *envp)
+fegetenv (fenv_t *envp)
 {
   fenv_union_t u;
   INTERNAL_SYSCALL_DECL (err);
+  int r;
 
-  INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &u.l[0]);
+  r = INTERNAL_SYSCALL (prctl, err, 2, PR_GET_FPEXC, &u.l[0]);
+  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+    return -1;
+
   u.l[1] = fegetenv_register ();
   *envp = u.fenv;
 
-  /* Success.  */
   return 0;
 }
-

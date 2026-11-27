@@ -1,5 +1,5 @@
-/* Clear given exceptions in current floating-point environment.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+/* Clear given exceptions in current floating-point environment.  e500 version.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -15,23 +15,22 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
-#undef feclearexcept
+
 int
 feclearexcept (int excepts)
 {
   unsigned int fpescr;
 
-  /* Get the current state.  */
   fpescr = fegetenv_register ();
-
-  /* Clear the relevant bits.  */
   fpescr &= ~(excepts & FE_ALL_EXCEPT);
-
-  /* Put the new state in effect.  */
   fesetenv_register (fpescr);
 
-  /* Success.  */
+  /* Let the kernel know if the "invalid" or "underflow" bit was
+     cleared.  */
+  if (excepts & (FE_INVALID | FE_UNDERFLOW))
+    __fe_note_change ();
+
   return 0;
 }
-

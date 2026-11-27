@@ -22,7 +22,54 @@
 
 #include <fenv.h>
 
-extern int __feraiseexcept_internal (int __excepts);
+#include <sys/prctl.h>
+
+/* The FE_* values are the SPEFSCR sticky bits, so no conversion is
+   needed between the two.  */
+
+/* Raise the exceptions given as SPEFSCR bits by doing operations that
+   cause them, so a trap enabled for one is taken.  */
+extern int __feraiseexcept_spe (int __excepts) attribute_hidden;
+
+/* Tell the kernel that the "invalid" or "underflow" sticky bit was
+   changed from user space.  */
+extern void __fe_note_change (void) attribute_hidden;
+
+static inline int
+__fexcepts_to_prctl (int excepts)
+{
+  int result = 0;
+
+  if (excepts & FE_INEXACT)
+    result |= PR_FP_EXC_RES;
+  if (excepts & FE_DIVBYZERO)
+    result |= PR_FP_EXC_DIV;
+  if (excepts & FE_UNDERFLOW)
+    result |= PR_FP_EXC_UND;
+  if (excepts & FE_OVERFLOW)
+    result |= PR_FP_EXC_OVF;
+  if (excepts & FE_INVALID)
+    result |= PR_FP_EXC_INV;
+  return result;
+}
+
+static inline int
+__fexcepts_from_prctl (int pflags)
+{
+  int result = 0;
+
+  if (pflags & PR_FP_EXC_OVF)
+    result |= FE_OVERFLOW;
+  if (pflags & PR_FP_EXC_UND)
+    result |= FE_UNDERFLOW;
+  if (pflags & PR_FP_EXC_INV)
+    result |= FE_INVALID;
+  if (pflags & PR_FP_EXC_DIV)
+    result |= FE_DIVBYZERO;
+  if (pflags & PR_FP_EXC_RES)
+    result |= FE_INEXACT;
+  return result;
+}
 
 /* Equivalent to fegetenv, but returns a fenv_t instead of taking a
    pointer.  */
@@ -55,6 +102,8 @@ enum {
   SPEFSCR_FDBZS         = 0x00080000,
   SPEFSCR_FUNFS         = 0x00040000,
   SPEFSCR_FOVFS         = 0x00020000,
+  /* Combination of the exception bits.  */
+  SPEFSCR_ALL_EXCEPT    = 0x003e0000,
   SPEFSCR_MODE          = 0x00010000,
   SPEFSCR_SOV           = 0x00008000,
   SPEFSCR_OV            = 0x00004000,
@@ -70,6 +119,8 @@ enum {
   SPEFSCR_FDBZE         = 0x00000010,
   SPEFSCR_FUNFE         = 0x00000008,
   SPEFSCR_FOVFE         = 0x00000004,
+  /* Combination of the exception trap enable bits.  */
+  SPEFSCR_ALL_EXCEPT_ENABLE = 0x0000007c,
   SPEFSCR_FRMC          = 0x00000003
 };
 
