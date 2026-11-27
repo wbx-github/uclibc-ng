@@ -23,6 +23,8 @@ libpthread_pthread_CSRC = \
 	pthread_cond_signal.c \
 	pthread_cond_timedwait.c \
 	pthread_cond_wait.c \
+	pthread_rwlock_clockrdlock.c \
+	pthread_rwlock_clockwrlock.c \
 	pthread_rwlock_rdlock.c \
 	pthread_rwlock_timedrdlock.c \
 	pthread_rwlock_timedwrlock.c \

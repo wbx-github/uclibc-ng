@@ -904,6 +904,14 @@ extern int pthread_rwlock_timedrdlock (pthread_rwlock_t *__restrict __rwlock,
 				       __abstime) __THROWNL __nonnull ((1, 2));
 # endif
 
+# if defined __USE_GNU || defined __USE_XOPEN2K24
+/* The same with ABSTIME measured against CLOCK_ID.  */
+extern int pthread_rwlock_clockrdlock (pthread_rwlock_t *__restrict __rwlock,
+				       __clockid_t __clock_id,
+				       const struct timespec *__restrict
+				       __abstime) __THROWNL __nonnull ((1, 3));
+# endif
+
 /* Acquire write lock for RWLOCK.  */
 extern int pthread_rwlock_wrlock (pthread_rwlock_t *__rwlock)
      __THROWNL __nonnull ((1));
@@ -917,6 +925,14 @@ extern int pthread_rwlock_trywrlock (pthread_rwlock_t *__rwlock)
 extern int pthread_rwlock_timedwrlock (pthread_rwlock_t *__restrict __rwlock,
 				       const struct timespec *__restrict
 				       __abstime) __THROWNL __nonnull ((1, 2));
+# endif
+
+# if defined __USE_GNU || defined __USE_XOPEN2K24
+/* The same with ABSTIME measured against CLOCK_ID.  */
+extern int pthread_rwlock_clockwrlock (pthread_rwlock_t *__restrict __rwlock,
+				       __clockid_t __clock_id,
+				       const struct timespec *__restrict
+				       __abstime) __THROWNL __nonnull ((1, 3));
 # endif
 
 /* Unlock RWLOCK.  */

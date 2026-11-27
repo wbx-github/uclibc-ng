@@ -411,6 +411,14 @@ extern int __pthread_mutex_cond_lock (pthread_mutex_t *__mutex)
 extern void __pthread_mutex_cond_lock_adjust (pthread_mutex_t *__mutex)
      attribute_hidden internal_function;
 extern int __pthread_mutex_unlock (pthread_mutex_t *__mutex);
+extern int __pthread_rwlock_clockrdlock_common (pthread_rwlock_t *__rwlock,
+						clockid_t __clockid,
+						const struct timespec *__abstime)
+     attribute_hidden;
+extern int __pthread_rwlock_clockwrlock_common (pthread_rwlock_t *__rwlock,
+						clockid_t __clockid,
+						const struct timespec *__abstime)
+     attribute_hidden;
 extern int __pthread_mutex_unlock_internal (pthread_mutex_t *__mutex)
      attribute_hidden;
 extern int __pthread_mutex_unlock_usercnt (pthread_mutex_t *__mutex,
