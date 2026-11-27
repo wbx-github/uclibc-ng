@@ -27,6 +27,23 @@ double ddivl(long double x, long double y) { return (double) x / (double) y; }
 double dfmal(long double x, long double y, long double z)
 { return fma(x, y, z); }
 double dsqrtl(long double x) { return sqrt(x); }
+# elif defined C23_LDBL_IBM
+/* double-double is no IEEE format: compute in it and round once more,
+   as glibc's ldbl-128ibm does (NARROW_*_TRIVIAL).  */
+float faddl(long double x, long double y) { return (float) (x + y); }
+float fsubl(long double x, long double y) { return (float) (x - y); }
+float fmull(long double x, long double y) { return (float) (x * y); }
+float fdivl(long double x, long double y) { return (float) (x / y); }
+float ffmal(long double x, long double y, long double z)
+{ return (float) (x * y + z); }
+float fsqrtl(long double x) { return (float) sqrtl(x); }
+double daddl(long double x, long double y) { return (double) (x + y); }
+double dsubl(long double x, long double y) { return (double) (x - y); }
+double dmull(long double x, long double y) { return (double) (x * y); }
+double ddivl(long double x, long double y) { return (double) (x / y); }
+double dfmal(long double x, long double y, long double z)
+{ return (double) (x * y + z); }
+double dsqrtl(long double x) { return (double) sqrtl(x); }
 # elif defined C23_LDBL_BITS
 
 typedef long double LD;

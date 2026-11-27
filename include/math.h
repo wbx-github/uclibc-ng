@@ -375,9 +375,11 @@ enum
       ? __issignaling (x) : __issignalingl (x))
 # endif
 
-/* Nonzero if X is canonically encoded; only x87's long double has
-   encodings that are not.  */
-# if (defined __i386__ || defined __x86_64__) && !defined __NO_LONG_DOUBLE_MATH
+/* Nonzero if X is canonically encoded; only x87's long double and
+   IBM double-double have encodings that are not.  */
+# if (defined __i386__ || defined __x86_64__				      \
+      || (defined __LDBL_MANT_DIG__ && __LDBL_MANT_DIG__ == 106))	      \
+     && !defined __NO_LONG_DOUBLE_MATH
 extern int __iscanonicall (long double __x) __THROW __attribute__ ((__const__));
 #  define iscanonical(x) \
      (sizeof (x) == sizeof (long double)				      \

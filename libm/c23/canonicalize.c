@@ -109,6 +109,56 @@ int __issignalingl(long double x)
 	memcpy(&d, &x, sizeof d);
 	return __issignaling(d);
 }
+# elif defined C23_LDBL_IBM
+/* A double-double is canonical when the low part is zero, or small
+   enough that the high part is the value rounded to double; a NaN
+   ignores its low part, an infinity must have it zero.  glibc's
+   ldbl-128ibm rule.  */
+int __iscanonicall(long double x)
+{
+	double hi, lo;
+	uint64_t ix, iy;
+	int hexp, lexp, low_p2;
+
+	c23_ldunpack(&x, &hi, &lo);
+	ix = c23_asuint64(hi) & 0x7fffffffffffffffULL;
+	iy = c23_asuint64(lo) & 0x7fffffffffffffffULL;
+	if (iy == 0)
+		return 1;
+	hexp = (int) (ix >> 52);
+	if (hexp == 0x7ff)
+		return ix != 0x7ff0000000000000ULL;
+	lexp = (int) (iy >> 52);
+	if (lexp == 0) {				/* subnormal low part */
+		lexp = 12 - __builtin_clzll(iy);
+		low_p2 = iy == (1ULL << (51 + lexp));
+	} else
+		low_p2 = (iy & 0x000fffffffffffffULL) == 0;
+	return hexp - lexp > 53
+	       || (hexp - lexp == 53 && low_p2 && (ix & 1) == 0);
+}
+
+/* NaN-ness is the high part's.  */
+int __issignalingl(long double x)
+{
+	double hi, lo;
+
+	c23_ldunpack(&x, &hi, &lo);
+	return snan64(c23_asuint64(hi));
+}
+
+int canonicalizel(long double *cx, const long double *x)
+{
+	long double v = *x;
+
+	if (!__iscanonicall(v))
+		return 1;
+	if (__issignalingl(v))
+		*cx = v + v;
+	else
+		memcpy(cx, x, sizeof *cx);
+	return 0;
+}
 # elif defined C23_LDBL_BITS
 int canonicalizel(long double *cx, const long double *x)
 {

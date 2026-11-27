@@ -90,6 +90,66 @@ int totalordermagl(const long double *x, const long double *y)
 	memcpy(&b, y, sizeof b);
 	return totalordermag(&a, &b);
 }
+# elif defined C23_LDBL_IBM
+/* glibc's ldbl-128ibm order: the high parts decide; for equal finite
+   high parts the low parts do, unless both are zero.  */
+static int64_t ordered(double d)
+{
+	int64_t i = (int64_t) c23_asuint64(d);
+
+	return i ^ (int64_t) ((uint64_t) (i >> 63) >> 1);
+}
+
+static int low_le(const long double *x, const long double *y, int mag)
+{
+	double xh, xl, yh, yl;
+	uint64_t hx, lx, ly;
+
+	c23_ldunpack(x, &xh, &xl);
+	c23_ldunpack(y, &yh, &yl);
+	hx = c23_asuint64(xh);
+	if ((hx & 0x7fffffffffffffffULL) >= 0x7ff0000000000000ULL)
+		return 1;				/* NaN or infinity */
+	lx = c23_asuint64(xl);
+	ly = c23_asuint64(yl);
+	if (((lx | ly) & 0x7fffffffffffffffULL) == 0)
+		return 1;
+	if (mag) {		/* the low parts carry the high part's sign */
+		lx ^= hx & 0x8000000000000000ULL;
+		ly ^= c23_asuint64(yh) & 0x8000000000000000ULL;
+	}
+	memcpy(&xl, &lx, sizeof xl);
+	memcpy(&yl, &ly, sizeof yl);
+	return ordered(xl) <= ordered(yl);
+}
+
+int totalorderl(const long double *x, const long double *y)
+{
+	double xh, xl, yh, yl;
+	int64_t a, b;
+
+	c23_ldunpack(x, &xh, &xl);
+	c23_ldunpack(y, &yh, &yl);
+	a = ordered(xh);
+	b = ordered(yh);
+	if (a != b)
+		return a < b;
+	return low_le(x, y, 0);
+}
+
+int totalordermagl(const long double *x, const long double *y)
+{
+	double xh, xl, yh, yl;
+	uint64_t a, b;
+
+	c23_ldunpack(x, &xh, &xl);
+	c23_ldunpack(y, &yh, &yl);
+	a = c23_asuint64(xh) & 0x7fffffffffffffffULL;
+	b = c23_asuint64(yh) & 0x7fffffffffffffffULL;
+	if (a != b)
+		return a < b;
+	return low_le(x, y, 1);
+}
 # elif defined C23_LDBL_BITS
 static int mag_le(const struct c23_ldbits *a, const struct c23_ldbits *b)
 {

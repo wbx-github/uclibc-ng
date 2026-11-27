@@ -100,10 +100,36 @@ static __inline float c23_asfloat(uint32_t i)
 # define C23_SNAN_HIGH_BIT 0
 #endif
 
+/* IBM double-double (powerpc without --with-long-double-64): the value
+   is the sum of two doubles, the high one first in memory on either
+   byte order.  Not an IEEE format; as in glibc's ldbl-128ibm the
+   encoding functions look at the high part, and the narrowing ones
+   round the long double result once more.  */
+#if C23_LDBL && C23_LDBL_MANT_DIG == 106
+# define C23_LDBL_IBM 1
+static __inline void c23_ldunpack(const long double *x, double *hi, double *lo)
+{
+	double d[2];
+
+	memcpy(d, x, sizeof d);
+	*hi = d[0];
+	*lo = d[1];
+}
+
+static __inline void c23_ldpack(long double *x, double hi, double lo)
+{
+	double d[2];
+
+	d[0] = hi;
+	d[1] = lo;
+	memcpy(x, d, sizeof d);
+}
+#endif
+
 /* The long double encoding as sign and a magnitude that orders like
    the value: hi first, then lo.  Formats: like double (53), the 80-bit
    extended of x87 and m68k (64), binary128 (113).  */
-#if C23_LDBL && C23_LDBL_MANT_DIG != 53
+#if C23_LDBL && C23_LDBL_MANT_DIG != 53 && C23_LDBL_MANT_DIG != 106
 # include <endian.h>
 # if C23_LDBL_MANT_DIG == 64 || C23_LDBL_MANT_DIG == 113
 #  define C23_LDBL_BITS 1

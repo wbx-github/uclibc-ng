@@ -105,6 +105,37 @@ static int setpayloadl_common(long double *x, long double pl, int quiet)
 	memcpy(x, &d, sizeof d);
 	return r;
 }
+# elif defined C23_LDBL_IBM
+/* The high part carries the NaN and its 51-bit payload; the low part
+   of the result is zero, and a valid payload has a zero low part.
+   glibc's ldbl-128ibm.  */
+long double getpayloadl(const long double *x)
+{
+	double hi, lo;
+	uint64_t i;
+
+	c23_ldunpack(x, &hi, &lo);
+	i = c23_asuint64(hi);
+	if ((i & 0x7ff0000000000000ULL) != 0x7ff0000000000000ULL
+	    || !(i & 0x000fffffffffffffULL))
+		return -1;
+	return (long double) (i & 0x0007ffffffffffffULL);
+}
+
+static int setpayloadl_common(long double *x, long double pl, int quiet)
+{
+	double hi, lo, d;
+	int r;
+
+	c23_ldunpack(&pl, &hi, &lo);
+	if (lo != 0) {
+		*x = 0;
+		return 1;
+	}
+	r = setpayload_common(&d, hi, quiet);
+	c23_ldpack(x, d, 0.0);
+	return r;
+}
 # elif defined C23_LDBL_BITS
 /* The payload is the significand below the quiet bit: 62 bits in the
    80-bit format (the explicit integer bit stays set), 111 bits in
