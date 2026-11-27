@@ -417,13 +417,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 
 	if (x == 0) {				/* Handle 0 now to avoid false positive. */
 #ifdef __UCLIBC_HAVE_SIGNED_ZERO__
-		union {
-			double x;
-			struct {
-				unsigned int l1, l2;
-			} i;
-		} u = {x};
-		if (u.i.l1 ^ u.i.l2) { /* Handle 'signed' zero. */
+		if (signbit(x)) {	/* Handle 'signed' zero. */
 			*sign_str = '-';
 		}
 #endif /* __UCLIBC_HAVE_SIGNED_ZERO__ */
