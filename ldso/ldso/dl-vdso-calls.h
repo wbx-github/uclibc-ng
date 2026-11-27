@@ -59,8 +59,10 @@ static int __attribute__ ((used)) __generic_vdso_gettimeofday(struct timeval *tv
 {
     struct timespec ts;
     int __res = __generic_vdso_clock_gettime(CLOCK_REALTIME, &ts);
-    tv->tv_sec = ts.tv_sec;
-    tv->tv_usec = (suseconds_t)ts.tv_nsec / 1000;
+    if (__res == 0) {
+        tv->tv_sec = ts.tv_sec;
+        tv->tv_usec = (suseconds_t)ts.tv_nsec / 1000;
+    }
 
     return __res;
 }

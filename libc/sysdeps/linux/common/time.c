@@ -18,10 +18,8 @@ time_t time(time_t * t)
 	time_t result;
 	struct timeval tv;
 
-	/* In Linux, gettimeofday fails only on bad parameter.
-	 * We know that here parameter isn't bad.
-	 */
-	gettimeofday(&tv, NULL);
+	if (gettimeofday(&tv, NULL) < 0)
+		return (time_t) -1;
 	result = (time_t) tv.tv_sec;
 	if (t != NULL)
 		*t = result;

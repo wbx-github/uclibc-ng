@@ -27,8 +27,10 @@ int gettimeofday(struct timeval * tv, __timezone_ptr_t tz) {
 #else
     struct timespec __ts;
     int __ret = clock_gettime(CLOCK_REALTIME, &__ts);
-    tv->tv_sec = __ts.tv_sec;
-    tv->tv_usec = (suseconds_t)__ts.tv_nsec / 1000;
+    if (__ret == 0) {
+        tv->tv_sec = __ts.tv_sec;
+        tv->tv_usec = (suseconds_t)__ts.tv_nsec / 1000;
+    }
     return __ret;
 #endif
 }
