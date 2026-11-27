@@ -132,11 +132,15 @@ int
 dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
                                   size_t size, void *data), void *data)
 {
+  int ret = 0;
+
+  /* The program's own entry needs the same serialization as the modules
+     below: it is the one every unwind in a static program looks at.  */
+  __UCLIBC_MUTEX_CONDITIONAL_LOCK(_dl_iterate_phdr_lock, 1);
   if (_dl_phnum != 0)
     {
       /* This entry describes this statically-linked program itself.  */
       struct dl_phdr_info info;
-      int ret;
 #if defined(__FRV_FDPIC__) || defined(__BFIN_FDPIC__) || defined(__SH_FDPIC__) || defined(__FDPIC__)
       info.dlpi_addr.map = NULL;
       info.dlpi_addr.got_value = NULL;
@@ -156,11 +160,13 @@ dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
       info.dlpi_tls_modid = 0;
       info.dlpi_tls_data = NULL;
       ret = (*callback) (&info, sizeof (struct dl_phdr_info), data);
-      if (ret)
-        return ret;
     }
-   /* Then invoke callback on loaded modules, if any */
-  return __dl_iterate_phdr (callback, data);
+  /* Then invoke callback on loaded modules, if any; the lock is
+     recursive.  */
+  if (ret == 0)
+    ret = __dl_iterate_phdr (callback, data);
+  __UCLIBC_MUTEX_CONDITIONAL_UNLOCK(_dl_iterate_phdr_lock, 1);
+  return ret;
 }
 
 # endif
