@@ -17,6 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -187,6 +188,9 @@ fork (void)
     }
   else
     {
+      /* The handlers must not lose the errno of a failed fork.  */
+      int saved_errno = errno;
+
       assert (THREAD_GETMEM (THREAD_SELF, tid) == ppid);
 
       /* We execute this even if the 'fork' call failed.  */
@@ -204,6 +208,9 @@ fork (void)
 
 	  allp = allp->next;
 	}
+
+      if (pid < 0)
+	__set_errno (saved_errno);
     }
 
   return pid;
