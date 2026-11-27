@@ -19,12 +19,23 @@
 #include <stddef.h>
 #include <signal.h>
 #include <errno.h>
+#ifdef __UCLIBC_HAS_THREADS_NATIVE__
+# include <pthreadP.h>	/* SIGCANCEL */
+#endif
 
 /* Add SIGNO to SET.  */
 int
 sigaddset (sigset_t *set, int signo)
 {
-  if (set == NULL || signo <= 0 || signo >= NSIG)
+  if (set == NULL || signo <= 0 || signo >= NSIG
+#ifdef SIGCANCEL
+      /* Reserved by the implementation, as in sigfillset.  */
+      || signo == SIGCANCEL
+#endif
+#ifdef SIGSETXID
+      || signo == SIGSETXID
+#endif
+      )
     {
       __set_errno (EINVAL);
       return -1;
