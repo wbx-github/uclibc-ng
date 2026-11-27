@@ -62,21 +62,31 @@
 
 /* ---------------------------------------------------------------------- */
 
-#define COMMON_OFFSETS(X) \
-	offsetof(__locale_mmap_t, __PASTE3(lc_,X,_rows)), \
-	offsetof(__locale_mmap_t, __PASTE3(lc_,X,_item_offsets)), \
-	offsetof(__locale_mmap_t, __PASTE3(lc_,X,_item_idx)), \
-	offsetof(__locale_mmap_t, __PASTE3(lc_,X,_data)) \
-
-
-static const size_t common_tbl_offsets[__LOCALE_DATA_CATEGORIES*4] = {
-	COMMON_OFFSETS(ctype),
-	COMMON_OFFSETS(numeric),
-	COMMON_OFFSETS(monetary),
-	COMMON_OFFSETS(time),
-	0, 0, 0, 0,					/* collate */
-	COMMON_OFFSETS(messages),
+/* The offsets are written as offsetof() expressions so that the target
+ * compiler computes them: the host may pad __locale_mmap_t differently
+ * (e.g. CRIS aligns uint16_t to one byte, x86_64 to two). */
+static const char *const common_tbl_names[__LOCALE_DATA_CATEGORIES] = {
+	"ctype", "numeric", "monetary", "time", NULL /* collate */, "messages",
 };
+
+static void out_common_tbl_offsets(FILE *f)
+{
+	static const char *const field[4] = { "rows", "item_offsets", "item_idx", "data" };
+	size_t i, j;
+
+	fprintf(f, "{\t/* lc_common_tbl_offsets */");
+	for (i = 0 ; i < __LOCALE_DATA_CATEGORIES ; i++) {
+		fprintf(f, "\n\t");
+		for (j = 0 ; j < 4 ; j++) {
+			if (common_tbl_names[i])
+				fprintf(f, "offsetof(__locale_mmap_t, lc_%s_%s), ",
+						common_tbl_names[i], field[j]);
+			else
+				fprintf(f, "0, ");
+		}
+	}
+	fprintf(f, "\n},\n");
+}
 
 
 void out_uc(FILE *f, const unsigned char *p, size_t n, char *comment)
@@ -142,25 +152,6 @@ void out_i32(FILE *f, const int32_t *p, size_t n, char *comment)
 	}
 	fprintf(f, "\n},\n");
 }
-
-void out_size_t(FILE *f, const size_t *p, size_t n, char *comment)
-{
-	size_t i;
-
-	fprintf(f, "{\t/* %s */", comment);
-	for (i = 0 ; i < n ; i++) {
-		if (!(i & 3)) {
-			fprintf(f, "\n\t");
-		}
-		if (p[i]) {
-			fprintf(f, "%#010zx, ", p[i]);
-		} else {
-			fprintf(f, "%#10zx, ", p[i]);
-		}
-	}
-	fprintf(f, "\n},\n");
-}
-
 
 int main(int argc, char **argv)
 {
@@ -269,7 +260,7 @@ int main(int argc, char **argv)
 		out_uc(lso, co_buf, __LOCALE_DATA_CATEGORIES, "lc_common_item_offsets_LEN");
 	}
 
-	out_size_t(lso, common_tbl_offsets, __LOCALE_DATA_CATEGORIES * 4, "lc_common_tbl_offsets");
+	out_common_tbl_offsets(lso);
 	/* offsets from start of locale_mmap_t */
 	/* rows, item_offsets, item_idx, data */
 
