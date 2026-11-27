@@ -28,7 +28,6 @@
 __UCLIBC_MUTEX_STATIC(_dl_iterate_phdr_lock,
 		      PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP);
 
-#ifndef __ARCH_HAS_NO_SHARED__
 /* The kernel's vDSO is not a loaded module, so the list above does not
    cover it -- but the signal trampoline the kernel returns through lives
    there, and only the vDSO's own program headers describe its unwind
@@ -73,7 +72,6 @@ iterate_vdso (int (*callback) (struct dl_phdr_info *info, size_t size, void *dat
 	return 0;
 #endif
 }
-#endif
 
 static int
 __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void *data), void *data)
@@ -114,6 +112,8 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 	if (ret == 0)
 		ret = iterate_vdso (callback, data, _dl_load_adds, _dl_load_subs);
 	__UCLIBC_MUTEX_CONDITIONAL_UNLOCK(_dl_iterate_phdr_lock, 1);
+#else
+	ret = iterate_vdso (callback, data, 0, 0);
 #endif
 	return ret;
 }
