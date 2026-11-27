@@ -46,7 +46,7 @@ __END_NAMESPACE_STD
 /* Store the calling environment in ENV, also saving the
    signal mask if SAVEMASK is nonzero.  Return 0.
    This is the internal name for `sigsetjmp'.  */
-extern int __sigsetjmp (struct __jmp_buf_tag __env[1], int __savemask)
+extern int __sigsetjmp (struct __jmp_buf_tag *__env, int __savemask)
     __THROWNL;
 
 /* Store the calling environment in ENV, not saving the signal mask.
