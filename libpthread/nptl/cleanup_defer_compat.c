@@ -97,3 +97,7 @@ __pthread_cleanup_pop_restore (
     buffer->__routine (buffer->__arg);
 }
 strong_alias (__pthread_cleanup_pop_restore, _pthread_cleanup_pop_restore)
+
+/* longjmp unwinds the chain through a weak reference to
+   __pthread_cleanup_upto: whatever puts buffers on it must bring it.  */
+PTHREAD_STATIC_FN_REQUIRE (__pthread_cleanup_upto)
