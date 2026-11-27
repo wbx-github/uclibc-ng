@@ -392,3 +392,8 @@ __pthread_mutex_trylock (
   return EBUSY;
 }
 strong_alias (__pthread_mutex_trylock, pthread_mutex_trylock)
+
+/* uClibc's own locks unlock through __pthread_mutex_unlock, which
+   __uClibc_main.o defines as a dummy: a static program that locks a
+   mutex but never unlocks one must still get the real unlock.  */
+PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_unlock)

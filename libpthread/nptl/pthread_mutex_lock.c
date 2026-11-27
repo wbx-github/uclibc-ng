@@ -510,3 +510,8 @@ __pthread_mutex_cond_lock_adjust (
     ++mutex->__data.__count;
 }
 #endif
+
+/* uClibc's own locks unlock through __pthread_mutex_unlock, which
+   __uClibc_main.o defines as a dummy: a static program that locks a
+   mutex but never unlocks one must still get the real unlock.  */
+PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_unlock)

@@ -296,3 +296,9 @@ __pthread_mutex_unlock (
 }
 strong_alias (__pthread_mutex_unlock, pthread_mutex_unlock)
 strong_alias (__pthread_mutex_unlock, __pthread_mutex_unlock_internal)
+
+/* And the other way round: a static program that unlocks, or that only
+   trylocks (pthread_mutex_trylock.c requires this file), must not pair
+   the real unlock with the dummy __pthread_mutex_lock of __uClibc_main.o
+   for uClibc's own locks.  */
+PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_lock)
