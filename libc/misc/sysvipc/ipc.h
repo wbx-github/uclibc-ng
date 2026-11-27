@@ -102,6 +102,26 @@ static __always_inline void __ipc_mode_to_kernel (__mode_t *m)
 #endif
 }
 
+/* Whether __ipc_mode_to_kernel changes the value.  IPC_SET must then pass
+   a copy: the caller's buffer is input only and may be read-only.  */
+#if __BYTE_ORDER == __BIG_ENDIAN
+# define __IPC_MODE_TO_KERNEL_CHANGES \
+	(__IPC_KERNEL_MODE_NARROW && __IPC_KERNEL_MODE_PADS_BEHIND)
+#else
+# define __IPC_MODE_TO_KERNEL_CHANGES 0
+#endif
+
+/* Linux 4.17; not every arch's bits/ header has them yet.  */
+#ifndef MSG_STAT_ANY
+# define MSG_STAT_ANY 13
+#endif
+#ifndef SEM_STAT_ANY
+# define SEM_STAT_ANY 20
+#endif
+#ifndef SHM_STAT_ANY
+# define SHM_STAT_ANY 15
+#endif
+
 /* The *ctl calls hand these structures to the kernel as they are, so a
    mismatch is not a wrong value but a write past the caller's object: the
    kernel copies sizeof(its own) bytes and cannot know ours.  Ask at build

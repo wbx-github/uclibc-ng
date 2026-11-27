@@ -8,13 +8,6 @@
 #define SINGLE_THREAD_P 1
 #endif
 
-#if defined(__UCLIBC_USE_TIME64__)
-union msqun {
-    struct msqid_ds* buff;
-    void *__pad;
-};
-#endif
-
 #ifdef L_msgctl
 
 #ifdef __NR_msgctl
@@ -24,30 +17,32 @@ static __inline__ _syscall3(int, __libc_msgctl, int, msqid, int, cmd, struct msq
 /* Message queue control operation.  */
 int msgctl(int msqid, int cmd, struct msqid_ds *buf)
 {
-	if (buf != NULL && cmd == IPC_SET)
-		__ipc_mode_to_kernel(&buf->msg_perm.mode);
+	struct msqid_ds set;
+	int __ret;
+
+	if (cmd == IPC_SET && buf != NULL && __IPC_MODE_TO_KERNEL_CHANGES) {
+		set = *buf;
+		__ipc_mode_to_kernel(&set.msg_perm.mode);
+		buf = &set;
+	}
 #ifdef __NR_msgctl
-	int __ret = __libc_msgctl(msqid, cmd | __IPC_64, buf);
-#if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__) && (defined(__mips) || defined(__MSQID_DS_TIME64_SPLIT))
-	union msqun arg = {.buff = buf};
-	// When cmd is IPC_RMID, buf should be NULL.
-	if (arg.__pad != NULL) {
-		arg.buff->msg_stime = (__time_t)arg.buff->msg_stime_internal_1 | (__time_t)(arg.buff->msg_stime_internal_2) << 32;
-		arg.buff->msg_rtime = (__time_t)arg.buff->msg_rtime_internal_1 | (__time_t)(arg.buff->msg_rtime_internal_2) << 32;
-		arg.buff->msg_ctime = (__time_t)arg.buff->msg_ctime_internal_1 | (__time_t)(arg.buff->msg_ctime_internal_2) << 32;
-	}
-#endif
-	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
-		__ipc_mode_from_kernel(&buf->msg_perm.mode);
-	return __ret;
+	__ret = __libc_msgctl(msqid, cmd | __IPC_64, buf);
 #else
-	{
-	int __ret = __syscall_ipc(IPCOP_msgctl, msqid, cmd | __IPC_64, 0, buf, 0);
-	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
-		__ipc_mode_from_kernel(&buf->msg_perm.mode);
-	return __ret;
-	}
+	__ret = __syscall_ipc(IPCOP_msgctl, msqid, cmd | __IPC_64, 0, buf, 0);
 #endif
+	/* Only IPC_STAT, MSG_STAT and MSG_STAT_ANY fill a struct msqid_ds;
+	   IPC_SET reads it and IPC_INFO hands over a struct msginfo.  A
+	   failed call leaves the buffer alone.  */
+	if (__ret == -1 || buf == NULL
+	    || (cmd != IPC_STAT && cmd != MSG_STAT && cmd != MSG_STAT_ANY))
+		return __ret;
+#if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__) && (defined(__mips) || defined(__MSQID_DS_TIME64_SPLIT)) && defined(__NR_msgctl)
+	buf->msg_stime = (__time_t)buf->msg_stime_internal_1 | (__time_t)(buf->msg_stime_internal_2) << 32;
+	buf->msg_rtime = (__time_t)buf->msg_rtime_internal_1 | (__time_t)(buf->msg_rtime_internal_2) << 32;
+	buf->msg_ctime = (__time_t)buf->msg_ctime_internal_1 | (__time_t)(buf->msg_ctime_internal_2) << 32;
+#endif
+	__ipc_mode_from_kernel(&buf->msg_perm.mode);
+	return __ret;
 }
 #endif
 

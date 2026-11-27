@@ -25,13 +25,6 @@
 #include <syscall.h>
 #include "ipc.h"
 
-#if defined(__UCLIBC_USE_TIME64__)
-union shmun {
-    struct shmid_ds* buff;
-    void *__pad;
-};
-#endif
-
 #ifdef L_shmat
 /* Attach the shared memory segment associated with SHMID to the data
    segment of the calling process.  SHMADDR and SHMFLG determine how
@@ -65,38 +58,37 @@ static __always_inline _syscall3(int, __syscall_shmctl, int, shmid, int, cmd, st
 #endif
 int shmctl(int shmid, int cmd, struct shmid_ds *buf)
 {
-	if (buf != NULL && cmd == IPC_SET)
-		__ipc_mode_to_kernel(&buf->shm_perm.mode);
+	struct shmid_ds set;
+	int __ret;
+
+	if (cmd == IPC_SET && buf != NULL && __IPC_MODE_TO_KERNEL_CHANGES) {
+		set = *buf;
+		__ipc_mode_to_kernel(&set.shm_perm.mode);
+		buf = &set;
+	}
 #ifdef __NR_shmctl
-	int __ret = __syscall_shmctl(shmid, cmd | __IPC_64, buf);
-#if (__WORDSIZE == 32) && defined(__mips) && defined(__UCLIBC_USE_TIME64__)
-	union shmun arg = {.buff = buf};
-	// When cmd is IPC_RMID, buf should be NULL.
-        if (arg.__pad != NULL) {
-		arg.buff->shm_atime = (__time_t)arg.buff->shm_atime_internal_1 | (__time_t)(arg.buff->shm_atime_internal_2) << 32;
-		arg.buff->shm_dtime = (__time_t)arg.buff->shm_dtime_internal_1 | (__time_t)(arg.buff->shm_dtime_internal_2) << 32;
-		arg.buff->shm_ctime = (__time_t)arg.buff->shm_ctime_internal_1 | (__time_t)(arg.buff->shm_ctime_internal_2) << 32;
-	}
-#elif defined(__SHMID_DS_TIME64_SPLIT)
-	// combine the kernel's split time words
-	// When cmd is IPC_RMID, buf should be NULL.
-	if (buf != NULL) {
-		buf->shm_atime = (__time_t)buf->__shm_atime_internal_1 | (__time_t)(buf->__shm_atime_internal_2) << 32;
-		buf->shm_dtime = (__time_t)buf->__shm_dtime_internal_1 | (__time_t)(buf->__shm_dtime_internal_2) << 32;
-		buf->shm_ctime = (__time_t)buf->__shm_ctime_internal_1 | (__time_t)(buf->__shm_ctime_internal_2) << 32;
-	}
-#endif
-	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
-		__ipc_mode_from_kernel(&buf->shm_perm.mode);
-	return __ret;
+	__ret = __syscall_shmctl(shmid, cmd | __IPC_64, buf);
 #else
-    {
-	int __ret = __syscall_ipc(IPCOP_shmctl, shmid, cmd | __IPC_64, 0, buf, 0);
-	if (buf != NULL && (cmd == IPC_SET || cmd == IPC_STAT))
-		__ipc_mode_from_kernel(&buf->shm_perm.mode);
-	return __ret;
-    }
+	__ret = __syscall_ipc(IPCOP_shmctl, shmid, cmd | __IPC_64, 0, buf, 0);
 #endif
+	/* Only IPC_STAT, SHM_STAT and SHM_STAT_ANY fill a struct shmid_ds;
+	   IPC_SET reads it, IPC_INFO and SHM_INFO hand over other
+	   structures.  A failed call leaves the buffer alone.  */
+	if (__ret == -1 || buf == NULL
+	    || (cmd != IPC_STAT && cmd != SHM_STAT && cmd != SHM_STAT_ANY))
+		return __ret;
+#if defined(__NR_shmctl) && (__WORDSIZE == 32) && defined(__mips) && defined(__UCLIBC_USE_TIME64__)
+	buf->shm_atime = (__time_t)buf->shm_atime_internal_1 | (__time_t)(buf->shm_atime_internal_2) << 32;
+	buf->shm_dtime = (__time_t)buf->shm_dtime_internal_1 | (__time_t)(buf->shm_dtime_internal_2) << 32;
+	buf->shm_ctime = (__time_t)buf->shm_ctime_internal_1 | (__time_t)(buf->shm_ctime_internal_2) << 32;
+#elif defined(__NR_shmctl) && defined(__SHMID_DS_TIME64_SPLIT)
+	/* combine the kernel's split time words */
+	buf->shm_atime = (__time_t)buf->__shm_atime_internal_1 | (__time_t)(buf->__shm_atime_internal_2) << 32;
+	buf->shm_dtime = (__time_t)buf->__shm_dtime_internal_1 | (__time_t)(buf->__shm_dtime_internal_2) << 32;
+	buf->shm_ctime = (__time_t)buf->__shm_ctime_internal_1 | (__time_t)(buf->__shm_ctime_internal_2) << 32;
+#endif
+	__ipc_mode_from_kernel(&buf->shm_perm.mode);
+	return __ret;
 }
 #endif
 

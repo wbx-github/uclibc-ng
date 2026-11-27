@@ -65,6 +65,7 @@ int semctl(int semid, int semnum, int cmd, ...)
 #endif
 #ifdef SEM_STAT
     case SEM_STAT:
+    case SEM_STAT_ANY:
 #endif
 #ifdef SEM_INFO
     case SEM_INFO:
@@ -74,40 +75,40 @@ int semctl(int semid, int semnum, int cmd, ...)
 	va_end (ap);
 	break;
     }
-    if (cmd == IPC_SET && arg.buf != NULL)
-	__ipc_mode_to_kernel(&arg.buf->sem_perm.mode);
-#ifdef __NR_semctl
-    int __ret = __semctl(semid, semnum, cmd | __IPC_64, arg.__pad);
-#if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__)
-    /* IPC_STAT and SEM_STAT are the commands the kernel answers with a
-       struct semid_ds.  For every other one the fourth argument has a
-       different type, or the caller passed none at all.  */
-    if ((cmd == IPC_STAT || cmd == SEM_STAT) && arg.buf != NULL) {
-        arg.buf->sem_otime = (__time_t)arg.buf->__sem_otime_internal_1 | (__time_t)(arg.buf->__sem_otime_internal_2) << 32;
-        arg.buf->sem_ctime = (__time_t)arg.buf->__sem_ctime_internal_1 | (__time_t)(arg.buf->__sem_ctime_internal_2) << 32;
+    struct semid_ds set;
+    int __ret;
+
+    if (cmd == IPC_SET && arg.buf != NULL && __IPC_MODE_TO_KERNEL_CHANGES) {
+	set = *arg.buf;
+	__ipc_mode_to_kernel(&set.sem_perm.mode);
+	arg.buf = &set;
     }
-#endif
-    if ((cmd == IPC_SET || cmd == IPC_STAT) && arg.buf != NULL)
-	__ipc_mode_from_kernel(&arg.buf->sem_perm.mode);
-    return __ret;
-#else
-# if defined __sparc__ && defined __arch64__
+#ifdef __NR_semctl
+    __ret = __semctl(semid, semnum, cmd | __IPC_64, arg.__pad);
+#elif defined __sparc__ && defined __arch64__
     /* sparc64 has its own demultiplexer, sys_sparc_ipc() in
        arch/sparc/kernel/sys_sparc_64.c: for SEMCTL it hands ptr straight to
        sys_semctl() as the semun argument, where the generic sys_ipc() reads
        the argument through it with get_user().  Passing &arg there makes the
        kernel write the semid_ds over the union itself -- and it sets IPC_64
        on its own, so the bit does not matter.  */
-    return __syscall_ipc(IPCOP_semctl, semid, semnum, cmd, arg.__pad, NULL);
-# else
-    {
-	int __ret = __syscall_ipc(IPCOP_semctl, semid, semnum, cmd|__IPC_64, &arg, NULL);
-	if ((cmd == IPC_SET || cmd == IPC_STAT) && arg.buf != NULL)
-		__ipc_mode_from_kernel(&arg.buf->sem_perm.mode);
-	return __ret;
-    }
-# endif
+    __ret = __syscall_ipc(IPCOP_semctl, semid, semnum, cmd, arg.__pad, NULL);
+#else
+    __ret = __syscall_ipc(IPCOP_semctl, semid, semnum, cmd|__IPC_64, &arg, NULL);
 #endif
+    /* IPC_STAT, SEM_STAT and SEM_STAT_ANY are the commands the kernel
+       answers with a struct semid_ds; for every other one the fourth
+       argument has a different type or is input only.  A failed call
+       leaves it alone.  */
+    if (__ret == -1 || arg.buf == NULL
+	|| (cmd != IPC_STAT && cmd != SEM_STAT && cmd != SEM_STAT_ANY))
+	return __ret;
+#if (__WORDSIZE == 32) && defined(__UCLIBC_USE_TIME64__) && defined(__NR_semctl)
+    arg.buf->sem_otime = (__time_t)arg.buf->__sem_otime_internal_1 | (__time_t)(arg.buf->__sem_otime_internal_2) << 32;
+    arg.buf->sem_ctime = (__time_t)arg.buf->__sem_ctime_internal_1 | (__time_t)(arg.buf->__sem_ctime_internal_2) << 32;
+#endif
+    __ipc_mode_from_kernel(&arg.buf->sem_perm.mode);
+    return __ret;
 }
 #endif
 
